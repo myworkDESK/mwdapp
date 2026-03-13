@@ -1,32 +1,69 @@
-# JDesk Workspace — Cloudflare Pages Configuration
+# JDesk Workspace — Cloudflare Pages + Workers Configuration
+# Design system: see DESIGN_SYSTEM.md
 # Deploy: https://pages.cloudflare.com
 # Docs: https://developers.cloudflare.com/pages/
 
 name = "jdesk-workspace"
 compatibility_date = "2024-01-01"
+# Use the latest Workers runtime for best performance on Cloudflare Pages Functions
+compatibility_flags = ["nodejs_compat"]
 
 # ── Pages (static site) ──────────────────────────────────────
-# Set your build output directory for Cloudflare Pages.
-# Since this is a static HTML project with no build step, the root is used.
-# In the Cloudflare dashboard, set:
-#   Framework preset: None
-#   Build command:    (leave empty)
-#   Build output dir: /
-#   Root directory:   /
+# Framework preset: None
+# Build command:    (leave empty — zero-build static site)
+# Build output dir: /
+# Root directory:   /
+# All HTML, CSS, JS and assets are served as-is from Cloudflare's global CDN.
 
-# ── Workers (API routes) ─────────────────────────────────────
-# Uncomment and configure when adding Cloudflare Workers API endpoints.
+# ── Workers API routes ────────────────────────────────────────
+# Cloudflare Pages Functions live in /functions/*.js
+# Each file maps to an API endpoint, e.g.:
+#   functions/api/messages.js  → /api/messages
+#   functions/api/timeline.js  → /api/timeline
+#   functions/api/auth.js      → /api/auth
+#
+# Example function structure (create in /functions/api/):
+#   export async function onRequest(context) {
+#     const { request, env } = context;
+#     // Use env.DB (D1), env.SESSIONS (KV), env.MESSAGES (KV)
+#     return new Response(JSON.stringify({ ok: true }), {
+#       headers: { 'Content-Type': 'application/json' }
+#     });
+#   }
 
+# ── D1 Database (messages, timeline posts, sessions) ─────────
+# Uncomment and set your D1 database ID after creating it:
+#   wrangler d1 create jdesk-db
+#
 # [[d1_databases]]
 # binding = "DB"
 # database_name = "jdesk-db"
 # database_id = "YOUR_D1_DATABASE_ID"
 
-# [vars]
-# ENVIRONMENT = "production"
-# APP_NAME = "JDesk Workspace"
-
-# ── KV Namespaces ─────────────────────────────────────────────
+# ── KV Namespaces ────────────────────────────────────────────
+# Sessions store: user session tokens
+#   wrangler kv:namespace create "SESSIONS"
+#
 # [[kv_namespaces]]
 # binding = "SESSIONS"
 # id = "YOUR_KV_NAMESPACE_ID"
+
+# Messages cache (optional — supplement D1 with KV for fast reads)
+# [[kv_namespaces]]
+# binding = "MESSAGES"
+# id = "YOUR_MESSAGES_KV_ID"
+
+# ── Environment variables ─────────────────────────────────────
+# Set sensitive values via `wrangler secret put SECRET_NAME`
+# Non-sensitive vars can go here:
+#
+# [vars]
+# ENVIRONMENT = "production"
+# APP_NAME = "JDesk Workspace"
+# ALLOWED_EMAIL_DOMAIN = "yourcompany.com"
+
+# ── R2 Storage (file attachments in messaging) ────────────────
+# [[r2_buckets]]
+# binding = "ATTACHMENTS"
+# bucket_name = "jdesk-attachments"
+
