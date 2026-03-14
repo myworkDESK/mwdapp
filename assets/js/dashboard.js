@@ -11,20 +11,12 @@
     if (!el) return;
     var hour = new Date().getHours();
     var greeting = hour < 12 ? 'Good Morning' : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
-    var name = localStorage.getItem('workdesk_display_name') || 'J. Dela Cruz';
+    var name = localStorage.getItem('workdesk_display_name') || 'HR Admin';
     el.textContent = greeting + ', ' + name + '! \uD83D\uDC4B';
     // Update avatar initials
     var initials = name.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
     var avatarEls = document.querySelectorAll('.greeting-avatar, [id="topbarAvatar"]');
     avatarEls.forEach(function (el) { el.textContent = initials; });
-    var greetingAvatar = document.querySelector('.greeting-avatar');
-    if (greetingAvatar) greetingAvatar.textContent = initials;
-    var sidebarAvatar = document.querySelector('.sidebar-footer .employee-avatar');
-    if (sidebarAvatar) {
-      sidebarAvatar.textContent = initials;
-      var nameEl = sidebarAvatar.nextElementSibling;
-      if (nameEl) nameEl.querySelector('div').textContent = name;
-    }
   }
 
   // ── Sidebar navigation ────────────────────────────────────

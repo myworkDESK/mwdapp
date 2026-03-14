@@ -11,6 +11,10 @@
     return text.replace(/[&<>"']/g, function (m) { return map[m]; });
   }
 
+  function getCurrentUserName() {
+    return localStorage.getItem('workdesk_display_name') || 'HR Admin';
+  }
+
   function getRole() {
     // In production, read from session cookie / Worker response.
     // Here we read the data-role attribute set on <body>.
@@ -82,7 +86,7 @@
         '<div class="tl-post-avatar">JD</div>' +
         '<div class="tl-post-author-info">' +
           '<div class="tl-post-author-row">' +
-            '<span class="tl-post-author-name">J. Dela Cruz</span>' +
+            '<span class="tl-post-author-name">' + escapeHtml(getCurrentUserName()) + '</span>' +
             '<span class="tl-leader-badge" aria-label="Leader">Leader</span>' +
           '</div>' +
           '<div class="tl-post-role">HR Administrator · HR Department</div>' +
@@ -205,7 +209,7 @@
     comment.innerHTML =
       '<div class="tl-comment-avatar">JD</div>' +
       '<div class="tl-comment-bubble">' +
-        '<div class="tl-comment-author">J. Dela Cruz</div>' +
+        '<div class="tl-comment-author">' + escapeHtml(getCurrentUserName()) + '</div>' +
         '<div class="tl-comment-text">' + escapeHtml(text) + '</div>' +
         '<div class="tl-comment-time">Just now</div>' +
       '</div>';

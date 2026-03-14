@@ -294,17 +294,6 @@
         </li>
       </ul>
 
-      <!-- Sidebar Footer -->
-      <div class="sidebar-footer">
-        <div class="flex-center gap-8 mt-8">
-          <div class="employee-avatar" style="width:34px;height:34px;font-size:13px;">JD</div>
-          <div>
-            <div class="font-semibold text-sm">J. Dela Cruz</div>
-            <div class="text-xs text-muted">HR Administrator</div>
-          </div>
-        </div>
-      </div>
-
     </aside>
 
     <!-- ===== MAIN WRAPPER ===== -->
@@ -332,11 +321,52 @@
           </button>
 
           <!-- Notifications -->
-          <button class="topbar-icon-btn badge" aria-label="Notifications">
-            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-            </svg>
-          </button>
+          <div class="topbar-notif-wrap" id="notifWrap">
+            <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+              <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </button>
+            <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+              <div class="notif-header">
+                <span class="notif-title">Notifications</span>
+                <button class="notif-mark-all" id="notifMarkAll">Mark all as read</button>
+              </div>
+              <div class="notif-list">
+                <div class="notif-item unread" role="menuitem" data-href="leave.html">
+                  <div class="notif-icon">📋</div>
+                  <div class="notif-content">
+                    <div class="notif-text">New leave request from <strong>Maria Santos</strong></div>
+                    <div class="notif-time">2 min ago</div>
+                  </div>
+                </div>
+                <div class="notif-item unread" role="menuitem" data-href="attendance.html">
+                  <div class="notif-icon">⏰</div>
+                  <div class="notif-content">
+                    <div class="notif-text"><strong>3 employees</strong> are late today</div>
+                    <div class="notif-time">15 min ago</div>
+                  </div>
+                </div>
+                <div class="notif-item" role="menuitem" data-href="payroll.html">
+                  <div class="notif-icon">💰</div>
+                  <div class="notif-content">
+                    <div class="notif-text">Payroll for <strong>March 2025</strong> is ready for review</div>
+                    <div class="notif-time">1 hr ago</div>
+                  </div>
+                </div>
+                <div class="notif-item" role="menuitem" data-href="employees.html">
+                  <div class="notif-icon">👤</div>
+                  <div class="notif-content">
+                    <div class="notif-text"><strong>2 new employees</strong> added to the system</div>
+                    <div class="notif-time">3 hr ago</div>
+                  </div>
+                </div>
+              </div>
+              <div class="notif-footer">
+                <a href="dashboard.html" class="notif-view-all">View all notifications</a>
+              </div>
+            </div>
+          </div>
 
           <!-- Status -->
           <div class="topbar-status-wrap" id="statusWrap">
@@ -361,7 +391,7 @@
           </div>
 
           <!-- Profile -->
-          <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" title="J. Dela Cruz">
+          <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" title="HR Admin">
             JD
           </div>
         </div>
@@ -373,7 +403,7 @@
         <!-- Greeting Banner -->
         <div class="greeting-card">
           <div>
-            <h2 id="greetingText">Good Morning, J. Dela Cruz! 👋</h2>
+            <h2 id="greetingText">Good Morning! 👋</h2>
             <p>Here's what's happening in your workspace today.</p>
           </div>
           <div class="greeting-avatar">JD</div>
@@ -789,6 +819,33 @@
           statusBtn.setAttribute('aria-expanded','false');
         });
       });
+    }
+
+    // Notification dropdown
+    var notifBtn  = document.getElementById('notifBtn');
+    var notifDrop = document.getElementById('notifDropdown');
+    if (notifBtn) {
+      notifBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var open = notifDrop.classList.toggle('open');
+        notifBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (statusDrop) { statusDrop.classList.remove('open'); }
+      });
+      document.addEventListener('click', function(){ notifDrop.classList.remove('open'); notifBtn.setAttribute('aria-expanded','false'); });
+      notifDrop.querySelectorAll('.notif-item').forEach(function(item){
+        item.addEventListener('click', function(){
+          item.classList.remove('unread');
+          var href = item.dataset.href;
+          if (href) window.location.href = href;
+        });
+      });
+      var markAllBtn = document.getElementById('notifMarkAll');
+      if (markAllBtn) {
+        markAllBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          notifDrop.querySelectorAll('.notif-item.unread').forEach(function(i){ i.classList.remove('unread'); });
+        });
+      }
     }
   });
 }());
