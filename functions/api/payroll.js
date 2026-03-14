@@ -1,5 +1,5 @@
 /**
- * JDesk — /api/payroll
+ * WorkDesk — /api/payroll
  * Cloudflare Pages Function
  *
  * GET  /api/payroll        — List payroll ledger

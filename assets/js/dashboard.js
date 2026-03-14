@@ -1,4 +1,4 @@
-// JDesk Workspace — Dashboard JS
+// WorkDesk — Dashboard JS
 // Handles greeting, sidebar navigation, quick actions, and stat card animations.
 // Cloudflare Pages compatible — no external dependencies, pure ES6.
 
@@ -11,7 +11,7 @@
     if (!el) return;
     var hour = new Date().getHours();
     var greeting = hour < 12 ? 'Good Morning' : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
-    var name = localStorage.getItem('jdesk_display_name') || 'J. Dela Cruz';
+    var name = localStorage.getItem('workdesk_display_name') || 'J. Dela Cruz';
     el.textContent = greeting + ', ' + name + '! \uD83D\uDC4B';
     // Update avatar initials
     var initials = name.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();

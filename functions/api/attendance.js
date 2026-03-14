@@ -1,5 +1,5 @@
 /**
- * JDesk — /api/attendance
+ * WorkDesk — /api/attendance
  * Cloudflare Pages Function
  *
  * GET  /api/attendance            — List attendance log (with optional ?date= filter)

@@ -1,5 +1,5 @@
 /**
- * JDesk — /api/auth
+ * WorkDesk — /api/auth
  * Cloudflare Pages Function
  *
  * POST /api/auth  — Authenticate a user
@@ -46,9 +46,9 @@ export async function onRequest(context) {
     //   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
     //   const valid = user && await verifyPassword(password, user.password_hash);
     //
-    // Demo: accept any @jdesk.ph address with password "jdesk2025"
-    const isDemoUser = email.endsWith('@jdesk.ph') || email.endsWith('@company.com');
-    const isDemoPass = password === 'jdesk2025';
+    // Demo: accept any @workdesk.ph address with password "workdesk2025"
+    const isDemoUser = email.endsWith('@workdesk.ph') || email.endsWith('@company.com');
+    const isDemoPass = password === 'workdesk2025';
     const valid = isDemoUser && isDemoPass;
 
     if (!valid) {

@@ -1,5 +1,5 @@
 {
-  "name": "JDesk Workspace",
+  "name": "WorkDesk",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "customizations": {
     "vscode": {
@@ -38,6 +38,6 @@
     }
   },
   "forwardPorts": [5500, 8787],
-  "postCreateCommand": "npm install -g wrangler && echo '✅ JDesk Workspace dev environment ready!'",
+  "postCreateCommand": "npm install -g wrangler && echo '✅ WorkDesk dev environment ready!'",
   "remoteUser": "node"
 }

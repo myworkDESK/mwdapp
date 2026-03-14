@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JDesk — Employees</title>
+  <title>WorkDesk — Employees</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -90,8 +90,8 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-logo">
-      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="JDesk Logo" />
-      JDesk
+      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="WorkDesk Logo" />
+      WorkDesk
     </div>
     <span class="sidebar-section-label">Main</span>
     <ul class="sidebar-menu" role="list">
@@ -349,27 +349,27 @@
 
   // ── Seed data ────────────────────────────────────────────────────────────
   var SEED = [
-    { id:'EMP-001', first:'Maria', last:'Santos',  dept:'HR',          pos:'HR Specialist',      start:'2025-02-01', status:'Active',    phone:'+63 912 000 0001', email:'maria.santos@jdesk.ph' },
-    { id:'EMP-002', first:'Jose',  last:'Reyes',   dept:'Engineering', pos:'Software Engineer',   start:'2025-01-15', status:'Active',    phone:'+63 912 000 0002', email:'jose.reyes@jdesk.ph' },
-    { id:'EMP-003', first:'Liza',  last:'Cruz',    dept:'Finance',     pos:'Accountant',          start:'2025-01-20', status:'Probation', phone:'+63 912 000 0003', email:'liza.cruz@jdesk.ph' },
-    { id:'EMP-004', first:'Ben',   last:'Mendoza', dept:'Operations',  pos:'Operations Lead',     start:'2024-12-01', status:'Active',    phone:'+63 912 000 0004', email:'ben.mendoza@jdesk.ph' },
-    { id:'EMP-005', first:'Ana',   last:'Garcia',  dept:'Marketing',   pos:'Marketing Manager',   start:'2024-11-10', status:'Active',    phone:'+63 912 000 0005', email:'ana.garcia@jdesk.ph' },
-    { id:'EMP-006', first:'Carlos',last:'Ramos',   dept:'Sales',       pos:'Sales Representative',start:'2024-10-05', status:'Active',    phone:'+63 912 000 0006', email:'carlos.ramos@jdesk.ph' },
-    { id:'EMP-007', first:'Rosa',  last:'Torres',  dept:'Engineering', pos:'QA Engineer',         start:'2024-09-01', status:'Active',    phone:'+63 912 000 0007', email:'rosa.torres@jdesk.ph' },
-    { id:'EMP-008', first:'Marco', last:'Villanueva',dept:'HR',        pos:'Recruiter',           start:'2024-08-15', status:'On Leave',  phone:'+63 912 000 0008', email:'marco.villanueva@jdesk.ph' },
-    { id:'EMP-009', first:'Clara', last:'Bautista',dept:'Finance',     pos:'Finance Analyst',     start:'2024-07-10', status:'Active',    phone:'+63 912 000 0009', email:'clara.bautista@jdesk.ph' },
-    { id:'EMP-010', first:'Diego', last:'Fernandez',dept:'Engineering',pos:'Backend Developer',   start:'2024-06-01', status:'Active',    phone:'+63 912 000 0010', email:'diego.fernandez@jdesk.ph' },
-    { id:'EMP-011', first:'Sofia', last:'Aquino',  dept:'Operations',  pos:'Admin Assistant',     start:'2024-05-20', status:'Active',    phone:'+63 912 000 0011', email:'sofia.aquino@jdesk.ph' },
-    { id:'EMP-012', first:'Miguel',last:'Pascual', dept:'Marketing',   pos:'Content Strategist',  start:'2024-04-01', status:'Active',    phone:'+63 912 000 0012', email:'miguel.pascual@jdesk.ph' },
+    { id:'EMP-001', first:'Maria', last:'Santos',  dept:'HR',          pos:'HR Specialist',      start:'2025-02-01', status:'Active',    phone:'+63 912 000 0001', email:'maria.santos@workdesk.ph' },
+    { id:'EMP-002', first:'Jose',  last:'Reyes',   dept:'Engineering', pos:'Software Engineer',   start:'2025-01-15', status:'Active',    phone:'+63 912 000 0002', email:'jose.reyes@workdesk.ph' },
+    { id:'EMP-003', first:'Liza',  last:'Cruz',    dept:'Finance',     pos:'Accountant',          start:'2025-01-20', status:'Probation', phone:'+63 912 000 0003', email:'liza.cruz@workdesk.ph' },
+    { id:'EMP-004', first:'Ben',   last:'Mendoza', dept:'Operations',  pos:'Operations Lead',     start:'2024-12-01', status:'Active',    phone:'+63 912 000 0004', email:'ben.mendoza@workdesk.ph' },
+    { id:'EMP-005', first:'Ana',   last:'Garcia',  dept:'Marketing',   pos:'Marketing Manager',   start:'2024-11-10', status:'Active',    phone:'+63 912 000 0005', email:'ana.garcia@workdesk.ph' },
+    { id:'EMP-006', first:'Carlos',last:'Ramos',   dept:'Sales',       pos:'Sales Representative',start:'2024-10-05', status:'Active',    phone:'+63 912 000 0006', email:'carlos.ramos@workdesk.ph' },
+    { id:'EMP-007', first:'Rosa',  last:'Torres',  dept:'Engineering', pos:'QA Engineer',         start:'2024-09-01', status:'Active',    phone:'+63 912 000 0007', email:'rosa.torres@workdesk.ph' },
+    { id:'EMP-008', first:'Marco', last:'Villanueva',dept:'HR',        pos:'Recruiter',           start:'2024-08-15', status:'On Leave',  phone:'+63 912 000 0008', email:'marco.villanueva@workdesk.ph' },
+    { id:'EMP-009', first:'Clara', last:'Bautista',dept:'Finance',     pos:'Finance Analyst',     start:'2024-07-10', status:'Active',    phone:'+63 912 000 0009', email:'clara.bautista@workdesk.ph' },
+    { id:'EMP-010', first:'Diego', last:'Fernandez',dept:'Engineering',pos:'Backend Developer',   start:'2024-06-01', status:'Active',    phone:'+63 912 000 0010', email:'diego.fernandez@workdesk.ph' },
+    { id:'EMP-011', first:'Sofia', last:'Aquino',  dept:'Operations',  pos:'Admin Assistant',     start:'2024-05-20', status:'Active',    phone:'+63 912 000 0011', email:'sofia.aquino@workdesk.ph' },
+    { id:'EMP-012', first:'Miguel',last:'Pascual', dept:'Marketing',   pos:'Content Strategist',  start:'2024-04-01', status:'Active',    phone:'+63 912 000 0012', email:'miguel.pascual@workdesk.ph' },
   ];
 
-  var employees = JSON.parse(localStorage.getItem('jdesk_employees') || 'null') || SEED;
+  var employees = JSON.parse(localStorage.getItem('workdesk_employees') || 'null') || SEED;
   var currentPage = 1;
   var PAGE_SIZE = 8;
   var editingId = null;
   var viewingId = null;
 
-  function save() { localStorage.setItem('jdesk_employees', JSON.stringify(employees)); }
+  function save() { localStorage.setItem('workdesk_employees', JSON.stringify(employees)); }
   function toast(msg) {
     var el = document.getElementById('toast');
     el.textContent = msg;
@@ -377,7 +377,7 @@
     setTimeout(function () { el.classList.remove('show'); }, 3000);
   }
   function initUserInfo() {
-    var name = localStorage.getItem('jdesk_display_name') || 'J. Dela Cruz';
+    var name = localStorage.getItem('workdesk_display_name') || 'J. Dela Cruz';
     var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     document.getElementById('sidebarAvatar').textContent = initials;
     document.getElementById('sidebarName').textContent = name;
@@ -614,7 +614,7 @@
     // Sync to API
     fetch('/api/employees', {
       method: editingId ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('jdesk_token')||'') },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('workdesk_token')||'') },
       body: JSON.stringify({ first, last, email, dept, pos, start, status, phone })
     }).catch(function(){});
   });
@@ -631,7 +631,7 @@
     renderCharts();
     renderTable();
     // Load from API (background refresh)
-    fetch('/api/employees', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('jdesk_token')||'') } })
+    fetch('/api/employees', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('workdesk_token')||'') } })
       .then(function(r){ return r.json(); })
       .then(function(data){ if (data && Array.isArray(data.employees) && data.employees.length) { employees = data.employees; save(); renderTable(); renderCharts(); updateStats(); } })
       .catch(function(){});

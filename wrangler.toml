@@ -1,4 +1,4 @@
-# JDesk Workspace — Cloudflare Pages + Workers Configuration
+# WorkDesk — Cloudflare Pages + Workers Configuration
 # Design system: see DESIGN_SYSTEM.md
 # Deploy: https://pages.cloudflare.com
 # Docs: https://developers.cloudflare.com/pages/
@@ -41,11 +41,11 @@ not_found_handling = "single-page-application"
 
 # ── D1 Database (messages, timeline posts, sessions) ─────────
 # Uncomment and set your D1 database ID after creating it:
-#   wrangler d1 create jdesk-db
+#   wrangler d1 create workdesk-db
 #
 # [[d1_databases]]
 # binding = "DB"
-# database_name = "jdesk-db"
+# database_name = "workdesk-db"
 # database_id = "YOUR_D1_DATABASE_ID"
 
 # ── KV Namespaces ────────────────────────────────────────────
@@ -67,11 +67,11 @@ not_found_handling = "single-page-application"
 #
 # [vars]
 # ENVIRONMENT = "production"
-# APP_NAME = "JDesk Workspace"
+# APP_NAME = "WorkDesk"
 # ALLOWED_EMAIL_DOMAIN = "yourcompany.com"
 
 # ── R2 Storage (file attachments in messaging) ────────────────
 # [[r2_buckets]]
 # binding = "ATTACHMENTS"
-# bucket_name = "jdesk-attachments"
+# bucket_name = "workdesk-attachments"
 

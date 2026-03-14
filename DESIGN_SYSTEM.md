@@ -1,4 +1,4 @@
-# JDesk Workspace — Design System & Theme Protection
+# WorkDesk — Design System & Theme Protection
 
 > **This file is the single source of truth for all visual design decisions.**
 > All future changes to styling, colour, typography, layout, or animation **must** align
@@ -11,7 +11,7 @@
 
 | Property | Value |
 |---|---|
-| Product name | **JDesk Workspace** |
+| Product name | **WorkDesk** |
 | Tagline | "HR made simple" |
 | Primary brand colour | `#3A8F7B` (teal-green) |
 | Logo type | SVG wordmark + checkmark icon |

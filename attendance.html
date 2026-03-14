@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JDesk — Attendance</title>
+  <title>WorkDesk — Attendance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -70,8 +70,8 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-logo">
-      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="JDesk Logo" />
-      JDesk
+      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="WorkDesk Logo" />
+      WorkDesk
     </div>
     <span class="sidebar-section-label">Main</span>
     <ul class="sidebar-menu" role="list">
@@ -259,7 +259,7 @@
   // Seed attendance log
   var today = new Date();
   var SEED_LOG = (function(){
-    var employees = JSON.parse(localStorage.getItem('jdesk_employees')||'[]');
+    var employees = JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
     if (!employees.length) employees = [
       {id:'EMP-001',first:'Maria',last:'Santos'},{id:'EMP-002',first:'Jose',last:'Reyes'},
       {id:'EMP-003',first:'Liza',last:'Cruz'},{id:'EMP-004',first:'Ben',last:'Mendoza'},
@@ -284,8 +284,8 @@
     return log;
   })();
 
-  var log = JSON.parse(localStorage.getItem('jdesk_att_log')||'null') || SEED_LOG;
-  function saveLog() { localStorage.setItem('jdesk_att_log', JSON.stringify(log)); }
+  var log = JSON.parse(localStorage.getItem('workdesk_att_log')||'null') || SEED_LOG;
+  function saveLog() { localStorage.setItem('workdesk_att_log', JSON.stringify(log)); }
 
   function toast(msg) {
     var el = document.getElementById('toast');
@@ -295,7 +295,7 @@
   }
 
   function initUserInfo() {
-    var name = localStorage.getItem('jdesk_display_name')||'J. Dela Cruz';
+    var name = localStorage.getItem('workdesk_display_name')||'J. Dela Cruz';
     var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     document.getElementById('sidebarAvatar').textContent = initials;
     document.getElementById('sidebarName').textContent = name;
@@ -317,12 +317,12 @@
   setInterval(updateClock, 1000);
 
   // ── Clock In/Out ──────────────────────────────────────────────────────────
-  var clockedIn = !!localStorage.getItem('jdesk_clocked_in');
+  var clockedIn = !!localStorage.getItem('workdesk_clocked_in');
   function syncClockBtns() {
     document.getElementById('clockInBtn').disabled  = clockedIn;
     document.getElementById('clockOutBtn').disabled = !clockedIn;
     document.getElementById('clockStatus').textContent = clockedIn
-      ? 'Clocked in at ' + (localStorage.getItem('jdesk_clock_in_time')||'—')
+      ? 'Clocked in at ' + (localStorage.getItem('workdesk_clock_in_time')||'—')
       : 'Not clocked in today';
   }
   syncClockBtns();
@@ -333,11 +333,11 @@
     var h = String(now.getHours()%12||12).padStart(2,'0');
     var m = String(now.getMinutes()).padStart(2,'0');
     var t = h+':'+m+' '+ampm;
-    localStorage.setItem('jdesk_clocked_in','1');
-    localStorage.setItem('jdesk_clock_in_time', t);
+    localStorage.setItem('workdesk_clocked_in','1');
+    localStorage.setItem('workdesk_clock_in_time', t);
     clockedIn = true; syncClockBtns();
     toast('Clocked in at ' + t);
-    fetch('/api/attendance/clock-in', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')}, body: JSON.stringify({time: t, date: now.toISOString().slice(0,10)}) }).catch(function(){});
+    fetch('/api/attendance/clock-in', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t, date: now.toISOString().slice(0,10)}) }).catch(function(){});
   });
   document.getElementById('clockOutBtn').addEventListener('click', function(){
     var now = new Date();
@@ -345,10 +345,10 @@
     var h = String(now.getHours()%12||12).padStart(2,'0');
     var m = String(now.getMinutes()).padStart(2,'0');
     var t = h+':'+m+' '+ampm;
-    localStorage.removeItem('jdesk_clocked_in');
+    localStorage.removeItem('workdesk_clocked_in');
     clockedIn = false; syncClockBtns();
     toast('Clocked out at ' + t);
-    fetch('/api/attendance/clock-out', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')}, body: JSON.stringify({time: t}) }).catch(function(){});
+    fetch('/api/attendance/clock-out', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t}) }).catch(function(){});
   });
 
   // ── Charts ────────────────────────────────────────────────────────────────
@@ -442,7 +442,7 @@
     log.push({ id:'MANUAL', name: name, date: date, timeIn: timeIn, timeOut: timeOut, hours: '8h', status: status, remarks: 'Manual entry' });
     saveLog(); renderTable();
     toast('Manual entry added.');
-    fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')}, body: JSON.stringify({name,date,timeIn,timeOut,status}) }).catch(function(){});
+    fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({name,date,timeIn,timeOut,status}) }).catch(function(){});
   });
 
   // ── Filter events ─────────────────────────────────────────────────────────
@@ -457,7 +457,7 @@
     renderWeekChart();
     renderMonthChart();
     renderTable();
-    fetch('/api/attendance',{headers:{'Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')}})
+    fetch('/api/attendance',{headers:{'Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}})
       .then(function(r){return r.json();})
       .then(function(data){ if(data&&Array.isArray(data.log)&&data.log.length){ log=data.log; saveLog(); renderTable(); renderWeekChart(); renderMonthChart(); } })
       .catch(function(){});

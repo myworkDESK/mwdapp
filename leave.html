@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JDesk — Leave Management</title>
+  <title>WorkDesk — Leave Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -48,8 +48,8 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-logo">
-      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="JDesk Logo" />
-      JDesk
+      <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="WorkDesk Logo" />
+      WorkDesk
     </div>
     <span class="sidebar-section-label">Main</span>
     <ul class="sidebar-menu" role="list">
@@ -233,8 +233,8 @@
     { id:'LV-008', empId:'EMP-008', name:'Marco Villanueva',type:'Emergency Leave', from:'2025-02-15',to:'2025-02-17', days:3, status:'Approved', filed:'2025-02-14', reason:'Hospitalization' },
   ];
 
-  var requests = JSON.parse(localStorage.getItem('jdesk_leave_requests')||'null') || SEED_REQUESTS;
-  function saveReqs() { localStorage.setItem('jdesk_leave_requests', JSON.stringify(requests)); }
+  var requests = JSON.parse(localStorage.getItem('workdesk_leave_requests')||'null') || SEED_REQUESTS;
+  function saveReqs() { localStorage.setItem('workdesk_leave_requests', JSON.stringify(requests)); }
 
   var BALANCES = { 'Vacation Leave': { total:15, used:5 }, 'Sick Leave': { total:10, used:3 }, 'Emergency Leave': { total:5, used:1 } };
 
@@ -245,7 +245,7 @@
     setTimeout(function(){el.classList.remove('show');},3000);
   }
   function initUserInfo() {
-    var name = localStorage.getItem('jdesk_display_name')||'J. Dela Cruz';
+    var name = localStorage.getItem('workdesk_display_name')||'J. Dela Cruz';
     var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     document.getElementById('sidebarAvatar').textContent = initials;
     document.getElementById('sidebarName').textContent = name;
@@ -309,14 +309,14 @@
       btn.addEventListener('click', function(){
         var r = requests.find(function(x){return x.id===btn.dataset.id;});
         if (r) { r.status='Approved'; saveReqs(); renderTable(); renderSummary(); toast('Leave approved.'); }
-        fetch('/api/leave/approve',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
+        fetch('/api/leave/approve',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
       });
     });
     document.querySelectorAll('.reject-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
         var r = requests.find(function(x){return x.id===btn.dataset.id;});
         if (r) { r.status='Rejected'; saveReqs(); renderTable(); renderSummary(); toast('Leave rejected.'); }
-        fetch('/api/leave/reject',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
+        fetch('/api/leave/reject',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
       });
     });
   }
@@ -355,7 +355,7 @@
 
   // ── Populate employee dropdown ────────────────────────────────────────────
   function populateEmployees() {
-    var employees = JSON.parse(localStorage.getItem('jdesk_employees')||'[]');
+    var employees = JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
     var sel = document.getElementById('lEmployee');
     sel.innerHTML = '<option value="">Select Employee…</option>';
     employees.forEach(function(e){
@@ -388,7 +388,7 @@
     document.getElementById('leaveModal').classList.remove('open');
     renderTable(); renderSummary();
     toast('Leave request filed successfully.');
-    fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')},body:JSON.stringify({empId:emp.value,name:emp.text,type,from,to,days,reason})}).catch(function(){});
+    fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({empId:emp.value,name:emp.text,type,from,to,days,reason})}).catch(function(){});
   });
 
   // ── Export ────────────────────────────────────────────────────────────────
@@ -412,7 +412,7 @@
     renderBalances();
     renderTable();
     renderSummary();
-    fetch('/api/leave',{headers:{'Authorization':'Bearer '+(localStorage.getItem('jdesk_token')||'')}})
+    fetch('/api/leave',{headers:{'Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}})
       .then(function(r){return r.json();})
       .then(function(data){ if(data&&Array.isArray(data.requests)&&data.requests.length){ requests=data.requests; saveReqs(); renderTable(); renderSummary(); } })
       .catch(function(){});

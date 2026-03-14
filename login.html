@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JDesk — Sign In</title>
+  <title>WorkDesk — Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -503,7 +503,7 @@
           <path d="M4 10l4.5 4.5L16 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="logo-name">JDESK</span>
+      <span class="logo-name">WorkDesk</span>
     </div>
 
     <!-- Left hero panel: welcome message & rotating quote (left half, upper-center) -->
@@ -621,7 +621,7 @@
           <a href="#contact">Contact HR Team.</a>
         </div>
 
-        <div class="card-copyright">© 2024 JDESK. All rights reserved.</div>
+        <div class="card-copyright">© 2024 WorkDesk. All rights reserved.</div>
 
       </div>
     </div>
@@ -694,7 +694,7 @@
     }
 
     // ── Load stored display name ─────────────────────────────────────────────
-    var storedName = localStorage.getItem('jdesk_display_name');
+    var storedName = localStorage.getItem('workdesk_display_name');
     if (storedName) {
       document.getElementById('userName').textContent = storedName;
     }
@@ -748,7 +748,7 @@
       var displayName = namePart.split(/[._-]/).map(function (w) {
         return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
       }).join(' ');
-      localStorage.setItem('jdesk_display_name', displayName);
+      localStorage.setItem('workdesk_display_name', displayName);
 
       btn.textContent = 'Signing in\u2026';
       btn.disabled    = true;
@@ -762,7 +762,7 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data && data.ok) {
-          if (data.token) localStorage.setItem('jdesk_token', data.token);
+          if (data.token) localStorage.setItem('workdesk_token', data.token);
           window.location.href = 'dashboard.html';
         } else {
           showToast(data && data.message ? data.message : 'Invalid credentials. Please try again.');

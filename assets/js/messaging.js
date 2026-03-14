@@ -1,4 +1,4 @@
-// JDesk Workspace — Messaging JS
+// WorkDesk — Messaging JS
 // Handles thread selection, tab switching, message sending, and new chat modal.
 // Cloudflare Pages compatible — no external dependencies, pure ES6.
 

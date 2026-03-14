@@ -1,5 +1,5 @@
 /**
- * JDesk — /api/employees
+ * WorkDesk — /api/employees
  * Cloudflare Pages Function
  *
  * GET    /api/employees           — List all employees

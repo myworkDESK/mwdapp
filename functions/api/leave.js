@@ -1,5 +1,5 @@
 /**
- * JDesk — /api/leave
+ * WorkDesk — /api/leave
  * Cloudflare Pages Function
  *
  * GET  /api/leave           — List leave requests

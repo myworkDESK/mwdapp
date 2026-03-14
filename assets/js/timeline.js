@@ -1,4 +1,4 @@
-// JDesk Workspace — Timeline JS
+// WorkDesk — Timeline JS
 // Handles role-based compose visibility, reactions, comments, and new post creation.
 // Cloudflare Pages compatible — no external dependencies, pure ES6.
 
