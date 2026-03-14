@@ -160,6 +160,27 @@
         <button class="topbar-icon-btn badge" aria-label="Notifications">
           <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         </button>
+        <!-- Status -->
+        <div class="topbar-status-wrap" id="statusWrap">
+          <button class="status-badge" id="statusBadgeBtn" aria-label="Set your status" aria-expanded="false">
+            <span class="status-dot online" id="statusDot"></span>
+            <span id="statusLabel">Online</span>
+          </button>
+          <div class="status-dropdown" id="statusDropdown" role="menu">
+            <div class="status-dropdown-item" data-status="online" role="menuitem">
+              <span class="status-dot online"></span> Online
+            </div>
+            <div class="status-dropdown-item" data-status="away" role="menuitem">
+              <span class="status-dot away"></span> Away
+            </div>
+            <div class="status-dropdown-item" data-status="busy" role="menuitem">
+              <span class="status-dot busy"></span> Busy
+            </div>
+            <div class="status-dropdown-item" data-status="offline" role="menuitem">
+              <span class="status-dot offline"></span> Offline
+            </div>
+          </div>
+        </div>
         <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar" title="J. Dela Cruz">JD</div>
       </div>
     </header>
@@ -199,6 +220,7 @@
             <span class="card-title">Employee Directory</span>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-soft btn-sm" id="exportBtn">⬇ Export CSV</button>
+              <button class="btn btn-soft btn-sm" id="bulkImportBtn" style="background:var(--accent-soft);color:#8B6914;border:1px solid var(--accent);">📥 Bulk Import</button>
               <button class="btn btn-primary btn-sm" id="addEmpBtn">+ Add Employee</button>
             </div>
           </div>
@@ -336,6 +358,29 @@
     <div class="modal-footer">
       <button type="button" class="btn btn-soft" id="closeViewBtn">Close</button>
       <button type="button" class="btn btn-primary" id="editFromViewBtn">Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div class="bulk-modal" id="bulkModal" role="dialog" aria-modal="true" aria-labelledby="bulkModalTitle">
+  <div class="bulk-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3 id="bulkModalTitle" style="font-size:17px;font-weight:700;">📥 Bulk Import Employees</h3>
+      <button id="closeBulkModal" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-muted);">×</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Upload a CSV file with employee data. Download the template to get started.</p>
+    <a id="downloadTemplate" href="#" style="font-size:13px;color:var(--primary);font-weight:600;" download="employee_import_template.csv">⬇ Download CSV Template</a>
+    <div class="bulk-drop-zone" id="bulkDropZone">
+      <div class="dz-icon">📂</div>
+      <div><strong>Click to choose file</strong> or drag &amp; drop here</div>
+      <div style="font-size:12px;margin-top:6px;">CSV format only (max 500 rows)</div>
+      <input type="file" id="bulkFileInput" accept=".csv" style="display:none;" />
+    </div>
+    <div id="bulkPreview" style="display:none;margin-top:12px;font-size:13px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-soft" id="cancelBulkBtn">Cancel</button>
+      <button class="btn btn-primary" id="confirmBulkBtn" disabled>Import Employees</button>
     </div>
   </div>
 </div>
@@ -635,6 +680,124 @@
       .then(function(r){ return r.json(); })
       .then(function(data){ if (data && Array.isArray(data.employees) && data.employees.length) { employees = data.employees; save(); renderTable(); renderCharts(); updateStats(); } })
       .catch(function(){});
+
+    // ── Bulk Import ─────────────────────────────────────────
+    var bulkImportBtn  = document.getElementById('bulkImportBtn');
+    var bulkModal      = document.getElementById('bulkModal');
+    var closeBulkModal = document.getElementById('closeBulkModal');
+    var cancelBulkBtn  = document.getElementById('cancelBulkBtn');
+    var bulkDropZone   = document.getElementById('bulkDropZone');
+    var bulkFileInput  = document.getElementById('bulkFileInput');
+    var bulkPreview    = document.getElementById('bulkPreview');
+    var confirmBulkBtn = document.getElementById('confirmBulkBtn');
+    var downloadTpl    = document.getElementById('downloadTemplate');
+    var bulkParsed     = [];
+
+    var CSV_TEMPLATE = 'first,last,email,dept,position,start,status,phone\nJuan,Dela Cruz,juan@company.com,Engineering,Software Engineer,2025-01-01,Active,+63 9XX XXX XXXX';
+
+    if (downloadTpl) {
+      downloadTpl.addEventListener('click', function(e){
+        e.preventDefault();
+        var blob = new Blob([CSV_TEMPLATE], {type:'text/csv'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'employee_import_template.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    }
+
+    function openBulkModal()  { if (bulkModal) bulkModal.classList.add('open'); }
+    function closeBulkModalFn() { if (bulkModal) { bulkModal.classList.remove('open'); bulkPreview.style.display='none'; bulkPreview.innerHTML=''; confirmBulkBtn.disabled=true; bulkParsed=[]; if(bulkFileInput) bulkFileInput.value=''; } }
+
+    if (bulkImportBtn)  bulkImportBtn.addEventListener('click',  openBulkModal);
+    if (closeBulkModal) closeBulkModal.addEventListener('click', closeBulkModalFn);
+    if (cancelBulkBtn)  cancelBulkBtn.addEventListener('click',  closeBulkModalFn);
+    if (bulkModal) bulkModal.addEventListener('click', function(e){ if(e.target===bulkModal) closeBulkModalFn(); });
+
+    if (bulkDropZone) {
+      bulkDropZone.addEventListener('click', function(){ if(bulkFileInput) bulkFileInput.click(); });
+      bulkDropZone.addEventListener('dragover', function(e){ e.preventDefault(); bulkDropZone.classList.add('drag-over'); });
+      bulkDropZone.addEventListener('dragleave', function(){ bulkDropZone.classList.remove('drag-over'); });
+      bulkDropZone.addEventListener('drop', function(e){
+        e.preventDefault(); bulkDropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files[0]) parseCsvFile(e.dataTransfer.files[0]);
+      });
+    }
+
+    if (bulkFileInput) {
+      bulkFileInput.addEventListener('change', function(){
+        if (bulkFileInput.files[0]) parseCsvFile(bulkFileInput.files[0]);
+      });
+    }
+
+    function parseCsvFile(file) {
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var lines = e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+        if (!lines.length) { bulkPreview.style.display='block'; bulkPreview.innerHTML='<span style="color:var(--danger)">File is empty.</span>'; confirmBulkBtn.disabled=true; return; }
+        var headers = lines[0].split(',').map(function(h){return h.trim().toLowerCase();});
+        bulkParsed = [];
+        for (var i=1; i<lines.length && i<=500; i++) {
+          var cols = lines[i].split(',').map(function(c){return c.trim();});
+          var row = {};
+          headers.forEach(function(h,idx){ row[h]=cols[idx]||''; });
+          if (row.first && row.last) {
+            bulkParsed.push({
+              id: 'EMP-' + String(Date.now() + i).slice(-5),
+              first: row.first||'', last: row.last||'', email: row.email||'',
+              dept: row.dept||'Engineering', pos: row.position||'', start: row.start||new Date().toISOString().slice(0,10),
+              status: row.status||'Active', phone: row.phone||''
+            });
+          }
+        }
+        if (!bulkParsed.length) {
+          bulkPreview.style.display='block'; bulkPreview.innerHTML='<span style="color:var(--danger)">No valid rows found. Ensure CSV has "first" and "last" columns.</span>';
+          confirmBulkBtn.disabled=true; return;
+        }
+        bulkPreview.style.display='block';
+        bulkPreview.innerHTML='<div style="color:var(--success);font-weight:600;margin-bottom:8px;">✓ ' + bulkParsed.length + ' employee(s) ready to import</div>' +
+          '<div style="max-height:120px;overflow-y:auto;border:1px solid var(--border-light);border-radius:8px;">' +
+          bulkParsed.slice(0,5).map(function(e){ return '<div style="padding:6px 12px;border-bottom:1px solid var(--border-light);font-size:12px;">' + e.first + ' ' + e.last + ' — ' + e.dept + '</div>'; }).join('') +
+          (bulkParsed.length>5 ? '<div style="padding:6px 12px;font-size:12px;color:var(--text-muted);">+' + (bulkParsed.length-5) + ' more…</div>' : '') +
+          '</div>';
+        confirmBulkBtn.disabled = false;
+      };
+      reader.readAsText(file);
+    }
+
+    if (confirmBulkBtn) {
+      confirmBulkBtn.addEventListener('click', function(){
+        if (!bulkParsed.length) return;
+        bulkParsed.forEach(function(e){ employees.push(e); });
+        save(); updateStats(); renderTable(); renderCharts();
+        closeBulkModalFn();
+        toast('Successfully imported ' + bulkParsed.length + ' employee(s).');
+      });
+    }
+
+    // ── Status widget ─────────────────────────────────────────
+    var statusBtn  = document.getElementById('statusBadgeBtn');
+    var statusDrop = document.getElementById('statusDropdown');
+    var statusDot  = document.getElementById('statusDot');
+    var statusLbl  = document.getElementById('statusLabel');
+    if (statusBtn) {
+      statusBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var open = statusDrop.classList.toggle('open');
+        statusBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function(){ statusDrop.classList.remove('open'); statusBtn.setAttribute('aria-expanded','false'); });
+      statusDrop.querySelectorAll('.status-dropdown-item').forEach(function(item){
+        item.addEventListener('click', function(){
+          var s = item.dataset.status;
+          statusDot.className = 'status-dot ' + s;
+          statusLbl.textContent = item.textContent.trim();
+          statusDrop.classList.remove('open');
+          statusBtn.setAttribute('aria-expanded','false');
+        });
+      });
+    }
   });
 }());
 </script>

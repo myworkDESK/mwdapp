@@ -17,7 +17,7 @@
   --accent: #F4C86A;
   --accent-soft: #FFF6DF;
 
-  --bg-main: #F5F7F6;
+  --bg-main: #FAF7EE;
   --card-bg: #FFFFFF;
 
   --text-main: #1F2933;
@@ -35,6 +35,7 @@
 
   --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.05);
   --shadow-card: 0 8px 20px rgba(0, 0, 0, 0.06);
+  --card-accent: var(--primary);
 
   --font-primary: "Inter", "Segoe UI", system-ui, sans-serif;
 }
@@ -333,6 +334,7 @@ img {
   padding: 22px;
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border-light);
+  border-left: 3px solid var(--primary);
 }
 
 .card-header {
@@ -364,6 +366,7 @@ img {
   padding: 22px;
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border-light);
+  border-left: 3px solid var(--primary);
   display: flex;
   align-items: center;
   gap: 18px;
@@ -1423,6 +1426,9 @@ hr.section-divider {
   font-size: 14px;
   line-height: 1.5;
   word-break: break-word;
+  letter-spacing: normal;
+  word-spacing: normal;
+  white-space: pre-wrap;
 }
 
 .msg-row.inbound .msg-bubble {
@@ -1504,6 +1510,8 @@ hr.section-divider {
   overflow-y: auto;
   transition: border-color 0.2s, box-shadow 0.2s;
   line-height: 1.4;
+  letter-spacing: normal;
+  word-spacing: normal;
 }
 
 .msg-compose-input:focus {
@@ -1994,3 +2002,267 @@ hr.section-divider {
   animation: pulse 2.5s ease-in-out infinite;
 }
 
+
+/* ===============================
+   MESSAGING — ENHANCEMENTS
+=============================== */
+
+/* Pinned messages bar */
+.msg-pinned-bar {
+  background: var(--accent-soft);
+  border-bottom: 2px solid var(--accent);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+  flex-shrink: 0;
+  min-height: 36px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.msg-pinned-bar .pin-label {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.msg-pin-item {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  max-width: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.msg-pin-item .pin-remove {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.msg-pin-item .pin-remove:hover {
+  color: var(--danger);
+}
+
+/* Message row hover actions */
+.msg-row {
+  position: relative;
+}
+
+.msg-row:hover .msg-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.msg-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 3px 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+
+.msg-row.outbound .msg-actions {
+  left: 0;
+  right: auto;
+}
+
+.msg-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.msg-action-btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* Attachment preview in compose */
+.msg-attach-preview {
+  padding: 8px 20px;
+  background: #fff;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.msg-attach-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.msg-attach-chip .remove-attach {
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.msg-attach-chip .remove-attach:hover {
+  color: var(--danger);
+}
+
+/* Pinned badge on bubble */
+.msg-pinned-badge {
+  font-size: 10px;
+  color: var(--primary);
+  display: inline-block;
+  margin-left: 4px;
+}
+
+/* Status indicator in topbar */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.status-badge:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online  { background: var(--success); }
+.status-dot.away    { background: var(--warning); }
+.status-dot.busy    { background: var(--danger); }
+.status-dot.offline { background: var(--text-muted); }
+
+/* Status dropdown */
+.status-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 200;
+  min-width: 160px;
+  overflow: hidden;
+  display: none;
+}
+
+.status-dropdown.open {
+  display: block;
+  animation: slideDown 0.18s ease both;
+}
+
+.status-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.status-dropdown-item:hover {
+  background: var(--primary-soft);
+}
+
+.topbar-status-wrap {
+  position: relative;
+}
+
+/* Bulk import modal */
+.bulk-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.bulk-modal.open {
+  display: flex;
+}
+.bulk-modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 520px;
+  max-width: 96vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  animation: scaleIn 0.22s ease;
+}
+.bulk-drop-zone {
+  border: 2px dashed var(--primary);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 16px 0;
+}
+.bulk-drop-zone:hover, .bulk-drop-zone.drag-over {
+  background: var(--primary-soft);
+}
+.bulk-drop-zone .dz-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
