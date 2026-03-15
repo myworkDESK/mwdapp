@@ -35,35 +35,55 @@ export async function onRequest(context) {
       });
     }
 
-    const { email, password } = body || {};
-    if (!email || !password) {
-      return new Response(JSON.stringify({ ok: false, message: 'Email and password are required.' }), {
+    const { orgId, employeeId, password } = body || {};
+    if (!orgId || !employeeId || !password) {
+      return new Response(JSON.stringify({ ok: false, message: 'Organization ID, Employee ID, and password are required.' }), {
         status: 400, headers: corsHeaders,
       });
     }
 
     // TODO: Replace with real D1 lookup:
-    //   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
+    //   const user = await env.DB.prepare(
+    //     'SELECT * FROM users WHERE org_id = ? AND employee_id = ?'
+    //   ).bind(orgId, employeeId).first();
     //   const valid = user && await verifyPassword(password, user.password_hash);
     //
-    // Demo: accept any @workdesk.ph address with password "workdesk2025"
-    const isDemoUser = email.endsWith('@workdesk.ph') || email.endsWith('@company.com');
-    const isDemoPass = password === 'workdesk2025';
-    const valid = isDemoUser && isDemoPass;
+    // Constant-time string comparison to guard against timing attacks.
+    async function safeEqual(a, b) {
+      if (typeof a !== 'string' || typeof b !== 'string') return false;
+      const enc = new TextEncoder();
+      const ka = await crypto.subtle.importKey('raw', enc.encode(a), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const kb = await crypto.subtle.importKey('raw', enc.encode(b), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      const sigA = await crypto.subtle.sign('HMAC', ka, enc.encode('workdesk'));
+      const sigB = await crypto.subtle.sign('HMAC', kb, enc.encode('workdesk'));
+      const arrA = new Uint8Array(sigA);
+      const arrB = new Uint8Array(sigB);
+      if (arrA.length !== arrB.length) return false;
+      let diff = 0;
+      for (let i = 0; i < arrA.length; i++) diff |= arrA[i] ^ arrB[i];
+      return diff === 0;
+    }
+
+    const demoOrgId      = env.DEMO_ORG_ID      || '';
+    const demoEmployeeId = env.DEMO_EMPLOYEE_ID  || '';
+    const demoPassword   = env.DEMO_PASSWORD     || '';
+    const valid = demoOrgId && demoEmployeeId && demoPassword
+      ? (await safeEqual(orgId, demoOrgId) && await safeEqual(employeeId, demoEmployeeId) && await safeEqual(password, demoPassword))
+      : false;
 
     if (!valid) {
-      return new Response(JSON.stringify({ ok: false, message: 'Invalid email or password.' }), {
+      return new Response(JSON.stringify({ ok: false, message: 'Invalid Organization ID, Employee ID, or password.' }), {
         status: 401, headers: corsHeaders,
       });
     }
 
     // Issue a simple demo token (replace with signed JWT in production)
-    const token = btoa(email + ':' + Date.now());
+    const token = btoa(orgId + ':' + employeeId + ':' + Date.now());
 
     // Optionally persist session in KV:
-    //   if (env.SESSIONS) await env.SESSIONS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 86400 });
+    //   if (env.SESSIONS) await env.SESSIONS.put('session:' + token, JSON.stringify({ orgId, employeeId }), { expirationTtl: 86400 });
 
-    return new Response(JSON.stringify({ ok: true, token, email }), {
+    return new Response(JSON.stringify({ ok: true, token, orgId, employeeId }), {
       status: 200, headers: corsHeaders,
     });
   }
