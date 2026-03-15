@@ -4,6 +4,41 @@
 (function () {
   'use strict';
 
+  // ── Auth helper ───────────────────────────────────────────
+  function getToken() {
+    return localStorage.getItem('workdesk_token') || '';
+  }
+
+  // ── Backend API helpers (fire-and-forget; UI driven by local state) ──
+  function apiSendMessage(threadId, text, attachmentUrl) {
+    var token = getToken();
+    if (!token) return;
+    fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ threadId: threadId, text: text, attachmentUrl: attachmentUrl || null })
+    }).catch(function () { /* network failure — local state is the source of truth */ });
+  }
+
+  function apiEditMessage(msgId, text) {
+    var token = getToken();
+    if (!token) return;
+    fetch('/api/messages?id=' + encodeURIComponent(msgId), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ text: text })
+    }).catch(function () { /* silent */ });
+  }
+
+  function apiDeleteMessage(msgId) {
+    var token = getToken();
+    if (!token) return;
+    fetch('/api/messages?id=' + encodeURIComponent(msgId), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).catch(function () { /* silent */ });
+  }
+
   // ── Thread data ───────────────────────────────────────────
   var threads = {
     '1':  { name: 'Maria A. Santos',   status: 'Online',  avatar: 'MA', online: true  },
@@ -119,6 +154,7 @@
 
   function deleteMessage(msgId) {
     if (!messages[currentThread]) return;
+    apiDeleteMessage(msgId);
     messages[currentThread] = messages[currentThread].filter(function(m){ return m.id !== msgId; });
     if (pinned[currentThread]) pinned[currentThread] = pinned[currentThread].filter(function(id){ return id !== msgId; });
     renderMessages(currentThread);
@@ -323,7 +359,10 @@
       var msgs = messages[currentThread];
       if (msgs) {
         var msg = msgs.find(function(m){ return m.id === editId; });
-        if (msg) { msg.text = text; msg.time = msg.time + ' (edited)'; }
+        if (msg) {
+          apiEditMessage(editId, text);
+          msg.text = text; msg.time = msg.time + ' (edited)';
+        }
       }
       cancelEdit();
       renderMessages(currentThread);
@@ -341,6 +380,8 @@
 
     if (!messages[currentThread]) messages[currentThread] = [];
     messages[currentThread].push(newMsg);
+
+    apiSendMessage(currentThread, text, pendingAttachments.length ? pendingAttachments[0] : null);
 
     pendingAttachments = [];
     renderAttachPreview();
@@ -363,13 +404,15 @@
   function simulateTyping() {
     var indicator = document.getElementById('typingIndicator');
     if (!indicator) return;
+    var avatarEl = document.getElementById('typingAvatar');
+    var t = threads[currentThread];
+    if (avatarEl && t) avatarEl.textContent = t.avatar;
     indicator.style.display = 'flex';
     var area = document.getElementById('messagesArea');
     if (area) area.scrollTop = area.scrollHeight;
     setTimeout(function () {
       indicator.style.display = 'none';
       // Simulate receiving a reply and push a notification
-      var t = threads[currentThread];
       if (t && window.WDNotifications) {
         var senderName = t.name;
         window.WDNotifications.push(

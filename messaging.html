@@ -339,52 +339,17 @@
 
           <!-- Messages area -->
           <div class="msg-messages" id="messagesArea" aria-live="polite" aria-label="Messages">
-
-            <div class="msg-date-label">Today</div>
-
-            <!-- Inbound -->
-            <div class="msg-row inbound">
-              <div class="msg-bubble-avatar" aria-hidden="true">MA</div>
-              <div>
-                <div class="msg-bubble">
-                  Hi! Just checking on the leave request I submitted last week. Has it been approved?
-                </div>
-                <div class="msg-bubble-time">9:38 AM</div>
-              </div>
-            </div>
-
-            <!-- Outbound -->
-            <div class="msg-row outbound">
-              <div>
-                <div class="msg-bubble">
-                  Hi Maria! Yes, I just approved it. You should receive an email confirmation shortly. 😊
-                </div>
-                <div class="msg-bubble-time">9:40 AM ✓✓</div>
-              </div>
-            </div>
-
-            <!-- Inbound -->
-            <div class="msg-row inbound">
-              <div class="msg-bubble-avatar" aria-hidden="true">MA</div>
-              <div>
-                <div class="msg-bubble">
-                  Thanks for updating the leave balance too! Really appreciate it.
-                </div>
-                <div class="msg-bubble-time">9:42 AM</div>
-              </div>
-            </div>
-
-            <!-- Typing indicator (shown/hidden by JS) -->
-            <div class="msg-typing" id="typingIndicator" style="display:none;" aria-live="polite" aria-label="Maria is typing">
-              <div class="msg-bubble-avatar" aria-hidden="true">MA</div>
-              <div class="typing-dots" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </div>
-              <span class="text-xs text-muted">typing…</span>
-            </div>
-
           </div>
           <!-- end .msg-messages -->
+
+          <!-- Typing indicator (outside messages area so JS renderMessages doesn't destroy it) -->
+          <div class="msg-typing" id="typingIndicator" style="display:none;" aria-live="polite" aria-label="Someone is typing">
+            <div class="msg-bubble-avatar" aria-hidden="true" id="typingAvatar">MA</div>
+            <div class="typing-dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="text-xs text-muted">typing…</span>
+          </div>
 
           <!-- Compose bar -->
           <form class="msg-compose" id="composeForm" novalidate>
