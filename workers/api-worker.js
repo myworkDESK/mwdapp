@@ -34,6 +34,11 @@
  *   env.WORKDESK_QUEUE — Cloudflare Queue producer (workdesk-queue)
  *   env.AI             — Cloudflare Workers AI binding (optional)
  *
+ * Super-Admin secrets (set via: wrangler secret put <NAME> --name workdesk-worker):
+ *   env.SA_USERNAME     — Super admin username
+ *   env.SA_SECURITY_KEY — Super admin security key (second factor)
+ *   env.SA_PASSWORD     — Super admin password
+ *
  * Note: For Cloudflare Pages deployments, API routes are served directly
  * by Pages Functions in /functions/api/*.js — this worker is used for
  * standalone Worker deployments only.
@@ -43,6 +48,8 @@
  */
 
 import { corsHeaders, jsonResponse, errorResponse } from './lib/utils.js';
+import { onRequest as saAuthHandler }      from '../functions/api/sa-auth.js';
+import { onRequest as saOrgAdminsHandler } from '../functions/api/sa-org-admins.js';
 
 export default {
   /**
@@ -98,7 +105,28 @@ async function routeRequest(path, method, request, env, ctx) {
     return errorResponse(404, 'API route not found: /api/' + segment);
   }
 
-  // Pages Functions export an `onRequest` or method-specific handler.
-  // Re-export them through a compatibility shim if needed.
+  // Build a Pages-Function-compatible context object so that handler modules
+  // written for Cloudflare Pages Functions work unchanged in this worker.
+  const makeContext = () => ({
+    request,
+    env,
+    params: {},
+    next:   () => errorResponse(500, 'next() is not supported in standalone worker'),
+    data:   {},
+  });
+
+  // ── Super-Admin routes ───────────────────────────────────────────────────
+  // These routes are wired up to the shared Pages Function handlers so that
+  // SA credentials stored in env (SA_USERNAME, SA_SECURITY_KEY, SA_PASSWORD)
+  // are respected identically whether the app runs on Pages or this worker.
+  if (segment === 'sa-auth') {
+    return saAuthHandler(makeContext());
+  }
+
+  if (segment === 'sa-org-admins') {
+    return saOrgAdminsHandler(makeContext());
+  }
+
+  // ── Other API routes (wire up additional handlers here) ──────────────────
   return errorResponse(501, 'Route handler not wired up yet. Configure module imports for standalone deployment.');
 }

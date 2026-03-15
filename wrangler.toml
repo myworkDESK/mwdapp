@@ -132,4 +132,9 @@ not_found_handling = "single-page-application"
 #
 # Secrets (set via CLI, never commit):
 #   wrangler secret put OPENAI_API_KEY    # optional: external LLM for AI assistant
+#
+# Super-Admin secrets (required for /api/sa-auth and /api/sa-org-admins):
+#   wrangler secret put SA_USERNAME     --name workdesk-worker
+#   wrangler secret put SA_SECURITY_KEY --name workdesk-worker
+#   wrangler secret put SA_PASSWORD     --name workdesk-worker
 
