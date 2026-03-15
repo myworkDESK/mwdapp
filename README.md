@@ -2,6 +2,8 @@
 
 > **WorkDesk** is a comprehensive Human Resource Information System (HRIS) built as a zero-dependency, static web application deployed on Cloudflare Pages. It covers everything from employee management to payroll, attendance, messaging, and more — all in a clean, modern interface.
 
+🌐 **Live Demo:** [https://workdesk.pages.dev](https://workdesk.pages.dev)
+
 ---
 
 ## Table of Contents
@@ -374,6 +376,8 @@ WorkDesk/
 ## Deployment
 
 WorkDesk is deployed on **Cloudflare Pages**.
+
+🌐 **Live URL:** [https://workdesk.pages.dev](https://workdesk.pages.dev)
 
 ### Prerequisites
 
