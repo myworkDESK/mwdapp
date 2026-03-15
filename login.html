@@ -963,8 +963,10 @@
         }
       })
       .catch(function () {
-        // Network/Worker not yet deployed — navigate directly for static preview
-        window.location.href = 'dashboard.html';
+        showToast('Login failed. Please check your connection and try again.');
+        if (btnLabel) btnLabel.textContent = 'Sign In';
+        btn.classList.remove('loading');
+        btn.disabled = false;
       });
     });
 
