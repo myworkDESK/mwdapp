@@ -1165,7 +1165,7 @@ hr.section-divider {
    All CSS-only — Cloudflare Pages compatible
 =============================== */
 
-/* --- Core keyframes --- */
+/* Core keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
