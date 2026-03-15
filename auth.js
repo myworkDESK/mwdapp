@@ -37,6 +37,8 @@ function logout() {
         onConfirm: function () {
             localStorage.removeItem('workdesk_token');
             localStorage.removeItem('workdesk_display_name');
+            localStorage.removeItem('workdesk_role');
+            localStorage.removeItem('workdesk_email');
             localStorage.removeItem('session');
             window.location.href = 'login.html';
         }
