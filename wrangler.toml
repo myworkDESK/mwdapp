@@ -102,9 +102,9 @@ not_found_handling = "single-page-application"
 # Producer binding: lets any Pages Function publish messages to the queue.
 # Uncomment after running the setup command above.
 
-[[queues.producers]]
-binding = "WORKDESK_QUEUE"
-queue   = "workdesk-queue"
+# [[queues.producers]]
+# binding = "WORKDESK_QUEUE"
+# queue   = "workdesk-queue"
 
 # Consumer: Queue consumers are NOT supported in Cloudflare Pages Functions.
 # The consumer is a separate standalone Cloudflare Worker defined in the
