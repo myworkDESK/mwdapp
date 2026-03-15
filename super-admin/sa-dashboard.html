@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <title>WorkDesk — Super Admin Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sa-bg:          #070f0c;
+      --sa-surface:     #0d1f19;
+      --sa-surface2:    #132a22;
+      --sa-border:      rgba(46,125,107,0.22);
+      --sa-border-hi:   rgba(46,125,107,0.5);
+      --sa-green:       #2e7d6b;
+      --sa-green-lt:    #4dd4a8;
+      --sa-text:        #d4ede8;
+      --sa-text-muted:  #6ba89e;
+      --sa-text-dim:    #3d6b60;
+      --sa-red:         #ef4444;
+      --sa-red-soft:    rgba(239,68,68,0.12);
+      --sa-amber:       #f59e0b;
+      --sa-amber-soft:  rgba(245,158,11,0.12);
+      --sa-blue:        #3b82f6;
+      --sa-blue-soft:   rgba(59,130,246,0.12);
+      --sa-purple:      #8b5cf6;
+      --sa-purple-soft: rgba(139,92,246,0.12);
+      --sa-green-soft:  rgba(46,125,107,0.12);
+      --sidebar-w:      240px;
+      --header-h:       60px;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      background: var(--sa-bg);
+      color: var(--sa-text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== LAYOUT ===== */
+    .sa-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sa-sidebar {
+      width: var(--sidebar-w);
+      background: var(--sa-surface);
+      border-right: 1px solid var(--sa-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 100;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sa-sidebar::-webkit-scrollbar { width: 4px; }
+    .sa-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sa-sidebar::-webkit-scrollbar-thumb { background: var(--sa-border-hi); border-radius: 4px; }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 18px 16px;
+      border-bottom: 1px solid var(--sa-border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #1c5246, #0d2e26);
+      border: 1px solid var(--sa-border-hi);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-icon svg { width: 17px; height: 17px; color: var(--sa-green-lt); }
+
+    .sidebar-logo-text { flex: 1; }
+    .sidebar-logo-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--sa-text);
+      letter-spacing: 0.03em;
+      line-height: 1.1;
+    }
+    .sidebar-logo-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--sa-green-lt);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 8px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--sa-text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 10px 6px;
+      margin-top: 6px;
+    }
+
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--sa-text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      text-decoration: none;
+      user-select: none;
+      position: relative;
+    }
+
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .nav-item:hover {
+      background: var(--sa-surface2);
+      color: var(--sa-text);
+    }
+
+    .nav-item.active {
+      background: rgba(46,125,107,0.15);
+      color: var(--sa-green-lt);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      height: 60%;
+      width: 3px;
+      background: var(--sa-green-lt);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--sa-red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 1px 6px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .nav-badge.green { background: var(--sa-green); }
+
+    .sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid var(--sa-border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sidebar-user:hover { background: var(--sa-surface2); }
+
+    .sidebar-avatar {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #2e7d6b, #1a4d42);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--sa-green-lt);
+      flex-shrink: 0;
+    }
+
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sa-text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sidebar-user-role {
+      font-size: 10px;
+      color: var(--sa-green-lt);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--sa-text-dim);
+      padding: 4px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logout-btn:hover { color: var(--sa-red); }
+    .sidebar-logout-btn svg { width: 15px; height: 15px; }
+
+    /* ===== MAIN AREA ===== */
+    .sa-main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ===== TOP BAR ===== */
+    .sa-topbar {
+      height: var(--header-h);
+      background: var(--sa-surface);
+      border-bottom: 1px solid var(--sa-border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--sa-text);
+      flex: 1;
+    }
+
+    .topbar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(46,125,107,0.15);
+      border: 1px solid var(--sa-border-hi);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sa-green-lt);
+      letter-spacing: 0.05em;
+    }
+
+    .topbar-badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--sa-green-lt);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--sa-green-lt);
+    }
+
+    .topbar-time {
+      font-size: 12px;
+      color: var(--sa-text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===== CONTENT AREA ===== */
+    .sa-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* ===== SECTION PANELS ===== */
+    .sa-panel {
+      display: none;
+    }
+
+    .sa-panel.active { display: block; }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .panel-heading h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--sa-text);
+    }
+
+    .panel-heading .panel-sub {
+      font-size: 13px;
+      color: var(--sa-text-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--sa-surface);
+      border: 1px solid var(--sa-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--sa-border-hi); }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stat-icon svg { width: 20px; height: 20px; }
+
+    .stat-icon.green  { background: var(--sa-green-soft);  color: var(--sa-green-lt); }
+    .stat-icon.blue   { background: var(--sa-blue-soft);   color: var(--sa-blue); }
+    .stat-icon.amber  { background: var(--sa-amber-soft);  color: var(--sa-amber); }
+    .stat-icon.red    { background: var(--sa-red-soft);    color: var(--sa-red); }
+    .stat-icon.purple { background: var(--sa-purple-soft); color: var(--sa-purple); }
+
+    .stat-body { flex: 1; min-width: 0; }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--sa-text);
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--sa-text-muted);
+      margin-top: 2px;
+    }
+    .stat-delta {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .stat-delta.up   { color: var(--sa-green-lt); }
+    .stat-delta.down { color: var(--sa-red); }
+
+    /* ===== CONTENT CARDS ===== */
+    .content-card {
+      background: var(--sa-surface);
+      border: 1px solid var(--sa-border);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .content-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--sa-border);
+    }
+
+    .content-card-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--sa-text);
+    }
+
+    .content-card-header .card-action {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sa-green-lt);
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: opacity 0.15s;
+    }
+
+    .content-card-header .card-action:hover { opacity: 0.7; }
+
+    /* ===== TABLE ===== */
+    .sa-table-wrap { overflow-x: auto; }
+
+    .sa-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .sa-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sa-text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--sa-border);
+      white-space: nowrap;
+    }
+
+    .sa-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(46,125,107,0.1);
+      color: var(--sa-text);
+      vertical-align: middle;
+    }
+
+    .sa-table tr:last-child td { border-bottom: none; }
+    .sa-table tbody tr:hover td { background: var(--sa-surface2); }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge.active   { background: var(--sa-green-soft);  color: var(--sa-green-lt); border: 1px solid rgba(46,125,107,0.3); }
+    .badge.inactive { background: var(--sa-red-soft);    color: var(--sa-red);      border: 1px solid rgba(239,68,68,0.3); }
+    .badge.pending  { background: var(--sa-amber-soft);  color: var(--sa-amber);    border: 1px solid rgba(245,158,11,0.3); }
+    .badge.info     { background: var(--sa-blue-soft);   color: var(--sa-blue);     border: 1px solid rgba(59,130,246,0.3); }
+
+    .badge .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ===== SEARCH / FILTER BAR ===== */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 340px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--sa-text-dim);
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      background: var(--sa-surface2);
+      border: 1px solid var(--sa-border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--sa-text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input::placeholder { color: var(--sa-text-dim); }
+    .search-wrap input:focus { border-color: var(--sa-border-hi); }
+
+    .sa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+
+    .sa-btn svg { width: 14px; height: 14px; }
+
+    .sa-btn.primary {
+      background: var(--sa-green);
+      color: #fff;
+    }
+    .sa-btn.primary:hover { background: #25695a; }
+
+    .sa-btn.ghost {
+      background: var(--sa-surface2);
+      border: 1px solid var(--sa-border);
+      color: var(--sa-text-muted);
+    }
+    .sa-btn.ghost:hover { border-color: var(--sa-border-hi); color: var(--sa-text); }
+
+    .sa-btn.danger {
+      background: var(--sa-red-soft);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--sa-red);
+    }
+    .sa-btn.danger:hover { background: rgba(239,68,68,0.22); }
+
+    /* ===== GRID 2-COL ===== */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ===== ACTIVITY LOG ===== */
+    .activity-list { padding: 4px 0; }
+
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 11px 20px;
+      border-bottom: 1px solid rgba(46,125,107,0.08);
+      align-items: flex-start;
+      transition: background 0.15s;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { background: var(--sa-surface2); }
+
+    .activity-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .activity-icon svg { width: 14px; height: 14px; }
+    .activity-icon.green  { background: var(--sa-green-soft);  color: var(--sa-green-lt); }
+    .activity-icon.red    { background: var(--sa-red-soft);    color: var(--sa-red); }
+    .activity-icon.blue   { background: var(--sa-blue-soft);   color: var(--sa-blue); }
+    .activity-icon.amber  { background: var(--sa-amber-soft);  color: var(--sa-amber); }
+
+    .activity-body { flex: 1; }
+    .activity-text { font-size: 13px; color: var(--sa-text); }
+    .activity-text strong { color: var(--sa-green-lt); }
+    .activity-meta { font-size: 11px; color: var(--sa-text-dim); margin-top: 2px; }
+
+    /* ===== SYSTEM HEALTH ===== */
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 16px 20px;
+    }
+
+    .health-item { display: flex; flex-direction: column; gap: 6px; }
+
+    .health-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--sa-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .health-label .pct {
+      color: var(--sa-text);
+      font-weight: 700;
+    }
+
+    .health-bar {
+      height: 6px;
+      background: var(--sa-surface2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .health-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: var(--sa-green);
+      transition: width 1s ease;
+    }
+
+    .health-fill.warn  { background: var(--sa-amber); }
+    .health-fill.danger { background: var(--sa-red); }
+
+    /* ===== TOAST ===== */
+    .sa-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--sa-surface);
+      border: 1px solid var(--sa-border-hi);
+      color: var(--sa-text);
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 9999;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s;
+      opacity: 0;
+      white-space: nowrap;
+      max-width: 90vw;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .sa-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .sa-toast.success { border-color: rgba(46,125,107,0.6); color: var(--sa-green-lt); }
+    .sa-toast.error   { border-color: rgba(239,68,68,0.5);   color: #fca5a5; }
+
+    /* ===== MODAL ===== */
+    .sa-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    .sa-modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .sa-modal {
+      background: var(--sa-surface);
+      border: 1px solid var(--sa-border-hi);
+      border-radius: 16px;
+      padding: 28px 30px;
+      width: 420px;
+      max-width: calc(100vw - 48px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+
+    .sa-modal-overlay.open .sa-modal { transform: translateY(0); }
+
+    .sa-modal h3 { font-size: 16px; font-weight: 700; color: var(--sa-text); margin-bottom: 8px; }
+    .sa-modal p  { font-size: 13px; color: var(--sa-text-muted); line-height: 1.6; margin-bottom: 20px; }
+
+    .sa-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sa-sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sa-sidebar.open { transform: translateX(0); }
+      .sa-main { margin-left: 0; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .stat-grid { grid-template-columns: 1fr; }
+      .sa-content { padding: 16px; }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .sa-panel.active { animation: fadeIn 0.25s ease both; }
+  </style>
+</head>
+<body>
+
+<div class="sa-layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sa-sidebar" id="saSidebar">
+
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">WorkDesk</div>
+        <div class="sidebar-logo-sub">Super Admin</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" role="navigation" aria-label="Super admin navigation">
+
+      <div class="nav-section-label">Overview</div>
+
+      <a class="nav-item active" data-panel="overview" href="#overview" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Dashboard
+      </a>
+
+      <a class="nav-item" data-panel="analytics" href="#analytics" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+        Platform Analytics
+      </a>
+
+      <a class="nav-item" data-panel="audit" href="#audit" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+        Audit Logs
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="nav-section-label">Organizations</div>
+
+      <a class="nav-item" data-panel="organizations" href="#organizations" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/></svg>
+        Organizations
+      </a>
+
+      <a class="nav-item" data-panel="users" href="#users" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        All Users
+      </a>
+
+      <div class="nav-section-label">Platform</div>
+
+      <a class="nav-item" data-panel="modules" href="#modules" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.959.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z"/></svg>
+        Modules &amp; Features
+      </a>
+
+      <a class="nav-item" data-panel="integrations" href="#integrations" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
+        Integrations
+      </a>
+
+      <a class="nav-item" data-panel="billing" href="#billing" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+        Billing &amp; Licensing
+      </a>
+
+      <div class="nav-section-label">System</div>
+
+      <a class="nav-item" data-panel="settings" href="#settings" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        System Settings
+      </a>
+
+      <a class="nav-item" data-panel="security" href="#security" role="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+        Security &amp; Access
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="sidebar-avatar" id="sidebarAvatar">SA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Super Admin</div>
+          <div class="sidebar-user-role">Super Admin</div>
+        </div>
+        <button class="sidebar-logout-btn" id="logoutBtn" title="Sign out" aria-label="Sign out">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="sa-main">
+
+    <!-- Top bar -->
+    <header class="sa-topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard Overview</div>
+      <div class="topbar-badge"><span class="dot"></span> Super Admin Session Active</div>
+      <div class="topbar-time" id="topbarTime"></div>
+    </header>
+
+    <!-- Content -->
+    <main class="sa-content">
+
+      <!-- ===== OVERVIEW PANEL ===== -->
+      <section class="sa-panel active" id="panel-overview">
+
+        <div class="panel-heading">
+          <div>
+            <h2>Platform Overview</h2>
+            <div class="panel-sub">Real-time summary of all WorkDesk organizations and platform health.</div>
+          </div>
+          <button class="sa-btn ghost" onclick="showToast('Refreshing data…', 'success')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statOrgs">—</div>
+              <div class="stat-label">Organizations</div>
+              <div class="stat-delta up">↑ 2 this month</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statUsers">—</div>
+              <div class="stat-label">Total Users</div>
+              <div class="stat-delta up">↑ 34 this week</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statActive">—</div>
+              <div class="stat-label">Active Sessions</div>
+              <div class="stat-delta up">↑ 12 vs yesterday</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statAlerts">—</div>
+              <div class="stat-label">Open Alerts</div>
+              <div class="stat-delta down">↓ 1 new today</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statRevenue">—</div>
+              <div class="stat-label">MRR (USD)</div>
+              <div class="stat-delta up">↑ 8% this month</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value" id="statTickets">—</div>
+              <div class="stat-label">Support Tickets</div>
+              <div class="stat-delta down">↓ 3 resolved today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <h3>System Health</h3>
+            <button class="card-action" onclick="showToast('Health check triggered.', 'success')">Run Check</button>
+          </div>
+          <div class="health-grid">
+            <div class="health-item">
+              <div class="health-label">CPU Usage <span class="pct">42%</span></div>
+              <div class="health-bar"><div class="health-fill" style="width:42%"></div></div>
+            </div>
+            <div class="health-item">
+              <div class="health-label">Memory <span class="pct">67%</span></div>
+              <div class="health-bar"><div class="health-fill warn" style="width:67%"></div></div>
+            </div>
+            <div class="health-item">
+              <div class="health-label">Storage <span class="pct">28%</span></div>
+              <div class="health-bar"><div class="health-fill" style="width:28%"></div></div>
+            </div>
+            <div class="health-item">
+              <div class="health-label">API Latency <span class="pct">98ms</span></div>
+              <div class="health-bar"><div class="health-fill" style="width:20%"></div></div>
+            </div>
+            <div class="health-item">
+              <div class="health-label">DB Connections <span class="pct">55%</span></div>
+              <div class="health-bar"><div class="health-fill" style="width:55%"></div></div>
+            </div>
+            <div class="health-item">
+              <div class="health-label">Uptime <span class="pct">99.98%</span></div>
+              <div class="health-bar"><div class="health-fill" style="width:99.98%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <h3>Recent Platform Activity</h3>
+            <button class="card-action" onclick="navigateTo('audit')">View All Logs</button>
+          </div>
+          <div class="activity-list" id="activityList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===== ANALYTICS PANEL ===== -->
+      <section class="sa-panel" id="panel-analytics">
+        <div class="panel-heading">
+          <div>
+            <h2>Platform Analytics</h2>
+            <div class="panel-sub">Aggregated usage and engagement metrics across all organizations.</div>
+          </div>
+          <button class="sa-btn ghost" onclick="showToast('Exporting report…', 'success')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Export CSV
+          </button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">84%</div>
+              <div class="stat-label">DAU / MAU Ratio</div>
+              <div class="stat-delta up">↑ 3% vs last month</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">12,480</div>
+              <div class="stat-label">Page Views (today)</div>
+              <div class="stat-delta up">↑ 14% vs yesterday</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">341</div>
+              <div class="stat-label">Messages Sent (today)</div>
+              <div class="stat-delta up">↑ 7%</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            </div>
+            <div class="stat-body">
+              <div class="stat-value">1,023</div>
+              <div class="stat-label">Documents Created</div>
+              <div class="stat-delta up">↑ 5% this week</div>
+            </div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="content-card-header"><h3>Module Usage Breakdown</h3></div>
+          <div class="sa-table-wrap">
+            <table class="sa-table">
+              <thead><tr><th>Module</th><th>Active Users</th><th>Sessions (7d)</th><th>Avg. Session</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Dashboard</td><td>1,204</td><td>8,842</td><td>6m 14s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Messaging</td><td>987</td><td>6,103</td><td>4m 52s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>HR &amp; Employees</td><td>642</td><td>3,711</td><td>8m 01s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Attendance</td><td>581</td><td>2,944</td><td>3m 28s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Payroll</td><td>214</td><td>1,120</td><td>12m 05s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>AI Assistant</td><td>403</td><td>2,230</td><td>9m 44s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Analytics</td><td>178</td><td>893</td><td>15m 22s</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== AUDIT LOGS PANEL ===== -->
+      <section class="sa-panel" id="panel-audit">
+        <div class="panel-heading">
+          <div>
+            <h2>Audit Logs</h2>
+            <div class="panel-sub">Complete log of all administrative and security events across the platform.</div>
+          </div>
+          <button class="sa-btn ghost" onclick="showToast('Exporting audit logs…', 'success')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Export
+          </button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <input type="search" placeholder="Search logs…" oninput="filterTable(this, 'auditTable')" aria-label="Search audit logs" />
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="sa-table-wrap">
+            <table class="sa-table" id="auditTable">
+              <thead><tr><th>Timestamp</th><th>Actor</th><th>Event</th><th>Target</th><th>IP Address</th><th>Severity</th></tr></thead>
+              <tbody>
+                <tr><td>2026-03-15 17:44:02</td><td>super_admin</td><td>SA_LOGIN_SUCCESS</td><td>sa-portal</td><td>192.168.1.1</td><td><span class="badge info"><span class="dot"></span>Info</span></td></tr>
+                <tr><td>2026-03-15 17:30:11</td><td>admin@acme.com</td><td>ORG_SETTINGS_UPDATE</td><td>ACME Corp</td><td>10.0.0.42</td><td><span class="badge info"><span class="dot"></span>Info</span></td></tr>
+                <tr><td>2026-03-15 16:52:38</td><td>Unknown</td><td>SA_LOGIN_FAILED</td><td>sa-portal</td><td>77.88.12.34</td><td><span class="badge inactive"><span class="dot"></span>Warning</span></td></tr>
+                <tr><td>2026-03-15 16:40:00</td><td>admin@techcorp.io</td><td>USER_CREATED</td><td>TechCorp Inc.</td><td>203.0.113.5</td><td><span class="badge active"><span class="dot"></span>Low</span></td></tr>
+                <tr><td>2026-03-15 15:12:55</td><td>admin@globalhr.com</td><td>BULK_IMPORT</td><td>Global HR Ltd.</td><td>198.51.100.9</td><td><span class="badge info"><span class="dot"></span>Info</span></td></tr>
+                <tr><td>2026-03-15 14:05:30</td><td>super_admin</td><td>SYSTEM_SETTINGS_UPDATE</td><td>platform</td><td>192.168.1.1</td><td><span class="badge pending"><span class="dot"></span>Medium</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ORGANIZATIONS PANEL ===== -->
+      <section class="sa-panel" id="panel-organizations">
+        <div class="panel-heading">
+          <div>
+            <h2>Organizations</h2>
+            <div class="panel-sub">Manage all registered organizations on the WorkDesk platform.</div>
+          </div>
+          <button class="sa-btn primary" onclick="showToast('Add organization — coming soon.', 'success')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Add Organization
+          </button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <input type="search" placeholder="Search organizations…" oninput="filterTable(this, 'orgTable')" aria-label="Search organizations" />
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="sa-table-wrap">
+            <table class="sa-table" id="orgTable">
+              <thead><tr><th>Org Name</th><th>Org ID</th><th>Plan</th><th>Users</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>ACME Corp</strong></td><td>ORG-001</td><td><span class="badge info">Enterprise</span></td><td>248</td><td>Jan 2024</td>
+                  <td><span class="badge active"><span class="dot"></span>Active</span></td>
+                  <td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Viewing ACME Corp…')">View</button></td>
+                </tr>
+                <tr>
+                  <td><strong>TechCorp Inc.</strong></td><td>ORG-002</td><td><span class="badge info">Business</span></td><td>87</td><td>Mar 2024</td>
+                  <td><span class="badge active"><span class="dot"></span>Active</span></td>
+                  <td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Viewing TechCorp Inc.…')">View</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Global HR Ltd.</strong></td><td>ORG-003</td><td><span class="badge info">Enterprise</span></td><td>421</td><td>Jun 2024</td>
+                  <td><span class="badge active"><span class="dot"></span>Active</span></td>
+                  <td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Viewing Global HR Ltd.…')">View</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Startup Hub</strong></td><td>ORG-004</td><td><span class="badge">Starter</span></td><td>12</td><td>Feb 2026</td>
+                  <td><span class="badge pending"><span class="dot"></span>Trial</span></td>
+                  <td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Viewing Startup Hub…')">View</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Legacy Systems Co.</strong></td><td>ORG-005</td><td><span class="badge">Starter</span></td><td>5</td><td>Aug 2023</td>
+                  <td><span class="badge inactive"><span class="dot"></span>Suspended</span></td>
+                  <td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Viewing Legacy Systems Co.…')">View</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== USERS PANEL ===== -->
+      <section class="sa-panel" id="panel-users">
+        <div class="panel-heading">
+          <div>
+            <h2>All Users</h2>
+            <div class="panel-sub">View and manage every user across all organizations.</div>
+          </div>
+          <button class="sa-btn ghost" onclick="showToast('Exporting user list…', 'success')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Export
+          </button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <input type="search" placeholder="Search users…" oninput="filterTable(this, 'userTable')" aria-label="Search users" />
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="sa-table-wrap">
+            <table class="sa-table" id="userTable">
+              <thead><tr><th>Name</th><th>Email</th><th>Organization</th><th>Role</th><th>Last Login</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Jane Smith</td><td>jane@acme.com</td><td>ACME Corp</td><td>HR Admin</td><td>Today 09:12</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Bob Johnson</td><td>bob@techcorp.io</td><td>TechCorp Inc.</td><td>Employee</td><td>Today 08:55</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Maria Chen</td><td>maria@globalhr.com</td><td>Global HR Ltd.</td><td>Manager</td><td>Yesterday</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Tom Walker</td><td>tom@startuphub.io</td><td>Startup Hub</td><td>Owner</td><td>3 days ago</td><td><span class="badge pending"><span class="dot"></span>Trial</span></td></tr>
+                <tr><td>Sue Park</td><td>sue@legacysys.com</td><td>Legacy Systems Co.</td><td>Admin</td><td>2 months ago</td><td><span class="badge inactive"><span class="dot"></span>Suspended</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== MODULES PANEL ===== -->
+      <section class="sa-panel" id="panel-modules">
+        <div class="panel-heading">
+          <div>
+            <h2>Modules &amp; Features</h2>
+            <div class="panel-sub">Enable or disable platform modules globally or per-organization.</div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="content-card-header"><h3>Global Module Status</h3></div>
+          <div class="sa-table-wrap">
+            <table class="sa-table">
+              <thead><tr><th>Module</th><th>Description</th><th>Version</th><th>Global Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr><td>Dashboard</td><td>Main workspace overview</td><td>3.2.1</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Dashboard settings updated.')">Configure</button></td></tr>
+                <tr><td>HRIS / Employees</td><td>Employee records management</td><td>2.8.0</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('HRIS settings updated.')">Configure</button></td></tr>
+                <tr><td>Attendance</td><td>Time and attendance tracking</td><td>2.4.3</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Attendance settings updated.')">Configure</button></td></tr>
+                <tr><td>Payroll</td><td>Payroll processing engine</td><td>1.9.2</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Payroll settings updated.')">Configure</button></td></tr>
+                <tr><td>AI Assistant</td><td>Generative AI workspace helper</td><td>1.3.0</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('AI Assistant settings updated.')">Configure</button></td></tr>
+                <tr><td>Recruitment</td><td>Applicant tracking system</td><td>1.6.1</td><td><span class="badge active"><span class="dot"></span>Enabled</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Recruitment settings updated.')">Configure</button></td></tr>
+                <tr><td>Knowledge Base</td><td>Internal wiki &amp; documents</td><td>1.1.5</td><td><span class="badge pending"><span class="dot"></span>Beta</span></td><td><button class="sa-btn ghost" style="padding:5px 10px;font-size:12px" onclick="showToast('Knowledge Base settings updated.')">Configure</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== INTEGRATIONS PANEL ===== -->
+      <section class="sa-panel" id="panel-integrations">
+        <div class="panel-heading">
+          <div>
+            <h2>Integrations</h2>
+            <div class="panel-sub">Manage third-party integrations and API connections for the platform.</div>
+          </div>
+          <button class="sa-btn primary" onclick="showToast('Add integration — coming soon.')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Add Integration
+          </button>
+        </div>
+        <div class="content-card">
+          <div class="sa-table-wrap">
+            <table class="sa-table">
+              <thead><tr><th>Integration</th><th>Type</th><th>Connected Orgs</th><th>Last Sync</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Slack</td><td>Messaging</td><td>3</td><td>5 min ago</td><td><span class="badge active"><span class="dot"></span>Connected</span></td></tr>
+                <tr><td>Google Workspace</td><td>SSO / Calendar</td><td>2</td><td>12 min ago</td><td><span class="badge active"><span class="dot"></span>Connected</span></td></tr>
+                <tr><td>Microsoft 365</td><td>SSO / Email</td><td>1</td><td>1 hr ago</td><td><span class="badge active"><span class="dot"></span>Connected</span></td></tr>
+                <tr><td>Stripe</td><td>Billing</td><td>—</td><td>2 min ago</td><td><span class="badge active"><span class="dot"></span>Connected</span></td></tr>
+                <tr><td>Zapier</td><td>Automation</td><td>1</td><td>3 days ago</td><td><span class="badge pending"><span class="dot"></span>Pending Review</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== BILLING PANEL ===== -->
+      <section class="sa-panel" id="panel-billing">
+        <div class="panel-heading">
+          <div>
+            <h2>Billing &amp; Licensing</h2>
+            <div class="panel-sub">View and manage subscription plans, invoices, and licensing across all organizations.</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon green"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <div class="stat-body"><div class="stat-value">$24,890</div><div class="stat-label">MRR</div><div class="stat-delta up">↑ 8% MoM</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg></div>
+            <div class="stat-body"><div class="stat-value">5</div><div class="stat-label">Active Subscriptions</div><div class="stat-delta up">↑ 1 new</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg></div>
+            <div class="stat-body"><div class="stat-value">1</div><div class="stat-label">Overdue Invoice</div><div class="stat-delta down">Requires action</div></div>
+          </div>
+        </div>
+        <div class="content-card">
+          <div class="content-card-header"><h3>Subscription Overview</h3></div>
+          <div class="sa-table-wrap">
+            <table class="sa-table">
+              <thead><tr><th>Organization</th><th>Plan</th><th>Seats</th><th>Monthly</th><th>Renewal</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>ACME Corp</td><td>Enterprise</td><td>300</td><td>$4,500</td><td>Apr 1, 2026</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>Global HR Ltd.</td><td>Enterprise</td><td>500</td><td>$7,500</td><td>May 15, 2026</td><td><span class="badge active"><span class="dot"></span>Active</span></td></tr>
+                <tr><td>TechCorp Inc.</td><td>Business</td><td>100</td><td>$1,490</td><td>Mar 28, 2026</td><td><span class="badge pending"><span class="dot"></span>Overdue</span></td></tr>
+                <tr><td>Startup Hub</td><td>Starter</td><td>15</td><td>$49</td><td>Apr 10, 2026</td><td><span class="badge active"><span class="dot"></span>Trial</span></td></tr>
+                <tr><td>Legacy Systems Co.</td><td>Starter</td><td>10</td><td>$49</td><td>N/A</td><td><span class="badge inactive"><span class="dot"></span>Cancelled</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS PANEL ===== -->
+      <section class="sa-panel" id="panel-settings">
+        <div class="panel-heading">
+          <div>
+            <h2>System Settings</h2>
+            <div class="panel-sub">Platform-wide configuration. Changes apply to all organizations.</div>
+          </div>
+          <button class="sa-btn primary" id="saveSettingsBtn" onclick="showToast('Settings saved successfully.', 'success')">Save Changes</button>
+        </div>
+        <div class="grid-2">
+          <div class="content-card">
+            <div class="content-card-header"><h3>General</h3></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Platform Name</label>
+                <input type="text" value="WorkDesk" style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none" />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Support Email</label>
+                <input type="email" value="support@workdesk.app" style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none" />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Default Time Zone</label>
+                <input type="text" value="UTC" style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none" />
+              </div>
+            </div>
+          </div>
+          <div class="content-card">
+            <div class="content-card-header"><h3>Security Policy</h3></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Session Timeout (minutes)</label>
+                <input type="number" value="480" style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none" />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Max Login Attempts</label>
+                <input type="number" value="5" style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none" />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label style="font-size:12px;font-weight:600;color:var(--sa-text-muted);display:block;margin-bottom:6px">Require 2FA for Admins</label>
+                <select style="width:100%;padding:9px 12px;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--sa-text);outline:none">
+                  <option>Enabled</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SECURITY PANEL ===== -->
+      <section class="sa-panel" id="panel-security">
+        <div class="panel-heading">
+          <div>
+            <h2>Security &amp; Access Control</h2>
+            <div class="panel-sub">Manage super admin credentials, access keys, and session controls.</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="content-card">
+            <div class="content-card-header"><h3>Super Admin Credentials</h3></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div style="background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--sa-text-muted);line-height:1.6">
+                Super admin credentials (username, security key, and password) are managed via platform environment variables: <strong style="color:var(--sa-green-lt)">SA_USERNAME</strong>, <strong style="color:var(--sa-green-lt)">SA_SECURITY_KEY</strong>, and <strong style="color:var(--sa-green-lt)">SA_PASSWORD</strong>. To rotate credentials, update these variables in your Cloudflare Pages project settings and redeploy.
+              </div>
+              <button class="sa-btn danger" onclick="showConfirmModal('Revoke all active super admin sessions? This will require re-authentication.', function(){ showToast(\'All SA sessions revoked.\', \'success\'); })">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                Revoke All SA Sessions
+              </button>
+            </div>
+          </div>
+          <div class="content-card">
+            <div class="content-card-header"><h3>Active SA Sessions</h3></div>
+            <div style="padding:16px 20px">
+              <div class="activity-item" style="padding:10px 0;border-bottom:1px solid rgba(46,125,107,0.1)">
+                <div class="activity-icon green">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                </div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong id="sessionUsername">super_admin</strong></div>
+                  <div class="activity-meta">Current session · <span id="sessionStarted">just now</span></div>
+                </div>
+                <span class="badge active" style="margin-left:auto"><span class="dot"></span>This Session</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</div>
+
+<!-- Logout confirm modal -->
+<div class="sa-modal-overlay" id="confirmModal">
+  <div class="sa-modal">
+    <h3 id="confirmTitle">Confirm Action</h3>
+    <p id="confirmMessage">Are you sure?</p>
+    <div class="sa-modal-actions">
+      <button class="sa-btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="sa-btn danger" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="sa-toast" id="saToast" role="status" aria-live="polite"></div>
+
+<script>
+  // ── Session guard ────────────────────────────────────────────────────────
+  (function () {
+    var raw = localStorage.getItem('sa_session');
+    if (!raw) { window.location.replace('sa-portal.html'); return; }
+    try {
+      var sess = JSON.parse(raw);
+      if (!sess || !sess.token || sess.role !== 'super_admin') {
+        window.location.replace('sa-portal.html');
+        return;
+      }
+      // 8-hour session expiry
+      if (sess.issuedAt && Date.now() - sess.issuedAt > 8 * 60 * 60 * 1000) {
+        localStorage.removeItem('sa_session');
+        localStorage.removeItem('sa_token');
+        window.location.replace('sa-portal.html');
+        return;
+      }
+      // Populate user info
+      var username = sess.username || 'Super Admin';
+      document.getElementById('sidebarUserName').textContent = username;
+      document.getElementById('sidebarAvatar').textContent = username.substring(0,2).toUpperCase();
+      document.getElementById('sessionUsername').textContent = username;
+      document.getElementById('sessionStarted').textContent = new Date(sess.issuedAt || Date.now()).toLocaleTimeString();
+    } catch (e) {
+      window.location.replace('sa-portal.html');
+    }
+  })();
+
+  // ── Clock ────────────────────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById('topbarTime').textContent = new Date().toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Demo stats ───────────────────────────────────────────────────────────
+  document.getElementById('statOrgs').textContent    = '5';
+  document.getElementById('statUsers').textContent   = '773';
+  document.getElementById('statActive').textContent  = '142';
+  document.getElementById('statAlerts').textContent  = '3';
+  document.getElementById('statRevenue').textContent = '$24,890';
+  document.getElementById('statTickets').textContent = '18';
+
+  // ── Activity feed ────────────────────────────────────────────────────────
+  var ACTIVITIES = [
+    { icon: 'green', type: 'login',  text: '<strong>admin@acme.com</strong> signed in',              time: '2 min ago' },
+    { icon: 'blue',  type: 'create', text: '<strong>New organization</strong> "Startup Hub" registered', time: '18 min ago' },
+    { icon: 'amber', type: 'warn',   text: '<strong>Failed login attempt</strong> on sa-portal (3x)', time: '45 min ago' },
+    { icon: 'green', type: 'ok',     text: '<strong>Global HR Ltd.</strong> completed payroll run',    time: '1 hr ago'  },
+    { icon: 'blue',  type: 'info',   text: '<strong>System backup</strong> completed successfully',   time: '2 hr ago'  },
+    { icon: 'red',   type: 'error',  text: '<strong>TechCorp Inc.</strong> invoice overdue (30 days)', time: '3 hr ago'  },
+  ];
+
+  var ICONS = {
+    login:  '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>',
+    create: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>',
+    warn:   '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>',
+    ok:     '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+    info:   '<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>',
+    error:  '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>',
+  };
+
+  var iconColorMap = { red: 'red' };
+
+  (function renderActivity() {
+    var list = document.getElementById('activityList');
+    if (!list) return;
+    list.innerHTML = ACTIVITIES.map(function (a) {
+      var iconColor = a.icon === 'red' ? 'red' : a.icon;
+      return '<div class="activity-item">'
+        + '<div class="activity-icon ' + iconColor + '">'
+        + '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' + ICONS[a.type] + '</svg>'
+        + '</div>'
+        + '<div class="activity-body">'
+        + '<div class="activity-text">' + a.text + '</div>'
+        + '<div class="activity-meta">' + a.time + '</div>'
+        + '</div></div>';
+    }).join('');
+  })();
+
+  // ── Navigation ───────────────────────────────────────────────────────────
+  var PANEL_TITLES = {
+    overview:      'Dashboard Overview',
+    analytics:     'Platform Analytics',
+    audit:         'Audit Logs',
+    organizations: 'Organizations',
+    users:         'All Users',
+    modules:       'Modules & Features',
+    integrations:  'Integrations',
+    billing:       'Billing & Licensing',
+    settings:      'System Settings',
+    security:      'Security & Access Control',
+  };
+
+  function navigateTo(panelId) {
+    document.querySelectorAll('.nav-item').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.panel === panelId);
+    });
+    document.querySelectorAll('.sa-panel').forEach(function (el) {
+      el.classList.toggle('active', el.id === 'panel-' + panelId);
+    });
+    document.getElementById('topbarTitle').textContent = PANEL_TITLES[panelId] || 'Super Admin Console';
+  }
+
+  document.querySelectorAll('.nav-item[data-panel]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      navigateTo(el.dataset.panel);
+    });
+  });
+
+  // ── Toast ────────────────────────────────────────────────────────────────
+  function showToast(msg, type, duration) {
+    var toast = document.getElementById('saToast');
+    toast.textContent = msg;
+    toast.className = 'sa-toast';
+    if (type) toast.classList.add(type);
+    toast.classList.add('show');
+    setTimeout(function () { toast.classList.remove('show'); }, duration || 3000);
+  }
+
+  // ── Table search/filter ──────────────────────────────────────────────────
+  function filterTable(input, tableId) {
+    var q     = input.value.toLowerCase();
+    var tbody = document.querySelector('#' + tableId + ' tbody');
+    if (!tbody) return;
+    tbody.querySelectorAll('tr').forEach(function (row) {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  // ── Confirm modal ────────────────────────────────────────────────────────
+  var _confirmCallback = null;
+
+  function showConfirmModal(message, callback) {
+    document.getElementById('confirmMessage').textContent = message;
+    _confirmCallback = callback;
+    document.getElementById('confirmModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').classList.remove('open');
+    _confirmCallback = null;
+  }
+
+  document.getElementById('confirmOkBtn').addEventListener('click', function () {
+    closeModal();
+    if (_confirmCallback) _confirmCallback();
+  });
+
+  document.getElementById('confirmModal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  // ── Logout ───────────────────────────────────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', function () {
+    showConfirmModal('Sign out of the Super Admin Console? Your session will be terminated.', function () {
+      localStorage.removeItem('sa_session');
+      localStorage.removeItem('sa_token');
+      window.location.replace('sa-portal.html');
+    });
+  });
+</script>
+
+</body>
+</html>

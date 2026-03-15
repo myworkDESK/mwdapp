@@ -1,0 +1,17 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-XSS-Protection: 1; mode=block
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+
+/sa-portal.html
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/sa-dashboard.html
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/api/sa-auth
+  Cache-Control: no-store, no-cache, must-revalidate

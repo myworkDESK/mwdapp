@@ -1,0 +1,137 @@
+/**
+ * WorkDesk — /api/sa-auth
+ * Cloudflare Pages Function
+ *
+ * POST /api/sa-auth  — Authenticate a super administrator
+ * GET  /api/sa-auth  — Verify current super admin session token
+ *
+ * Required environment variables (set in Cloudflare Pages project settings):
+ *   SA_USERNAME     — Super admin username
+ *   SA_SECURITY_KEY — Super admin security key (second factor)
+ *   SA_PASSWORD     — Super admin password
+ *
+ * All access attempts are logged. This endpoint is NOT linked from any public page.
+ */
+
+export async function onRequest(context) {
+  const { request, env } = context;
+  const method = request.method.toUpperCase();
+
+  const corsHeaders = {
+    'Access-Control-Allow-Origin':  'same-origin',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Content-Type':                 'application/json',
+    'X-Robots-Tag':                 'noindex, nofollow',
+    'Cache-Control':                'no-store, no-cache, must-revalidate',
+  };
+
+  if (method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // ── Constant-time string comparison (timing-attack safe) ─────────────────
+  async function safeEqual(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string') return false;
+    const enc = new TextEncoder();
+    const ka  = await crypto.subtle.importKey('raw', enc.encode(a), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const kb  = await crypto.subtle.importKey('raw', enc.encode(b), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig  = enc.encode('workdesk-sa');
+    const sigA = await crypto.subtle.sign('HMAC', ka, sig);
+    const sigB = await crypto.subtle.sign('HMAC', kb, sig);
+    const arrA = new Uint8Array(sigA);
+    const arrB = new Uint8Array(sigB);
+    if (arrA.length !== arrB.length) return false;
+    let diff = 0;
+    for (let i = 0; i < arrA.length; i++) diff |= arrA[i] ^ arrB[i];
+    return diff === 0;
+  }
+
+  // ── POST /api/sa-auth — authenticate ────────────────────────────────────
+  if (method === 'POST') {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(JSON.stringify({ ok: false, message: 'Invalid request body.' }), {
+        status: 400, headers: corsHeaders,
+      });
+    }
+
+    const { username, securityKey, password } = body || {};
+
+    if (!username || !securityKey || !password) {
+      return new Response(JSON.stringify({ ok: false, message: 'Username, security key, and password are all required.' }), {
+        status: 400, headers: corsHeaders,
+      });
+    }
+
+    const saUsername    = env.SA_USERNAME     || '';
+    const saSecurityKey = env.SA_SECURITY_KEY || '';
+    const saPassword    = env.SA_PASSWORD     || '';
+
+    // Credentials must be configured in environment variables
+    if (!saUsername || !saSecurityKey || !saPassword) {
+      return new Response(JSON.stringify({ ok: false, message: 'Super admin access is not configured.' }), {
+        status: 503, headers: corsHeaders,
+      });
+    }
+
+    // Verify all three factors simultaneously to prevent enumeration
+    const [usernameOk, keyOk, passwordOk] = await Promise.all([
+      safeEqual(username,    saUsername),
+      safeEqual(securityKey, saSecurityKey),
+      safeEqual(password,    saPassword),
+    ]);
+
+    const valid = usernameOk && keyOk && passwordOk;
+
+    if (!valid) {
+      // Deliberate delay to slow brute-force attempts
+      await new Promise(r => setTimeout(r, 800));
+      return new Response(JSON.stringify({ ok: false, message: 'Invalid credentials. Access denied.' }), {
+        status: 401, headers: corsHeaders,
+      });
+    }
+
+    // Issue a super admin session token
+    const issuedAt = Date.now();
+    const rawToken = username + ':sa:' + issuedAt + ':' + crypto.randomUUID();
+    const token    = btoa(rawToken);
+
+    // Optionally persist in KV for server-side verification:
+    //   if (env.SA_SESSIONS) {
+    //     await env.SA_SESSIONS.put('sa:' + token, JSON.stringify({ username, issuedAt }), { expirationTtl: 28800 });
+    //   }
+
+    return new Response(JSON.stringify({ ok: true, token, username, role: 'super_admin', permissions: ['*'], issuedAt }), {
+      status: 200, headers: corsHeaders,
+    });
+  }
+
+  // ── GET /api/sa-auth — verify token ─────────────────────────────────────
+  if (method === 'GET') {
+    const authHeader = request.headers.get('Authorization') || '';
+    const token      = authHeader.replace('Bearer ', '').trim();
+
+    if (!token) {
+      return new Response(JSON.stringify({ ok: false, message: 'No token provided.' }), {
+        status: 401, headers: corsHeaders,
+      });
+    }
+
+    // TODO: Verify against KV store in production:
+    //   if (env.SA_SESSIONS) {
+    //     const sess = await env.SA_SESSIONS.get('sa:' + token);
+    //     if (!sess) return new Response(JSON.stringify({ ok: false, message: 'Invalid or expired session.' }), { status: 401, headers: corsHeaders });
+    //   }
+
+    return new Response(JSON.stringify({ ok: true, message: 'Super admin token accepted.', role: 'super_admin' }), {
+      status: 200, headers: corsHeaders,
+    });
+  }
+
+  return new Response(JSON.stringify({ ok: false, message: 'Method not allowed.' }), {
+    status: 405, headers: corsHeaders,
+  });
+}

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <title>WorkDesk — Secure Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      background: #0a1a15;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: #2e7d6b; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== FULL-PAGE LAYOUT ===== */
+    .login-page {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: 0;
+      filter: brightness(0.55) saturate(0.8);
+    }
+
+    /* ===== DARK OVERLAY ===== */
+    .login-page::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(135deg, rgba(10,26,21,0.72) 0%, rgba(5,13,10,0.55) 100%);
+    }
+
+    /* ===== TOP LOGO BAR ===== */
+    .top-logo {
+      position: absolute;
+      top: 28px;
+      left: 36px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      animation: logoEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) both 0.1s;
+    }
+
+    .logo-check {
+      width: 34px;
+      height: 34px;
+      background: #1c5246;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(46,125,107,0.35);
+    }
+
+    .logo-check svg {
+      width: 18px;
+      height: 18px;
+      color: #7fffd4;
+    }
+
+    .logo-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #c8e6df;
+      letter-spacing: 0.04em;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(46,125,107,0.22);
+      border: 1px solid rgba(46,125,107,0.45);
+      border-radius: 20px;
+      padding: 3px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #7de0c0;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-left: 4px;
+    }
+
+    /* ===== LEFT HERO PANEL ===== */
+    .login-hero-panel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px 60px 60px 60px;
+      animation: heroPanelEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) both 0.15s;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(46, 125, 107, 0.18);
+      border: 1px solid rgba(46, 125, 107, 0.45);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #7de0c0;
+      margin-bottom: 24px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) both 0.4s;
+    }
+
+    .hero-badge span {
+      width: 7px;
+      height: 7px;
+      background: #2e7d6b;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px #2e7d6b;
+    }
+
+    .hero-heading {
+      font-size: 42px;
+      font-weight: 800;
+      color: #e0f4ef;
+      line-height: 1.18;
+      margin-bottom: 18px;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.55);
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both 0.5s;
+    }
+
+    .hero-heading .accent { color: #4dd4a8; }
+
+    .hero-sub {
+      font-size: 15px;
+      color: #a8cec7;
+      line-height: 1.65;
+      max-width: 380px;
+      margin-bottom: 32px;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both 0.6s;
+    }
+
+    .hero-info-box {
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      border: 1px solid rgba(46,125,107,0.35);
+      border-radius: 14px;
+      padding: 20px 22px;
+      max-width: 400px;
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both 0.7s;
+    }
+
+    .hero-info-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #4dd4a8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero-info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #a8cec7;
+      margin-bottom: 10px;
+    }
+
+    .hero-info-item:last-child { margin-bottom: 0; }
+
+    .hero-info-item .dot {
+      width: 6px;
+      height: 6px;
+      background: #2e7d6b;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ===== LOGIN CARD WRAPPER ===== */
+    .login-card-wrapper {
+      position: absolute;
+      right: 5%;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 5;
+      width: 420px;
+      padding: 20px 0;
+      animation: loginCardEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) both 0.25s;
+    }
+
+    /* ===== LOGIN CARD ===== */
+    .login-card {
+      background: rgba(10, 26, 21, 0.72);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border-radius: 20px;
+      padding: 36px 34px 28px;
+      border: 1px solid rgba(46,125,107,0.35);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(46,125,107,0.12) inset;
+    }
+
+    /* ===== SECURE ACCESS HEADER ===== */
+    .sa-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .sa-shield {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #1c5246, #0d2e26);
+      border: 1px solid rgba(46,125,107,0.5);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sa-shield svg {
+      width: 20px;
+      height: 20px;
+      color: #4dd4a8;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e0f4ef;
+      line-height: 1.3;
+    }
+
+    .card-title .sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: #6ba89e;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .card-title-divider {
+      width: 36px;
+      height: 3px;
+      background: linear-gradient(90deg, #2e7d6b, #4dd4a8);
+      border-radius: 2px;
+      margin: 14px 0 16px;
+    }
+
+    /* ===== SECURITY NOTICE ===== */
+    .security-notice {
+      background: rgba(46,125,107,0.1);
+      border: 1px solid rgba(46,125,107,0.3);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 12px;
+      color: #6ba89e;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      line-height: 1.5;
+    }
+
+    .security-notice svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: #4dd4a8;
+      margin-top: 1px;
+    }
+
+    /* ===== FORM FIELDS ===== */
+    .field-error {
+      font-size: 12px;
+      color: #f87171;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .input-wrap input.is-invalid {
+      border-color: #f87171;
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.14);
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #a8cec7;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 11px 40px;
+      border: 1.5px solid rgba(46,125,107,0.3);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      color: #e0f4ef;
+      background: rgba(10, 35, 28, 0.75);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-wrap input::placeholder { color: #3d6b60; }
+
+    .input-wrap input:focus {
+      border-color: #2e7d6b;
+      box-shadow: 0 0 0 3px rgba(46, 125, 107, 0.18);
+    }
+
+    .input-wrap .field-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3d6b60;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+
+    .input-wrap .eye-toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #3d6b60;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap .eye-toggle svg { width: 16px; height: 16px; }
+
+    /* ===== SIGN IN BUTTON ===== */
+    .btn-signin {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #2e7d6b, #1f5a4d);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 18px rgba(46,125,107,0.3);
+    }
+
+    .btn-signin:hover  { background: linear-gradient(135deg, #25695a, #174535); box-shadow: 0 6px 24px rgba(46, 125, 107, 0.45); }
+    .btn-signin:active { transform: scale(0.98); }
+    .btn-signin:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-signin .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .btn-signin.loading .spinner { display: block; }
+    .btn-signin.loading .btn-arrow { display: none; }
+
+    /* ===== CARD FOOTER ===== */
+    .card-copyright {
+      text-align: center;
+      font-size: 11px;
+      color: #3d6b60;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(46,125,107,0.2);
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes loginCardEntrance {
+      from { opacity: 0; transform: translateY(-50%) translateX(30px); }
+      to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+    }
+
+    @keyframes heroPanelEntrance {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes logoEntrance {
+      from { opacity: 0; transform: translateY(-14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1100px) {
+      .login-hero-panel { padding: 80px 40px 60px 40px; }
+      .hero-heading { font-size: 34px; }
+    }
+
+    @media (max-width: 900px) {
+      .login-hero-panel { display: none; }
+      .login-card-wrapper {
+        right: 50%;
+        transform: translate(50%, -50%);
+        width: calc(100% - 48px);
+        max-width: 420px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .top-logo { left: 20px; top: 20px; }
+      .login-card { padding: 28px 22px 22px; }
+    }
+
+    /* ===== TOAST ===== */
+    .login-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #0a1a15;
+      border: 1px solid rgba(46,125,107,0.4);
+      color: #a8cec7;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s;
+      opacity: 0;
+      white-space: nowrap;
+    }
+
+    .login-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .login-toast.error {
+      border-color: rgba(248,113,113,0.4);
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-page">
+
+    <!-- Full-page background -->
+    <img
+      class="login-bg"
+      src="Baground theme login page .png"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <!-- Top-left Logo -->
+    <div class="top-logo">
+      <div class="logo-check" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 10l4.5 4.5L16 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-name">WorkDesk</span>
+      <span class="logo-badge">Super Admin</span>
+    </div>
+
+    <!-- Left hero panel -->
+    <div class="login-hero-panel" aria-hidden="true">
+      <div class="hero-badge"><span></span> Platform Administration Console</div>
+      <h1 class="hero-heading">
+        Platform-Level<br>
+        <span class="accent">Control Center.</span>
+      </h1>
+      <p class="hero-sub">
+        Restricted access. Super administrators manage all organizations, users, and platform-wide settings from this console.
+      </p>
+      <div class="hero-info-box">
+        <div class="hero-info-title">Access Scope</div>
+        <div class="hero-info-item"><span class="dot"></span>All organizations &amp; workspaces</div>
+        <div class="hero-info-item"><span class="dot"></span>All users, roles &amp; permissions</div>
+        <div class="hero-info-item"><span class="dot"></span>Platform analytics &amp; audit logs</div>
+        <div class="hero-info-item"><span class="dot"></span>System configuration &amp; integrations</div>
+        <div class="hero-info-item"><span class="dot"></span>Billing, licensing &amp; deployments</div>
+      </div>
+    </div>
+
+    <!-- Login card -->
+    <div class="login-card-wrapper">
+      <div class="login-card">
+
+        <div class="sa-header">
+          <div class="sa-shield" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+            </svg>
+          </div>
+          <div class="card-title">
+            Secure Access
+            <span class="sub">Super Administrator Portal</span>
+          </div>
+        </div>
+
+        <div class="card-title-divider"></div>
+
+        <div class="security-notice" role="note">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          This portal is restricted to authorized super administrators only. All access attempts are logged and monitored.
+        </div>
+
+        <!-- Login Form -->
+        <form id="saLoginForm" novalidate>
+
+          <div class="field-group">
+            <label for="saUsername">Username</label>
+            <div class="input-wrap">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+              </svg>
+              <input
+                type="text"
+                id="saUsername"
+                name="username"
+                placeholder="Enter super admin username"
+                autocomplete="off"
+                required
+              />
+            </div>
+            <span class="field-error" id="saUsernameError">Please enter your username.</span>
+          </div>
+
+          <div class="field-group">
+            <label for="saSecurityKey">Security Key</label>
+            <div class="input-wrap">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+              </svg>
+              <input
+                type="password"
+                id="saSecurityKey"
+                name="securityKey"
+                placeholder="Enter your security key"
+                autocomplete="off"
+                required
+              />
+              <button type="button" class="eye-toggle" id="eyeToggleKey" aria-label="Toggle security key visibility">
+                <svg id="eyeIconKey" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="saSecurityKeyError">Please enter your security key.</span>
+          </div>
+
+          <div class="field-group">
+            <label for="saPassword">Password</label>
+            <div class="input-wrap">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+              </svg>
+              <input
+                type="password"
+                id="saPassword"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="eye-toggle" id="eyeTogglePwd" aria-label="Toggle password visibility">
+                <svg id="eyeIconPwd" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="saPasswordError">Please enter your password.</span>
+          </div>
+
+          <button type="submit" class="btn-signin" id="loginBtn">
+            <span class="btn-label">Authenticate</span>
+            <span class="spinner" aria-hidden="true"></span>
+            <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+
+        </form>
+
+        <div class="card-copyright">
+          © <span id="copyrightYear"></span> WorkDesk. Restricted Access — Authorized Personnel Only.
+        </div>
+
+      </div>
+    </div>
+    <!-- end .login-card-wrapper -->
+
+  </div>
+  <!-- end .login-page -->
+
+  <div class="login-toast" id="loginToast" role="alert" aria-live="assertive"></div>
+
+  <script>
+    document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+    // ── Toast helper ────────────────────────────────────────────────────────
+    function showToast(msg, isError, duration) {
+      var toast = document.getElementById('loginToast');
+      toast.textContent = msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('show');
+      setTimeout(function () { toast.classList.remove('show'); }, duration || 3500);
+    }
+
+    // ── Field error helpers ──────────────────────────────────────────────────
+    function setFieldError(inputId, errorId, message) {
+      var input = document.getElementById(inputId);
+      var err   = document.getElementById(errorId);
+      if (!input || !err) return;
+      if (message) {
+        input.classList.add('is-invalid');
+        err.textContent   = message;
+        err.style.display = 'block';
+      } else {
+        input.classList.remove('is-invalid');
+        err.style.display = 'none';
+      }
+    }
+
+    function clearFieldErrors() {
+      setFieldError('saUsername',    'saUsernameError',    null);
+      setFieldError('saSecurityKey', 'saSecurityKeyError', null);
+      setFieldError('saPassword',    'saPasswordError',    null);
+    }
+
+    ['saUsername', 'saSecurityKey', 'saPassword'].forEach(function (id) {
+      document.getElementById(id).addEventListener('input', function () {
+        setFieldError(id, id + 'Error', null);
+      });
+    });
+
+    // ── Eye toggle helper ────────────────────────────────────────────────────
+    function makeEyeToggle(btnId, inputId, iconId) {
+      document.getElementById(btnId).addEventListener('click', function () {
+        var input = document.getElementById(inputId);
+        var icon  = document.getElementById(iconId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+        } else {
+          input.type = 'password';
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+      });
+    }
+
+    makeEyeToggle('eyeToggleKey', 'saSecurityKey', 'eyeIconKey');
+    makeEyeToggle('eyeTogglePwd', 'saPassword',    'eyeIconPwd');
+
+    // ── Rate limiting (client-side guard) ────────────────────────────────────
+    var failCount = 0;
+    var lockedUntil = 0;
+
+    // ── Form submission ──────────────────────────────────────────────────────
+    document.getElementById('saLoginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearFieldErrors();
+
+      if (Date.now() < lockedUntil) {
+        var secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+        showToast('Too many failed attempts. Try again in ' + secs + 's.', true);
+        return;
+      }
+
+      var btn         = document.getElementById('loginBtn');
+      var username    = document.getElementById('saUsername').value.trim();
+      var securityKey = document.getElementById('saSecurityKey').value;
+      var password    = document.getElementById('saPassword').value;
+      var valid       = true;
+
+      if (!username)    { setFieldError('saUsername',    'saUsernameError',    'Please enter your username.');    valid = false; }
+      if (!securityKey) { setFieldError('saSecurityKey', 'saSecurityKeyError', 'Please enter your security key.'); valid = false; }
+      if (!password)    { setFieldError('saPassword',    'saPasswordError',    'Please enter your password.');    valid = false; }
+      if (!valid) return;
+
+      var btnLabel = btn.querySelector('.btn-label');
+      if (btnLabel) btnLabel.textContent = 'Authenticating\u2026';
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      fetch('/api/sa-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, securityKey: securityKey, password: password })
+      })
+      .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
+      .then(function (result) {
+        if (result.data && result.data.ok) {
+          failCount = 0;
+          localStorage.setItem('sa_token', result.data.token);
+          localStorage.setItem('sa_session', JSON.stringify({
+            token:       result.data.token,
+            username:    result.data.username,
+            role:        'super_admin',
+            permissions: ['*'],
+            issuedAt:    Date.now()
+          }));
+          window.location.href = 'sa-dashboard.html';
+        } else {
+          failCount++;
+          if (failCount >= 5) {
+            lockedUntil = Date.now() + 60000;
+            showToast('Too many failed attempts. Locked for 60 seconds.', true, 8000);
+          } else {
+            showToast(result.data && result.data.message ? result.data.message : 'Invalid credentials. Access denied.', true);
+          }
+          if (btnLabel) btnLabel.textContent = 'Authenticate';
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
+      })
+      .catch(function () {
+        showToast('Network error. Please try again.', true);
+        if (btnLabel) btnLabel.textContent = 'Authenticate';
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      });
+    });
+  </script>
+
+</body>
+</html>
