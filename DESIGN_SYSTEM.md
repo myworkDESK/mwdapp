@@ -89,13 +89,13 @@ These values are used in `login.html` only, for the glassmorphism card on the ba
 
 | Token | Value | Usage |
 |---|---|---|
-| `--radius-lg` | `16px` | Cards, modals |
-| `--radius-md` | `12px` | Inputs, stat icons |
-| `--radius-sm` | `8px` | Buttons, tags, small chips |
+| `--radius-lg` | `8px` | Cards, modals, containers |
+| `--radius-md` | `6px` | Inputs, stat icons, dropdowns |
+| `--radius-sm` | `4px` | Tags, small chips, tiny elements |
 | Base unit | `8px` | All spacing is a multiple of 8px |
 
 ### Card Padding
-- Standard card: `22px`
+- Standard card: `20px`
 - Compact card: `14–16px`
 - Modal: `28–36px`
 
@@ -112,8 +112,9 @@ These values are used in `login.html` only, for the glassmorphism card on the ba
 
 | Token | Value | Usage |
 |---|---|---|
-| `--shadow-soft` | `0 10px 25px rgba(0,0,0,0.05)` | Modals, dropdowns |
-| `--shadow-card` | `0 8px 20px rgba(0,0,0,0.06)` | Default card shadow |
+| `--shadow-soft` | `0 4px 12px rgba(0,0,0,0.06)` | Floating elements (sidebar expanded) |
+| `--shadow-card` | `none` | Cards use borders instead of shadows |
+| `--border-card` | `#D1D5DB` | Card and container borders |
 
 ---
 
@@ -152,8 +153,10 @@ compatibility with **Cloudflare Pages** (static delivery, no Node.js runtime on 
 - Right: notification bell (with badge), user avatar
 
 ### Cards
-- White background, `--radius-lg`, `--shadow-card`, `22px` padding
+- White background, `--radius-lg` (8px), `border: 1px solid var(--border-card)`, `20px` padding
+- No box-shadow (use border instead of shadow for clean minimal design)
 - Header row: title (left) + action link (right)
+- Hover state: `border-color` shifts to `--primary`
 
 ### Stat Cards
 - Same card base + icon block (52×52, `--radius-md`) + details column
@@ -182,7 +185,7 @@ compatibility with **Cloudflare Pages** (static delivery, no Node.js runtime on 
 - Group badge: pill showing member count
 
 ### Timeline (new in v1.1)
-- Post card: white card, full-width, `--radius-lg`, `--shadow-card`
+- Post card: white card, full-width, `--radius-lg`, `border: 1px solid var(--border-card)` (no shadow)
 - Leader badge: `--primary` bg, white text, `role: "Leader"` label
 - Reaction bar: emoji reactions row at card footer
 - Leader-only compose bar: shown only when `data-role="leader"` on `<body>`

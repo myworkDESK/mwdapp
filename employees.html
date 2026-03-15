@@ -56,9 +56,9 @@
     }
     .modal-backdrop.open { display: flex; }
     .modal {
-      background: #fff; border-radius: 16px; width: 520px; max-width: 96vw;
+      background: #fff; border-radius: var(--radius-sm); width: 520px; max-width: 96vw;
       max-height: 90vh; overflow-y: auto; padding: 32px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.18); animation: scaleIn 0.22s ease;
+      border: 1px solid var(--border-card); box-shadow: 0 8px 28px rgba(0,0,0,0.12); animation: scaleIn 0.22s ease;
     }
     .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
