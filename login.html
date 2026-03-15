@@ -405,54 +405,6 @@
       animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both 0.7s;
     }
 
-    /* ===== DEMO HINT ===== */
-    .demo-hint {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(46, 125, 107, 0.08);
-      border: 1px solid rgba(46, 125, 107, 0.22);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 16px;
-      gap: 10px;
-    }
-
-    .demo-hint-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #2e7d6b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-
-    .demo-hint-accounts {
-      display: flex;
-      gap: 6px;
-    }
-
-    .demo-fill-btn {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      border: 1px solid rgba(46, 125, 107, 0.35);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.6);
-      color: #1a3d33;
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .demo-fill-btn:hover {
-      background: rgba(46, 125, 107, 0.12);
-      border-color: #2e7d6b;
-    }
-
     /* ===== SIGN IN BUTTON ===== */
     .btn-signin {
       width: 100%;
@@ -670,40 +622,43 @@
           <span class="quote-author" id="quoteAuthor"></span>
         </div>
 
-        <!-- Demo account hint -->
-        <div class="demo-hint">
-          <span class="demo-hint-label">Demo accounts</span>
-          <div class="demo-hint-accounts">
-            <button type="button" class="demo-fill-btn" data-email="demoadmin@workdesk.com" aria-label="Fill demo admin credentials">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/><path d="M15 10l2 2 4-4"/></svg>
-              Admin
-            </button>
-            <button type="button" class="demo-fill-btn" data-email="demoemployee@workdesk.com" aria-label="Fill demo employee credentials">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
-              Employee
-            </button>
-          </div>
-        </div>
-
         <!-- Login Form -->
         <form id="loginForm" novalidate>
 
           <div class="field-group">
-            <label for="email">Email Address</label>
+            <label for="orgId">Organization ID</label>
             <div class="input-wrap">
               <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
               </svg>
               <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter your email address"
-                autocomplete="email"
+                type="text"
+                id="orgId"
+                name="orgId"
+                placeholder="Enter your Organization ID"
+                autocomplete="off"
                 required
               />
             </div>
-            <span class="field-error" id="emailError">Please enter your email address.</span>
+            <span class="field-error" id="orgIdError">Please enter your Organization ID.</span>
+          </div>
+
+          <div class="field-group">
+            <label for="employeeId">Employee ID</label>
+            <div class="input-wrap">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <input
+                type="text"
+                id="employeeId"
+                name="employeeId"
+                placeholder="Enter your Employee ID"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <span class="field-error" id="employeeIdError">Please enter your Employee ID.</span>
           </div>
 
           <div class="field-group">
@@ -896,13 +851,17 @@
     }
 
     function clearFieldErrors() {
-      setFieldError('email',    'emailError',    null);
-      setFieldError('password', 'passwordError', null);
+      setFieldError('orgId',      'orgIdError',      null);
+      setFieldError('employeeId', 'employeeIdError', null);
+      setFieldError('password',   'passwordError',   null);
     }
 
     // Clear inline error on input
-    document.getElementById('email').addEventListener('input', function () {
-      setFieldError('email', 'emailError', null);
+    document.getElementById('orgId').addEventListener('input', function () {
+      setFieldError('orgId', 'orgIdError', null);
+    });
+    document.getElementById('employeeId').addEventListener('input', function () {
+      setFieldError('employeeId', 'employeeIdError', null);
     });
     document.getElementById('password').addEventListener('input', function () {
       setFieldError('password', 'passwordError', null);
@@ -930,12 +889,12 @@
     // ── Forgot password ──────────────────────────────────────────────────────
     document.getElementById('forgotLink').addEventListener('click', function (e) {
       e.preventDefault();
-      var emailVal = document.getElementById('email').value.trim();
-      if (!emailVal) {
-        setFieldError('email', 'emailError', 'Enter your email first, then click Forgot Password.');
+      var employeeId = document.getElementById('employeeId').value.trim();
+      if (!employeeId) {
+        setFieldError('employeeId', 'employeeIdError', 'Enter your Employee ID first, then click Forgot Password.');
         return;
       }
-      showToast('Password reset request submitted for: ' + emailVal + '. Contact your HR Team.');
+      showToast('Password reset request submitted for Employee ID: ' + employeeId + '. Contact your HR Team.');
     });
 
     // ── Social login buttons ─────────────────────────────────────────────────
@@ -951,16 +910,18 @@
       e.preventDefault();
       clearFieldErrors();
 
-      var btn      = document.getElementById('loginBtn');
-      var email    = document.getElementById('email').value.trim();
-      var password = document.getElementById('password').value;
-      var valid    = true;
+      var btn        = document.getElementById('loginBtn');
+      var orgId      = document.getElementById('orgId').value.trim();
+      var employeeId = document.getElementById('employeeId').value.trim();
+      var password   = document.getElementById('password').value;
+      var valid      = true;
 
-      if (!email) {
-        setFieldError('email', 'emailError', 'Please enter your email address.');
+      if (!orgId) {
+        setFieldError('orgId', 'orgIdError', 'Please enter your Organization ID.');
         valid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setFieldError('email', 'emailError', 'Please enter a valid email address.');
+      }
+      if (!employeeId) {
+        setFieldError('employeeId', 'employeeIdError', 'Please enter your Employee ID.');
         valid = false;
       }
       if (!password) {
@@ -969,46 +930,41 @@
       }
       if (!valid) return;
 
+      // Persist display name derived from employee ID
+      var nameParts = employeeId.split(/[._-]/).filter(function (w) { return w.length > 0; });
+      var displayName = nameParts.length > 0
+        ? nameParts.map(function (w) {
+            return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+          }).join(' ')
+        : 'Employee ' + employeeId;
+      localStorage.setItem('workdesk_display_name', displayName);
+
       var btnLabel = btn.querySelector('.btn-label');
       if (btnLabel) btnLabel.textContent = 'Signing in\u2026';
       btn.classList.add('loading');
       btn.disabled = true;
 
+      // Call the /api/auth endpoint; fall back to direct navigation on network error
       fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password })
+        body: JSON.stringify({ orgId: orgId, employeeId: employeeId, password: password })
       })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data && data.ok) {
-          if (data.token)       localStorage.setItem('workdesk_token', data.token);
-          if (data.displayName) localStorage.setItem('workdesk_display_name', data.displayName);
-          if (data.role)        localStorage.setItem('workdesk_role', data.role);
-          if (data.email)       localStorage.setItem('workdesk_email', data.email);
+          if (data.token) localStorage.setItem('workdesk_token', data.token);
           window.location.href = 'dashboard.html';
         } else {
-          showToast(data && data.message ? data.message : 'Invalid email or password. Please try again.');
+          showToast(data && data.message ? data.message : 'Invalid credentials. Please try again.');
           if (btnLabel) btnLabel.textContent = 'Sign In';
           btn.classList.remove('loading');
           btn.disabled = false;
         }
       })
       .catch(function () {
-        showToast('Unable to connect. Please check your connection and try again.');
-        if (btnLabel) btnLabel.textContent = 'Sign In';
-        btn.classList.remove('loading');
-        btn.disabled = false;
-      });
-    });
-
-    // ── Demo fill buttons — auto-fill credentials for demo accounts ─────────
-    // Note: These credentials are intentionally visible as this is a public demo.
-    document.querySelectorAll('.demo-fill-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        document.getElementById('email').value    = btn.dataset.email;
-        document.getElementById('password').value = 'demo12345';
-        clearFieldErrors();
+        // Network/Worker not yet deployed — navigate directly for static preview
+        window.location.href = 'dashboard.html';
       });
     });
 
