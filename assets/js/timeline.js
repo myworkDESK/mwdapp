@@ -135,6 +135,17 @@
     var mainContent = document.querySelector('.main-content');
     if (mainContent) mainContent.scrollTop = 0;
 
+    // Push a notification for the new timeline post
+    if (window.WDNotifications) {
+      var author = getCurrentUserName();
+      var preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
+      window.WDNotifications.push(
+        'timeline',
+        '<strong>' + escapeHtml(author) + '</strong> posted: ' + escapeHtml(preview),
+        'timeline.html'
+      );
+    }
+
     // In production: POST to Cloudflare Worker
     // fetch('/api/timeline', {
     //   method: 'POST',

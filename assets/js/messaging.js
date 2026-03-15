@@ -366,7 +366,19 @@
     indicator.style.display = 'flex';
     var area = document.getElementById('messagesArea');
     if (area) area.scrollTop = area.scrollHeight;
-    setTimeout(function () { indicator.style.display = 'none'; }, 2200);
+    setTimeout(function () {
+      indicator.style.display = 'none';
+      // Simulate receiving a reply and push a notification
+      var t = threads[currentThread];
+      if (t && window.WDNotifications) {
+        var senderName = t.name;
+        window.WDNotifications.push(
+          'message',
+          'New message from <strong>' + senderName + '</strong>',
+          'messaging.html'
+        );
+      }
+    }, 2200);
   }
 
   function autoResize(el) {

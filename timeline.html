@@ -396,41 +396,6 @@
 (function(){
   'use strict';
   document.addEventListener('DOMContentLoaded', function(){
-    // Notification dropdown
-    var notifBtn  = document.getElementById('notifBtn');
-    var notifDrop = document.getElementById('notifDropdown');
-    if (notifBtn) {
-      notifBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        var open = notifDrop.classList.toggle('open');
-        notifBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      document.addEventListener('click', function(){ notifDrop.classList.remove('open'); notifBtn.setAttribute('aria-expanded','false'); });
-      notifDrop.querySelectorAll('.notif-item').forEach(function(item){
-        item.addEventListener('click', function(e){
-          e.stopPropagation();
-          item.classList.remove('unread');
-          var href = item.dataset.href;
-          if (href) window.location.href = href;
-        });
-      });
-      var markAllBtn = document.getElementById('notifMarkAll');
-      if (markAllBtn) {
-        markAllBtn.addEventListener('click', function(e){
-          e.stopPropagation();
-          notifDrop.querySelectorAll('.notif-item.unread').forEach(function(i){ i.classList.remove('unread'); });
-        });
-      }
-      var viewAllBtn = document.getElementById('notifViewAll');
-      if (viewAllBtn) {
-        viewAllBtn.addEventListener('click', function(e){
-          e.stopPropagation();
-          var list = notifDrop.querySelector('.notif-list');
-          var expanded = list.classList.toggle('notif-all-visible');
-          viewAllBtn.textContent = expanded ? 'Show less' : 'See all notifications';
-        });
-      }
-    }
   });
 }());
 </script>

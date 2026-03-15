@@ -1209,7 +1209,6 @@
 
   // ── Init ──
   function initPage() {
-    initNotifDropdown();
     initStatusDropdown();
     initSearch();
   }
@@ -1450,38 +1449,6 @@
     const name = document.getElementById('titleChecklist').textContent.replace('Onboarding Checklist — ', '');
     showToast('Progress saved for ' + name + ' (' + checkedCount + '/' + total + ' tasks)');
     closeModal('modalChecklist');
-  }
-
-  // ── Notification dropdown ──
-  function initNotifDropdown() {
-    const btn = document.getElementById('notifBtn');
-    const dropdown = document.getElementById('notifDropdown');
-    const markAll = document.getElementById('notifMarkAll');
-
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      const isOpen = dropdown.style.display === 'block';
-      dropdown.style.display = isOpen ? 'none' : 'block';
-      btn.setAttribute('aria-expanded', !isOpen);
-    });
-
-    markAll.addEventListener('click', function () {
-      document.querySelectorAll('.notif-item.unread').forEach(item => item.classList.remove('unread'));
-      showToast('All notifications marked as read');
-      btn.classList.remove('badge');
-    });
-
-    document.getElementById('notifViewAll').addEventListener('click', function () {
-      showToast('Viewing all notifications');
-      dropdown.style.display = 'none';
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!document.getElementById('notifWrap').contains(e.target)) {
-        dropdown.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-      }
-    });
   }
 
   // ── Status dropdown ──
