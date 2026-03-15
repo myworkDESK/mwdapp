@@ -846,6 +846,7 @@
 <!-- ===== TOAST CONTAINER ===== -->
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 <script>
 // ─── Data ─────────────────────────────────────────────────────────────
@@ -1112,21 +1113,30 @@ function submitFeedback() {
   const growth = document.getElementById('fbGrowth').value.trim();
   if (!to || !strengths || !growth) { showToast('Please fill in all required fields.', 'error'); return; }
   const anon = document.getElementById('fbAnonymous').checked;
-  feedbacks.unshift({
-    from: anon ? 'Anonymous' : 'James Darko',
-    relation: document.getElementById('fbRelation').value,
-    anonymous: anon, strengths, growth,
-    ratings: Object.fromEntries(competencies.map(c => [c, (currentRatings['fb']||{})[c] || 3])),
-    date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+  WDConfirm.show({
+    title:       'Submit Feedback',
+    message:     'Are you sure you want to send feedback to ' + to + '?',
+    type:        'info',
+    confirmText: 'Yes, Send',
+    cancelText:  'No',
+    onConfirm: function () {
+      feedbacks.unshift({
+        from: anon ? 'Anonymous' : 'James Darko',
+        relation: document.getElementById('fbRelation').value,
+        anonymous: anon, strengths, growth,
+        ratings: Object.fromEntries(competencies.map(c => [c, (currentRatings['fb']||{})[c] || 3])),
+        date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),
+      });
+      renderReceivedFeedback();
+      document.getElementById('fbTo').value = '';
+      document.getElementById('fbStrengths').value = '';
+      document.getElementById('fbGrowth').value = '';
+      document.getElementById('fbAnonymous').checked = false;
+      currentRatings['fb'] = {};
+      renderCompetencyRatings('competencyRatings','fb');
+      showToast(`Feedback sent to ${to} successfully.`, 'success');
+    }
   });
-  renderReceivedFeedback();
-  document.getElementById('fbTo').value = '';
-  document.getElementById('fbStrengths').value = '';
-  document.getElementById('fbGrowth').value = '';
-  document.getElementById('fbAnonymous').checked = false;
-  currentRatings['fb'] = {};
-  renderCompetencyRatings('competencyRatings','fb');
-  showToast(`Feedback sent to ${to} successfully.`, 'success');
 }
 
 // ─── PIPs ──────────────────────────────────────────────────────────────
@@ -1177,9 +1187,18 @@ function updatePIPProgress(i) {
 }
 
 function completePIP(i) {
-  pips[i].status = 'Completed';
-  renderPIPs();
-  showToast('PIP marked as completed.', 'success');
+  WDConfirm.show({
+    title:       'Complete PIP',
+    message:     'Are you sure you want to mark this Performance Improvement Plan as completed?',
+    type:        'info',
+    confirmText: 'Yes, Mark Complete',
+    cancelText:  'No',
+    onConfirm: function () {
+      pips[i].status = 'Completed';
+      renderPIPs();
+      showToast('PIP marked as completed.', 'success');
+    }
+  });
 }
 
 // ─── Analytics ────────────────────────────────────────────────────────
@@ -1254,11 +1273,20 @@ function submitSelfEval() {
   const c = document.getElementById('selfChallenges').value.trim();
   const g = document.getElementById('selfNextGoals').value.trim();
   if (!a || !c || !g) { showToast('Please complete all sections.', 'error'); return; }
-  document.getElementById('selfEvalModal').classList.remove('open');
-  const r = reviews.find(rv => rv.employee === 'James Darko' || rv.cycle === 'Q2 2025');
-  if (r) r.selfDone = true;
-  renderReviews();
-  showToast('Self evaluation submitted successfully.', 'success');
+  WDConfirm.show({
+    title:       'Submit Self Evaluation',
+    message:     'Are you sure you want to submit your self evaluation? You cannot edit it after submission.',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      document.getElementById('selfEvalModal').classList.remove('open');
+      const r = reviews.find(rv => rv.employee === 'James Darko' || rv.cycle === 'Q2 2025');
+      if (r) r.selfDone = true;
+      renderReviews();
+      showToast('Self evaluation submitted successfully.', 'success');
+    }
+  });
 }
 
 // ─── Review Modal ─────────────────────────────────────────────────────
@@ -1274,12 +1302,21 @@ function submitReview() {
   const rating = parseInt(document.getElementById('reviewRating').value);
   const comments = document.getElementById('reviewComments').value.trim();
   if (!comments) { showToast('Please add manager comments.', 'error'); return; }
-  const r = reviews.find(rv => rv.employee === employee);
-  if (r) { r.managerDone = true; r.rating = rating; r.status = r.selfDone ? 'Completed' : 'In Progress'; r.color = r.status === 'Completed' ? 'badge-green' : 'badge-yellow'; }
-  else reviews.push({ employee, cycle:'Q2 2025', type:'Mid-Year', selfDone:false, managerDone:true, rating, status:'In Progress', color:'badge-yellow' });
-  renderReviews();
-  closeReviewModal();
-  showToast(`Review submitted for ${employee}.`, 'success');
+  WDConfirm.show({
+    title:       'Submit Review',
+    message:     'Are you sure you want to submit the performance review for ' + employee + '?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      const r = reviews.find(rv => rv.employee === employee);
+      if (r) { r.managerDone = true; r.rating = rating; r.status = r.selfDone ? 'Completed' : 'In Progress'; r.color = r.status === 'Completed' ? 'badge-green' : 'badge-yellow'; }
+      else reviews.push({ employee, cycle:'Q2 2025', type:'Mid-Year', selfDone:false, managerDone:true, rating, status:'In Progress', color:'badge-yellow' });
+      renderReviews();
+      closeReviewModal();
+      showToast(`Review submitted for ${employee}.`, 'success');
+    }
+  });
 }
 
 // ─── Goal Modal ───────────────────────────────────────────────────────
@@ -1307,13 +1344,22 @@ function submitGoal() {
   const due = document.getElementById('goalDue').value;
   const owner = document.getElementById('goalOwner').value;
   if (!title) { showToast('Please enter a goal title.', 'error'); return; }
-  const krs = [...document.getElementById('krFields').querySelectorAll('input')]
-    .map(inp => inp.value.trim()).filter(Boolean)
-    .map(text => ({ text, done:false, pct:0 }));
-  goals.unshift({ id: Date.now(), title, type, owner, due, progress:0, keyResults:krs.length ? krs : [{text:'Default key result',done:false,pct:0}] });
-  renderGoals();
-  closeGoalModal();
-  showToast('Goal added successfully!', 'success');
+  WDConfirm.show({
+    title:       'Save Goal',
+    message:     'Are you sure you want to save this goal?',
+    type:        'info',
+    confirmText: 'Yes, Save',
+    cancelText:  'No',
+    onConfirm: function () {
+      const krs = [...document.getElementById('krFields').querySelectorAll('input')]
+        .map(inp => inp.value.trim()).filter(Boolean)
+        .map(text => ({ text, done:false, pct:0 }));
+      goals.unshift({ id: Date.now(), title, type, owner, due, progress:0, keyResults:krs.length ? krs : [{text:'Default key result',done:false,pct:0}] });
+      renderGoals();
+      closeGoalModal();
+      showToast('Goal added successfully!', 'success');
+    }
+  });
 }
 
 // ─── PIP Modal ────────────────────────────────────────────────────────
@@ -1327,15 +1373,24 @@ function submitPIP() {
   const issues = document.getElementById('pipIssues').value.trim();
   const pipGoalsVal = document.getElementById('pipGoals').value.trim();
   if (!employee || !start || !end || !issues || !pipGoalsVal) { showToast('Please fill in all required fields.', 'error'); return; }
-  pips.push({
-    employee, issues, goals:pipGoalsVal,
-    support: document.getElementById('pipSupport').value || 'Standard HR support',
-    manager: document.getElementById('pipManager').value,
-    start, end, status:'Active', progress:0
+  WDConfirm.show({
+    title:       'Create PIP',
+    message:     'Are you sure you want to create a Performance Improvement Plan for ' + employee + '?',
+    type:        'warn',
+    confirmText: 'Yes, Create PIP',
+    cancelText:  'No',
+    onConfirm: function () {
+      pips.push({
+        employee, issues, goals:pipGoalsVal,
+        support: document.getElementById('pipSupport').value || 'Standard HR support',
+        manager: document.getElementById('pipManager').value,
+        start, end, status:'Active', progress:0
+      });
+      renderPIPs();
+      closePIPModal();
+      showToast(`PIP created for ${employee}.`, 'success');
+    }
   });
-  renderPIPs();
-  closePIPModal();
-  showToast(`PIP created for ${employee}.`, 'success');
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────

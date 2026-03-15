@@ -460,13 +460,22 @@
     var reason = document.getElementById('lReason').value.trim();
     if (!emp.value||!type||!from||!to) { toast('Please fill in all required fields.'); return; }
     var days = Math.max(1, Math.round((new Date(to)-new Date(from))/(864e5))+1);
-    var newId = 'LV-'+ String(requests.length+1).padStart(3,'0');
-    requests.push({ id:newId, empId:emp.value, name:emp.text, type:type, from:from, to:to, days:days, status:'Pending', filed:new Date().toISOString().slice(0,10), reason:reason });
-    saveReqs();
-    document.getElementById('leaveModal').classList.remove('open');
-    renderTable(); renderSummary();
-    toast('Leave request filed successfully.');
-    fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({empId:emp.value,name:emp.text,type,from,to,days,reason})}).catch(function(){});
+    WDConfirm.show({
+      title:       'File Leave Request',
+      message:     'Are you sure you want to file a ' + type + ' leave request for ' + emp.text + ' (' + days + ' day' + (days>1?'s':'') + ')?',
+      type:        'info',
+      confirmText: 'Yes, File Leave',
+      cancelText:  'No',
+      onConfirm: function () {
+        var newId = 'LV-'+ String(requests.length+1).padStart(3,'0');
+        requests.push({ id:newId, empId:emp.value, name:emp.text, type:type, from:from, to:to, days:days, status:'Pending', filed:new Date().toISOString().slice(0,10), reason:reason });
+        saveReqs();
+        document.getElementById('leaveModal').classList.remove('open');
+        renderTable(); renderSummary();
+        toast('Leave request filed successfully.');
+        fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({empId:emp.value,name:emp.text,type,from,to,days,reason})}).catch(function(){});
+      }
+    });
   });
 
   // ── Export ────────────────────────────────────────────────────────────────
@@ -499,6 +508,7 @@
 }());
 </script>
 <script src="assets/js/notifications.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

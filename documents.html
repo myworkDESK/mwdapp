@@ -457,7 +457,7 @@
       </button>
       <button class="btn btn-soft btn-sm" id="detailApproveBtn" onclick="approveDoc()" style="display:none;">Approve</button>
       <button class="btn btn-accent btn-sm" onclick="openSignModal()">Request Signature</button>
-      <button class="btn btn-danger btn-sm" onclick="showToast('Document deleted','error');closeModal('detailModal')">Delete</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteDoc()">Delete</button>
     </div>
   </div>
 </div>
@@ -614,9 +614,22 @@
 <div class="toast" id="toast"></div>
 
 <script src="assets/js/notifications.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 <script>
-function logout(){localStorage.removeItem('workdesk_session');window.location.href='login.html';}
+function logout(){
+  WDConfirm.show({
+    title:       'Log Out',
+    message:     'Are you sure you want to log out?',
+    type:        'warn',
+    confirmText: 'Yes, Log Out',
+    cancelText:  'No',
+    onConfirm: function () {
+      localStorage.removeItem('workdesk_session');
+      window.location.href = 'login.html';
+    }
+  });
+}
 
 /* ── Document Data ── */
 const documents = [
@@ -993,8 +1006,17 @@ function handleFileSelect(input) {
 function submitUpload() {
   const name = document.getElementById('uploadName').value.trim();
   if (!name) { showToast('Please enter a document name','error'); return; }
-  closeModal('uploadModal');
-  showToast('Document uploaded successfully', 'success');
+  WDConfirm.show({
+    title:       'Upload Document',
+    message:     'Are you sure you want to upload "' + name + '"?',
+    type:        'info',
+    confirmText: 'Yes, Upload',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('uploadModal');
+      showToast('Document uploaded successfully', 'success');
+    }
+  });
 }
 
 /* ── Request Modal ── */
@@ -1002,8 +1024,32 @@ function openRequestModal() { openModal('requestModal'); }
 function submitRequest() {
   const name = document.getElementById('reqDocName').value.trim();
   if (!name) { showToast('Please enter a document name','error'); return; }
-  closeModal('requestModal');
-  showToast('Request submitted successfully', 'success');
+  WDConfirm.show({
+    title:       'Request Document',
+    message:     'Are you sure you want to submit a request for "' + name + '"?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('requestModal');
+      showToast('Request submitted successfully', 'success');
+    }
+  });
+}
+
+/* ── Delete Document ── */
+function confirmDeleteDoc() {
+  WDConfirm.show({
+    title:       'Delete Document',
+    message:     'Are you sure you want to permanently delete this document? This action cannot be undone.',
+    type:        'danger',
+    confirmText: 'Yes, Delete',
+    cancelText:  'No',
+    onConfirm: function () {
+      showToast('Document deleted', 'error');
+      closeModal('detailModal');
+    }
+  });
 }
 
 /* ── Sign Modal ── */
@@ -1026,14 +1072,32 @@ function signDocument() {
   if (!document.getElementById('sigAgreeCheck').checked) {
     showToast('Please agree to the digital signature consent', 'error'); return;
   }
-  closeModal('signModal');
-  showToast('Document signed successfully', 'success');
+  WDConfirm.show({
+    title:       'Sign Document',
+    message:     'Are you sure you want to digitally sign this document? This action is legally binding.',
+    type:        'warn',
+    confirmText: 'Yes, Sign',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('signModal');
+      showToast('Document signed successfully', 'success');
+    }
+  });
 }
 
 /* ── Approve ── */
 function approveDoc() {
-  closeModal('detailModal');
-  showToast('Document approved', 'success');
+  WDConfirm.show({
+    title:       'Approve Document',
+    message:     'Are you sure you want to approve this document?',
+    type:        'info',
+    confirmText: 'Yes, Approve',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('detailModal');
+      showToast('Document approved', 'success');
+    }
+  });
 }
 
 /* ── Policy Library ── */

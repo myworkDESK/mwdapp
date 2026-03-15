@@ -146,20 +146,38 @@
   }
 
   function archiveMessage(msgId) {
-    if (!archived[currentThread]) archived[currentThread] = [];
-    if (archived[currentThread].indexOf(msgId) === -1) archived[currentThread].push(msgId);
-    renderMessages(currentThread);
-    showToast('Message archived.');
+    WDConfirm.show({
+      title:       'Archive Message',
+      message:     'Are you sure you want to archive this message?',
+      type:        'warn',
+      confirmText: 'Yes, Archive',
+      cancelText:  'No',
+      onConfirm: function () {
+        if (!archived[currentThread]) archived[currentThread] = [];
+        if (archived[currentThread].indexOf(msgId) === -1) archived[currentThread].push(msgId);
+        renderMessages(currentThread);
+        showToast('Message archived.');
+      }
+    });
   }
 
   function deleteMessage(msgId) {
-    if (!messages[currentThread]) return;
-    apiDeleteMessage(msgId);
-    messages[currentThread] = messages[currentThread].filter(function(m){ return m.id !== msgId; });
-    if (pinned[currentThread]) pinned[currentThread] = pinned[currentThread].filter(function(id){ return id !== msgId; });
-    renderMessages(currentThread);
-    renderPinnedBar();
-    showToast('Message deleted.');
+    WDConfirm.show({
+      title:       'Delete Message',
+      message:     'Are you sure you want to permanently delete this message?',
+      type:        'danger',
+      confirmText: 'Yes, Delete',
+      cancelText:  'No',
+      onConfirm: function () {
+        if (!messages[currentThread]) return;
+        apiDeleteMessage(msgId);
+        messages[currentThread] = messages[currentThread].filter(function(m){ return m.id !== msgId; });
+        if (pinned[currentThread]) pinned[currentThread] = pinned[currentThread].filter(function(id){ return id !== msgId; });
+        renderMessages(currentThread);
+        renderPinnedBar();
+        showToast('Message deleted.');
+      }
+    });
   }
 
   function startEditMessage(msgId) {

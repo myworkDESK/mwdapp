@@ -185,11 +185,16 @@
         // Going offline from dropdown: only allowed when not clocked in
         if (s === 'offline' && isClockedIn()) {
           // Prompt clock-out instead
-          if (confirm('Clock out to go Offline?')) {
-            clockOut();
-          }
           statusDrop.classList.remove('open');
           statusBtn.setAttribute('aria-expanded', 'false');
+          WDConfirm.show({
+            title:       'Clock Out',
+            message:     'Clock out to go Offline?',
+            type:        'warn',
+            confirmText: 'Yes, Clock Out',
+            cancelText:  'No',
+            onConfirm:   clockOut
+          });
           return;
         }
         saveStatus(s);
@@ -205,7 +210,14 @@
     if (btnIn) {
       btnIn.addEventListener('click', function (e) {
         e.stopPropagation();
-        clockIn();
+        WDConfirm.show({
+          title:       'Clock In',
+          message:     'Are you sure you want to clock in and start your work session?',
+          type:        'info',
+          confirmText: 'Yes, Clock In',
+          cancelText:  'No',
+          onConfirm:   clockIn
+        });
       });
     }
 
@@ -214,7 +226,14 @@
     if (btnOut) {
       btnOut.addEventListener('click', function (e) {
         e.stopPropagation();
-        clockOut();
+        WDConfirm.show({
+          title:       'Clock Out',
+          message:     'Are you sure you want to clock out and end your work session?',
+          type:        'warn',
+          confirmText: 'Yes, Clock Out',
+          cancelText:  'No',
+          onConfirm:   clockOut
+        });
       });
     }
 

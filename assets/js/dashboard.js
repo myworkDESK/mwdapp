@@ -82,12 +82,22 @@
       postBtn.addEventListener('click', function () {
         var msg = prompt('Enter announcement message:');
         if (msg && msg.trim()) {
-          var card = postBtn.closest('.card');
-          var notice = document.createElement('div');
-          notice.className = 'notice';
-          notice.innerHTML = '<div class="notice-title">📢 New Announcement</div>' + msg.trim();
-          card.appendChild(notice);
-          showToast('Announcement posted.');
+          var text = msg.trim();
+          WDConfirm.show({
+            title:       'Post Announcement',
+            message:     'Are you sure you want to post this announcement?',
+            type:        'info',
+            confirmText: 'Yes, Post',
+            cancelText:  'No',
+            onConfirm: function () {
+              var card = postBtn.closest('.card');
+              var notice = document.createElement('div');
+              notice.className = 'notice';
+              notice.innerHTML = '<div class="notice-title">📢 New Announcement</div>' + text;
+              card.appendChild(notice);
+              showToast('Announcement posted.');
+            }
+          });
         }
       });
     }

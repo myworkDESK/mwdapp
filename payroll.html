@@ -491,21 +491,30 @@
   // ── Run Payroll ────────────────────────────────────────────────────────────
   document.getElementById('runPayrollBtn').addEventListener('click', function(){
     var btn = this;
-    if (!confirm('Run payroll for March 2025? This will process all '+ledger.length+' employee payslips.')) return;
-    btn.disabled=true; btn.textContent='Processing…';
-    document.getElementById('chipStatus').textContent='Processing';
-    ledger.forEach(function(r){ r.status='Processing'; });
-    fetch('/api/payroll/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({period:'March 2025',count:ledger.length})})
-      .catch(function(){});
-    setTimeout(function(){
-      ledger.forEach(function(r){ r.status='Released'; });
-      saveLedger();
-      renderTable();
-      updateKPIs();
-      btn.textContent='✓ Released';
-      document.getElementById('chipStatus').textContent='Released';
-      toast('Payroll for March 2025 has been released. '+ledger.length+' payslips generated.');
-    }, 2000);
+    var count = ledger.length;
+    WDConfirm.show({
+      title:       'Run Payroll',
+      message:     'Run payroll for March 2025? This will process all ' + count + ' employee payslips.',
+      type:        'warn',
+      confirmText: 'Yes, Run Payroll',
+      cancelText:  'No',
+      onConfirm: function () {
+        btn.disabled=true; btn.textContent='Processing…';
+        document.getElementById('chipStatus').textContent='Processing';
+        ledger.forEach(function(r){ r.status='Processing'; });
+        fetch('/api/payroll/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({period:'March 2025',count:count})})
+          .catch(function(){});
+        setTimeout(function(){
+          ledger.forEach(function(r){ r.status='Released'; });
+          saveLedger();
+          renderTable();
+          updateKPIs();
+          btn.textContent='✓ Released';
+          document.getElementById('chipStatus').textContent='Released';
+          toast('Payroll for March 2025 has been released. '+count+' payslips generated.');
+        }, 2000);
+      }
+    });
   });
 
   // ── Export ────────────────────────────────────────────────────────────────
@@ -540,6 +549,7 @@
 }());
 </script>
 <script src="assets/js/notifications.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

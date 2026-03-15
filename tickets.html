@@ -617,6 +617,7 @@
 <!-- ===== TOAST CONTAINER ===== -->
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 <script>
 // ─── State ───────────────────────────────────────────────────────────
@@ -852,12 +853,21 @@ function toggleNoteView(view) {
 function submitReply(isNote) {
   const text = document.getElementById('replyText').value.trim();
   if (!text) { showToast('Please enter a message.', 'warn'); return; }
-  const t = tickets.find(tk => tk.id === activeTicketId);
-  t.comments.push({ author:'James Darko', time:'Just now', text, isNote });
-  t.timeline.push({ action: isNote ? 'Internal note added' : 'Comment added by James Darko', time: 'Just now' });
-  document.getElementById('replyText').value = '';
-  openDetailPanel(activeTicketId);
-  showToast(isNote ? 'Internal note added.' : 'Reply posted successfully.', 'success');
+  WDConfirm.show({
+    title:       isNote ? 'Add Internal Note' : 'Post Reply',
+    message:     isNote ? 'Are you sure you want to add this internal note?' : 'Are you sure you want to post this reply?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      const t = tickets.find(tk => tk.id === activeTicketId);
+      t.comments.push({ author:'James Darko', time:'Just now', text, isNote });
+      t.timeline.push({ action: isNote ? 'Internal note added' : 'Comment added by James Darko', time: 'Just now' });
+      document.getElementById('replyText').value = '';
+      openDetailPanel(activeTicketId);
+      showToast(isNote ? 'Internal note added.' : 'Reply posted successfully.', 'success');
+    }
+  });
 }
 
 function reassignTicket(assignee) {
@@ -874,31 +884,59 @@ function escalateTicket() {
   if (!t) return;
   if (t.priority === 'Critical') { showToast('Ticket is already Critical priority.', 'warn'); return; }
   const levels = ['Low','Medium','High','Critical'];
-  t.priority = levels[Math.min(levels.indexOf(t.priority)+1, 3)];
-  t.timeline.push({ action: `Escalated — priority set to ${t.priority}`, time: 'Just now' });
-  openDetailPanel(activeTicketId);
-  filterTickets();
-  showToast(`Ticket escalated to ${t.priority}.`, 'warn');
+  const nextPriority = levels[Math.min(levels.indexOf(t.priority)+1, 3)];
+  WDConfirm.show({
+    title:       'Escalate Ticket',
+    message:     'Are you sure you want to escalate this ticket to ' + nextPriority + ' priority?',
+    type:        'warn',
+    confirmText: 'Yes, Escalate',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.priority = nextPriority;
+      t.timeline.push({ action: `Escalated — priority set to ${t.priority}`, time: 'Just now' });
+      openDetailPanel(activeTicketId);
+      filterTickets();
+      showToast(`Ticket escalated to ${t.priority}.`, 'warn');
+    }
+  });
 }
 
 function resolveTicket() {
   const t = tickets.find(tk => tk.id === activeTicketId);
   if (!t) return;
-  t.status = 'Resolved';
-  t.timeline.push({ action: 'Resolved by James Darko', time: 'Just now' });
-  openDetailPanel(activeTicketId);
-  filterTickets();
-  showToast('Ticket marked as Resolved.', 'success');
+  WDConfirm.show({
+    title:       'Resolve Ticket',
+    message:     'Are you sure you want to mark this ticket as Resolved?',
+    type:        'info',
+    confirmText: 'Yes, Resolve',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.status = 'Resolved';
+      t.timeline.push({ action: 'Resolved by James Darko', time: 'Just now' });
+      openDetailPanel(activeTicketId);
+      filterTickets();
+      showToast('Ticket marked as Resolved.', 'success');
+    }
+  });
 }
 
 function closeTicket() {
   const t = tickets.find(tk => tk.id === activeTicketId);
   if (!t) return;
-  t.status = 'Closed';
-  t.timeline.push({ action: 'Ticket closed', time: 'Just now' });
-  closeDetailPanel();
-  filterTickets();
-  showToast('Ticket closed.', 'info');
+  WDConfirm.show({
+    title:       'Close Ticket',
+    message:     'Are you sure you want to close this ticket?',
+    type:        'warn',
+    confirmText: 'Yes, Close',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.status = 'Closed';
+      t.timeline.push({ action: 'Ticket closed', time: 'Just now' });
+      closeDetailPanel();
+      filterTickets();
+      showToast('Ticket closed.', 'info');
+    }
+  });
 }
 
 function closeDetailPanel() {
@@ -928,19 +966,28 @@ function submitTicket() {
   const assignee = document.getElementById('ntAssignee').value;
   const description = document.getElementById('ntDescription').value.trim();
   if (!title || !category || !description) { showToast('Please fill in all required fields.', 'error'); return; }
-  const id = 'TKT-' + String(tickets.length + 1).padStart(3,'0');
-  const now = new Date().toISOString().split('T')[0];
-  const slaMap = { Critical:4, High:8, Medium:24, Low:48 };
-  tickets.unshift({ id, title, category, priority, status:'Open', assignee, created:now, slaHours:slaMap[priority], elapsedHours:0, requester:'James Darko', tags:[...currentTags], description, comments:[], timeline:[{action:'Ticket created by James Darko',time:'Just now'}] });
-  filterTickets();
-  closeNewTicketModal();
-  showToast(`Ticket ${id} submitted successfully!`, 'success');
-  updateStats();
-  // Push notification for new ticket
-  if (window.WDNotifications) {
-    const safeTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    window.WDNotifications.push('ticket', 'New ticket <strong>' + id + '</strong>: ' + safeTitle, 'tickets.html');
-  }
+  WDConfirm.show({
+    title:       'Submit Ticket',
+    message:     'Are you sure you want to submit this ticket?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      const id = 'TKT-' + String(tickets.length + 1).padStart(3,'0');
+      const now = new Date().toISOString().split('T')[0];
+      const slaMap = { Critical:4, High:8, Medium:24, Low:48 };
+      tickets.unshift({ id, title, category, priority, status:'Open', assignee, created:now, slaHours:slaMap[priority], elapsedHours:0, requester:'James Darko', tags:[...currentTags], description, comments:[], timeline:[{action:'Ticket created by James Darko',time:'Just now'}] });
+      filterTickets();
+      closeNewTicketModal();
+      showToast(`Ticket ${id} submitted successfully!`, 'success');
+      updateStats();
+      // Push notification for new ticket
+      if (window.WDNotifications) {
+        const safeTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        window.WDNotifications.push('ticket', 'New ticket <strong>' + id + '</strong>: ' + safeTitle, 'tickets.html');
+      }
+    }
+  });
 }
 
 // ─── Tags ─────────────────────────────────────────────────────────────
@@ -1032,6 +1079,7 @@ updateStats();
 setTimeout(() => showToast('2 tickets breaching SLA soon.', 'warn'), 1200);
 </script>
 <script src="assets/js/notifications.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

@@ -561,14 +561,22 @@
     tbody.querySelectorAll('.del-btn').forEach(function (btn) {
       btn.addEventListener('click', function (ev) {
         ev.stopPropagation();
-        if (confirm('Delete this employee?')) {
-          employees = employees.filter(function (e) { return e.id !== btn.dataset.id; });
-          save();
-          renderTable();
-          renderCharts();
-          updateStats();
-          toast('Employee deleted.');
-        }
+        var empId = btn.dataset.id;
+        WDConfirm.show({
+          title:       'Delete Employee',
+          message:     'Are you sure you want to delete this employee? This action cannot be undone.',
+          type:        'danger',
+          confirmText: 'Yes, Delete',
+          cancelText:  'No',
+          onConfirm: function () {
+            employees = employees.filter(function (e) { return e.id !== empId; });
+            save();
+            renderTable();
+            renderCharts();
+            updateStats();
+            toast('Employee deleted.');
+          }
+        });
       });
     });
     pag.querySelectorAll('.page-btn').forEach(function (btn) {
@@ -719,26 +727,36 @@
     if (!first || !last || !email || !dept || !pos || !start) {
       toast('Please fill in all required fields.'); return;
     }
-    if (editingId) {
-      var idx = employees.findIndex(function(x){return x.id===editingId;});
-      employees[idx] = { id: editingId, first, last, email, dept, pos, start, status, phone };
-      toast('Employee updated successfully.');
-    } else {
-      var newId = 'EMP-' + String(employees.length + 1).padStart(3, '0');
-      employees.push({ id: newId, first, last, email, dept, pos, start, status, phone });
-      toast('Employee added successfully.');
-    }
-    save();
-    closeModal('empModal');
-    renderTable();
-    renderCharts();
-    updateStats();
-    // Sync to API
-    fetch('/api/employees', {
-      method: editingId ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('workdesk_token')||'') },
-      body: JSON.stringify({ first, last, email, dept, pos, start, status, phone })
-    }).catch(function(){});
+    var isEdit = !!editingId;
+    WDConfirm.show({
+      title:       isEdit ? 'Update Employee' : 'Add Employee',
+      message:     isEdit ? 'Are you sure you want to save changes to this employee?' : 'Are you sure you want to add this new employee?',
+      type:        'info',
+      confirmText: 'Yes, Save',
+      cancelText:  'No',
+      onConfirm: function () {
+        if (isEdit) {
+          var idx = employees.findIndex(function(x){return x.id===editingId;});
+          employees[idx] = { id: editingId, first, last, email, dept, pos, start, status, phone };
+          toast('Employee updated successfully.');
+        } else {
+          var newId = 'EMP-' + String(employees.length + 1).padStart(3, '0');
+          employees.push({ id: newId, first, last, email, dept, pos, start, status, phone });
+          toast('Employee added successfully.');
+        }
+        save();
+        closeModal('empModal');
+        renderTable();
+        renderCharts();
+        updateStats();
+        // Sync to API
+        fetch('/api/employees', {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('workdesk_token')||'') },
+          body: JSON.stringify({ first, last, email, dept, pos, start, status, phone })
+        }).catch(function(){});
+      }
+    });
   });
 
   ['tableSearch','globalSearch','deptFilter','statusFilter'].forEach(function(id){
@@ -846,10 +864,20 @@
     if (confirmBulkBtn) {
       confirmBulkBtn.addEventListener('click', function(){
         if (!bulkParsed.length) return;
-        bulkParsed.forEach(function(e){ employees.push(e); });
-        save(); updateStats(); renderTable(); renderCharts();
-        closeBulkModalFn();
-        toast('Successfully imported ' + bulkParsed.length + ' employee(s).');
+        var count = bulkParsed.length;
+        WDConfirm.show({
+          title:       'Import Employees',
+          message:     'Are you sure you want to import ' + count + ' employee(s)?',
+          type:        'info',
+          confirmText: 'Yes, Import',
+          cancelText:  'No',
+          onConfirm: function () {
+            bulkParsed.forEach(function(e){ employees.push(e); });
+            save(); updateStats(); renderTable(); renderCharts();
+            closeBulkModalFn();
+            toast('Successfully imported ' + count + ' employee(s).');
+          }
+        });
       });
     }
 
@@ -858,6 +886,7 @@
 </script>
 <script src="assets/js/notifications.js"></script>
 <script src="assets/js/aux-status.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

@@ -1188,6 +1188,7 @@
 
 <!-- ═══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
 <script src="assets/js/notifications.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 <script>
   // ── Session guard ──
@@ -1200,8 +1201,17 @@
   });
 
   function logout() {
-    localStorage.removeItem('workdesk_session');
-    window.location.href = 'login.html';
+    WDConfirm.show({
+      title:       'Log Out',
+      message:     'Are you sure you want to log out?',
+      type:        'warn',
+      confirmText: 'Yes, Log Out',
+      cancelText:  'No',
+      onConfirm: function () {
+        localStorage.removeItem('workdesk_session');
+        window.location.href = 'login.html';
+      }
+    });
   }
 
   // ── Stages order ──
@@ -1267,31 +1277,39 @@
       return;
     }
     const nextStage = STAGES[currentIndex + 1];
-    const targetCol = document.getElementById('col-' + nextStage);
-    if (!targetCol) return;
-
-    card.setAttribute('data-stage-index', currentIndex + 1);
-    // Update action buttons based on next stage
-    const actions = card.querySelector('.kanban-actions');
-    if (nextStage === 'Hired') {
-      actions.innerHTML = '<span class="badge badge-green">Hired ✓</span>';
-    } else if (nextStage === 'Rejected') {
-      actions.innerHTML = '<span class="badge badge-red">Rejected</span>';
-      card.style.opacity = '0.7';
-    } else if (nextStage === 'Offer') {
-      actions.innerHTML = `
-        <button class="btn btn-accent btn-sm" onclick="openOfferFor(this.closest('.kanban-card').getAttribute('data-candidate'))">Offer Letter</button>
-        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
-    } else {
-      const name = card.getAttribute('data-candidate');
-      actions.innerHTML = `
-        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('${name}')">Schedule</button>
-        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
-    }
-
-    targetCol.appendChild(card);
-    updateKanbanCounts();
-    showToast((card.getAttribute('data-candidate') || 'Candidate') + ' moved to ' + nextStage);
+    const candidateName = card.getAttribute('data-candidate') || 'Candidate';
+    WDConfirm.show({
+      title:       'Move Candidate',
+      message:     'Are you sure you want to move ' + candidateName + ' to the "' + nextStage + '" stage?',
+      type:        'info',
+      confirmText: 'Yes, Move',
+      cancelText:  'No',
+      onConfirm: function () {
+        const targetCol = document.getElementById('col-' + nextStage);
+        if (!targetCol) return;
+        card.setAttribute('data-stage-index', currentIndex + 1);
+        // Update action buttons based on next stage
+        const actions = card.querySelector('.kanban-actions');
+        if (nextStage === 'Hired') {
+          actions.innerHTML = '<span class="badge badge-green">Hired ✓</span>';
+        } else if (nextStage === 'Rejected') {
+          actions.innerHTML = '<span class="badge badge-red">Rejected</span>';
+          card.style.opacity = '0.7';
+        } else if (nextStage === 'Offer') {
+          actions.innerHTML = `
+            <button class="btn btn-accent btn-sm" onclick="openOfferFor(this.closest('.kanban-card').getAttribute('data-candidate'))">Offer Letter</button>
+            <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
+        } else {
+          const name = card.getAttribute('data-candidate');
+          actions.innerHTML = `
+            <button class="btn btn-soft btn-sm" onclick="openScheduleFor('${name}')">Schedule</button>
+            <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
+        }
+        targetCol.appendChild(card);
+        updateKanbanCounts();
+        showToast(candidateName + ' moved to ' + nextStage);
+      }
+    });
   }
 
   function updateKanbanCounts() {
@@ -1328,25 +1346,52 @@
   function submitPostJob() {
     const title = document.getElementById('jobTitle').value.trim();
     if (!title) { showToast('Please enter a job title.'); return; }
-    showToast('Job "' + title + '" posted successfully!');
-    closeModal('modalPostJob');
-    document.getElementById('jobTitle').value = '';
+    WDConfirm.show({
+      title:       'Post Job',
+      message:     'Are you sure you want to post the job opening for "' + title + '"?',
+      type:        'info',
+      confirmText: 'Yes, Post Job',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Job "' + title + '" posted successfully!');
+        closeModal('modalPostJob');
+        document.getElementById('jobTitle').value = '';
+      }
+    });
   }
 
   function submitAddCandidate() {
     const name = document.getElementById('candName').value.trim();
     if (!name) { showToast('Please enter candidate name.'); return; }
-    showToast('Candidate "' + name + '" added successfully!');
-    closeModal('modalAddCandidate');
-    document.getElementById('candName').value = '';
+    WDConfirm.show({
+      title:       'Add Candidate',
+      message:     'Are you sure you want to add "' + name + '" as a candidate?',
+      type:        'info',
+      confirmText: 'Yes, Add',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Candidate "' + name + '" added successfully!');
+        closeModal('modalAddCandidate');
+        document.getElementById('candName').value = '';
+      }
+    });
   }
 
   function submitScheduleInterview() {
     const candidate = document.getElementById('interviewCandidate').value.trim();
     const date = document.getElementById('interviewDate').value;
     if (!candidate || !date) { showToast('Please fill in candidate and date.'); return; }
-    showToast('Interview scheduled for ' + candidate);
-    closeModal('modalScheduleInterview');
+    WDConfirm.show({
+      title:       'Schedule Interview',
+      message:     'Are you sure you want to schedule an interview for ' + candidate + '?',
+      type:        'info',
+      confirmText: 'Yes, Schedule',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Interview scheduled for ' + candidate);
+        closeModal('modalScheduleInterview');
+      }
+    });
   }
 
   function generateOfferPreview() {
@@ -1386,9 +1431,18 @@
   function submitOfferLetter() {
     const candidate = document.getElementById('offerCandidate').value.trim();
     if (!candidate) { showToast('Please fill in candidate name.'); return; }
-    showToast('Offer letter sent to ' + candidate + '!');
-    closeModal('modalOfferLetter');
-    document.getElementById('offerPreview').style.display = 'none';
+    WDConfirm.show({
+      title:       'Send Offer Letter',
+      message:     'Are you sure you want to send the offer letter to ' + candidate + '?',
+      type:        'info',
+      confirmText: 'Yes, Send Offer',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Offer letter sent to ' + candidate + '!');
+        closeModal('modalOfferLetter');
+        document.getElementById('offerPreview').style.display = 'none';
+      }
+    });
   }
 
   // ── Onboarding Checklist Modal ──
@@ -1447,8 +1501,17 @@
     const checkedCount = Array.from(allBoxes).filter(cb => cb.checked).length;
     const total = allBoxes.length;
     const name = document.getElementById('titleChecklist').textContent.replace('Onboarding Checklist — ', '');
-    showToast('Progress saved for ' + name + ' (' + checkedCount + '/' + total + ' tasks)');
-    closeModal('modalChecklist');
+    WDConfirm.show({
+      title:       'Save Progress',
+      message:     'Are you sure you want to save the checklist progress for ' + name + '?',
+      type:        'info',
+      confirmText: 'Yes, Save',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Progress saved for ' + name + ' (' + checkedCount + '/' + total + ' tasks)');
+        closeModal('modalChecklist');
+      }
+    });
   }
 
   // ── Status dropdown ──

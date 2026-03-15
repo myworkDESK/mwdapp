@@ -742,11 +742,19 @@
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener('click', function(){
       var name = document.getElementById('profileDisplayName').value.trim();
-      if (name) {
-        localStorage.setItem('workdesk_display_name', name);
-        loadProfile();
-        showToast('Profile saved successfully.');
-      }
+      if (!name) { showToast('Please enter your display name.'); return; }
+      WDConfirm.show({
+        title:       'Save Profile',
+        message:     'Are you sure you want to save your profile changes?',
+        type:        'info',
+        confirmText: 'Yes, Save',
+        cancelText:  'No',
+        onConfirm: function () {
+          localStorage.setItem('workdesk_display_name', name);
+          loadProfile();
+          showToast('Profile saved successfully.');
+        }
+      });
     });
   }
 
@@ -769,15 +777,24 @@
   var savePlatformBtn = document.getElementById('savePlatformBtn');
   if (savePlatformBtn) {
     savePlatformBtn.addEventListener('click', function(){
-      var tz = document.getElementById('orgTimezone');
-      var curr = document.getElementById('currency');
-      if (tz) localStorage.setItem('workdesk_timezone', tz.value);
-      if (curr) localStorage.setItem('workdesk_currency', curr.value);
-      var ww = document.getElementById('workWeekStart');
-      if (ww) localStorage.setItem('workdesk_work_week_start', ww.value);
-      var df = document.getElementById('dateFormat');
-      if (df) localStorage.setItem('workdesk_date_format', df.value);
-      showToast('Platform settings saved.');
+      WDConfirm.show({
+        title:       'Save Platform Settings',
+        message:     'Are you sure you want to save the platform settings?',
+        type:        'info',
+        confirmText: 'Yes, Save',
+        cancelText:  'No',
+        onConfirm: function () {
+          var tz = document.getElementById('orgTimezone');
+          var curr = document.getElementById('currency');
+          if (tz) localStorage.setItem('workdesk_timezone', tz.value);
+          if (curr) localStorage.setItem('workdesk_currency', curr.value);
+          var ww = document.getElementById('workWeekStart');
+          if (ww) localStorage.setItem('workdesk_work_week_start', ww.value);
+          var df = document.getElementById('dateFormat');
+          if (df) localStorage.setItem('workdesk_date_format', df.value);
+          showToast('Platform settings saved.');
+        }
+      });
     });
   }
 
@@ -786,8 +803,17 @@
   if (saveOrgBtn) {
     saveOrgBtn.addEventListener('click', function(){
       var orgName = document.getElementById('orgName').value.trim();
-      if (orgName) localStorage.setItem('workdesk_org_name', orgName);
-      showToast('Organization settings saved.');
+      WDConfirm.show({
+        title:       'Save Organization Settings',
+        message:     'Are you sure you want to save the organization settings?',
+        type:        'info',
+        confirmText: 'Yes, Save',
+        cancelText:  'No',
+        onConfirm: function () {
+          if (orgName) localStorage.setItem('workdesk_org_name', orgName);
+          showToast('Organization settings saved.');
+        }
+      });
     });
   }
 
@@ -866,6 +892,7 @@
   });
 }());
 </script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

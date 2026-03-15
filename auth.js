@@ -28,8 +28,17 @@ async function ceoLogin() {
 
 // Shared logout handler — clears session data and redirects to login
 function logout() {
-    localStorage.removeItem('workdesk_token');
-    localStorage.removeItem('workdesk_display_name');
-    localStorage.removeItem('session');
-    window.location.href = 'login.html';
+    WDConfirm.show({
+        title:       'Log Out',
+        message:     'Are you sure you want to log out?',
+        type:        'warn',
+        confirmText: 'Yes, Log Out',
+        cancelText:  'No',
+        onConfirm: function () {
+            localStorage.removeItem('workdesk_token');
+            localStorage.removeItem('workdesk_display_name');
+            localStorage.removeItem('session');
+            window.location.href = 'login.html';
+        }
+    });
 }

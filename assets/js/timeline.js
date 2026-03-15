@@ -47,9 +47,18 @@
         input.focus();
         return;
       }
-      createPost(text);
-      input.value = '';
-      input.style.height = 'auto';
+      WDConfirm.show({
+        title:       'Post to Timeline',
+        message:     'Are you sure you want to post this to the timeline?',
+        type:        'info',
+        confirmText: 'Yes, Post',
+        cancelText:  'No',
+        onConfirm: function () {
+          createPost(text);
+          input.value = '';
+          input.style.height = 'auto';
+        }
+      });
     });
 
     // Enter+Ctrl submits
@@ -205,7 +214,16 @@
         e.preventDefault();
         var text = input.value.trim();
         if (!text) return;
-        submitComment(input, post, text);
+        WDConfirm.show({
+          title:       'Post Comment',
+          message:     'Are you sure you want to post this comment?',
+          type:        'info',
+          confirmText: 'Yes, Post',
+          cancelText:  'No',
+          onConfirm: function () {
+            submitComment(input, post, text);
+          }
+        });
       }
     });
   }

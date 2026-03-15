@@ -414,27 +414,45 @@
   syncClockBtns();
 
   document.getElementById('clockInBtn').addEventListener('click', function(){
-    var now = new Date();
-    var ampm = now.getHours()>=12?'PM':'AM';
-    var h = String(now.getHours()%12||12).padStart(2,'0');
-    var m = String(now.getMinutes()).padStart(2,'0');
-    var t = h+':'+m+' '+ampm;
-    localStorage.setItem('workdesk_clocked_in','1');
-    localStorage.setItem('workdesk_clock_in_time', t);
-    clockedIn = true; syncClockBtns();
-    toast('Clocked in at ' + t);
-    fetch('/api/attendance/clock-in', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t, date: now.toISOString().slice(0,10)}) }).catch(function(){});
+    WDConfirm.show({
+      title:       'Clock In',
+      message:     'Are you sure you want to clock in and start your work session?',
+      type:        'info',
+      confirmText: 'Yes, Clock In',
+      cancelText:  'No',
+      onConfirm: function () {
+        var now = new Date();
+        var ampm = now.getHours()>=12?'PM':'AM';
+        var h = String(now.getHours()%12||12).padStart(2,'0');
+        var m = String(now.getMinutes()).padStart(2,'0');
+        var t = h+':'+m+' '+ampm;
+        localStorage.setItem('workdesk_clocked_in','1');
+        localStorage.setItem('workdesk_clock_in_time', t);
+        clockedIn = true; syncClockBtns();
+        toast('Clocked in at ' + t);
+        fetch('/api/attendance/clock-in', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t, date: now.toISOString().slice(0,10)}) }).catch(function(){});
+      }
+    });
   });
   document.getElementById('clockOutBtn').addEventListener('click', function(){
-    var now = new Date();
-    var ampm = now.getHours()>=12?'PM':'AM';
-    var h = String(now.getHours()%12||12).padStart(2,'0');
-    var m = String(now.getMinutes()).padStart(2,'0');
-    var t = h+':'+m+' '+ampm;
-    localStorage.removeItem('workdesk_clocked_in');
-    clockedIn = false; syncClockBtns();
-    toast('Clocked out at ' + t);
-    fetch('/api/attendance/clock-out', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t}) }).catch(function(){});
+    WDConfirm.show({
+      title:       'Clock Out',
+      message:     'Are you sure you want to clock out and end your work session?',
+      type:        'warn',
+      confirmText: 'Yes, Clock Out',
+      cancelText:  'No',
+      onConfirm: function () {
+        var now = new Date();
+        var ampm = now.getHours()>=12?'PM':'AM';
+        var h = String(now.getHours()%12||12).padStart(2,'0');
+        var m = String(now.getMinutes()).padStart(2,'0');
+        var t = h+':'+m+' '+ampm;
+        localStorage.removeItem('workdesk_clocked_in');
+        clockedIn = false; syncClockBtns();
+        toast('Clocked out at ' + t);
+        fetch('/api/attendance/clock-out', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t}) }).catch(function(){});
+      }
+    });
   });
 
   // ── Charts ────────────────────────────────────────────────────────────────
@@ -525,10 +543,19 @@
     var timeIn = prompt('Time In (e.g. 08:00 AM):') || '—';
     var timeOut = prompt('Time Out (e.g. 05:00 PM):') || '—';
     var status = prompt('Status (Present/Late/Absent/On Leave):', 'Present') || 'Present';
-    log.push({ id:'MANUAL', name: name, date: date, timeIn: timeIn, timeOut: timeOut, hours: '8h', status: status, remarks: 'Manual entry' });
-    saveLog(); renderTable();
-    toast('Manual entry added.');
-    fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({name,date,timeIn,timeOut,status}) }).catch(function(){});
+    WDConfirm.show({
+      title:       'Add Manual Entry',
+      message:     'Are you sure you want to add a manual attendance entry for ' + name + ' on ' + date + '?',
+      type:        'warn',
+      confirmText: 'Yes, Add Entry',
+      cancelText:  'No',
+      onConfirm: function () {
+        log.push({ id:'MANUAL', name: name, date: date, timeIn: timeIn, timeOut: timeOut, hours: '8h', status: status, remarks: 'Manual entry' });
+        saveLog(); renderTable();
+        toast('Manual entry added.');
+        fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({name,date,timeIn,timeOut,status}) }).catch(function(){});
+      }
+    });
   });
 
   // ── Filter events ─────────────────────────────────────────────────────────
@@ -561,6 +588,7 @@
 </script>
 <script src="assets/js/notifications.js"></script>
 <script src="assets/js/aux-status.js"></script>
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>

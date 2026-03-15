@@ -1220,11 +1220,21 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
+<script src="assets/js/confirm-dialog.js"></script>
 <script src="auth.js"></script>
 <script>
 function logout() {
-  localStorage.removeItem('workdesk_session');
-  window.location.href = 'login.html';
+  WDConfirm.show({
+    title:       'Log Out',
+    message:     'Are you sure you want to log out?',
+    type:        'warn',
+    confirmText: 'Yes, Log Out',
+    cancelText:  'No',
+    onConfirm: function () {
+      localStorage.removeItem('workdesk_session');
+      window.location.href = 'login.html';
+    }
+  });
 }
 
 /* ── Live Clock ─────────────────────────────────────── */
@@ -1280,18 +1290,27 @@ function generateReport() {
   const dept = document.getElementById('rptDept').value;
   const from = document.getElementById('rptFrom').value;
   const to = document.getElementById('rptTo').value;
-  const preview = document.getElementById('reportPreview');
   const checkedMetrics = [...document.querySelectorAll('#tab-custom input[type="checkbox"]:checked')].map(cb => cb.closest('label').textContent.trim());
   if (checkedMetrics.length === 0) { showToast('Please select at least one metric.', ''); return; }
-  preview.className = 'report-preview report-preview-ready mt-8';
-  preview.innerHTML = `
-    <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    <strong style="font-size:15px;">${name}</strong>
-    <span style="font-size:12px;color:var(--text-muted);">Department: ${dept === 'all' ? 'All' : dept} &nbsp;|&nbsp; ${from || 'Start'} → ${to || 'Now'}</span>
-    <span style="font-size:12px;color:var(--text-muted);">Metrics: ${checkedMetrics.join(', ')}</span>
-    <span style="font-size:11px;margin-top:4px;">Report ready — use Export buttons below to download.</span>
-  `;
-  showToast('Report "' + name + '" generated!', 'success');
+  WDConfirm.show({
+    title:       'Generate Report',
+    message:     'Are you sure you want to generate the report "' + name + '"?',
+    type:        'info',
+    confirmText: 'Yes, Generate',
+    cancelText:  'No',
+    onConfirm: function () {
+      const preview = document.getElementById('reportPreview');
+      preview.className = 'report-preview report-preview-ready mt-8';
+      preview.innerHTML = `
+        <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <strong style="font-size:15px;">${name}</strong>
+        <span style="font-size:12px;color:var(--text-muted);">Department: ${dept === 'all' ? 'All' : dept} &nbsp;|&nbsp; ${from || 'Start'} → ${to || 'Now'}</span>
+        <span style="font-size:12px;color:var(--text-muted);">Metrics: ${checkedMetrics.join(', ')}</span>
+        <span style="font-size:11px;margin-top:4px;">Report ready — use Export buttons below to download.</span>
+      `;
+      showToast('Report "' + name + '" generated!', 'success');
+    }
+  });
 }
 
 function resetReportForm() {
@@ -1306,7 +1325,16 @@ function resetReportForm() {
 
 function exportReport(format) {
   const name = document.getElementById('rptName').value || 'WorkDesk-Report';
-  showToast(name + ' exported as ' + format.toUpperCase() + '!', 'success');
+  WDConfirm.show({
+    title:       'Export Report',
+    message:     'Are you sure you want to export "' + name + '" as ' + format.toUpperCase() + '?',
+    type:        'info',
+    confirmText: 'Yes, Export',
+    cancelText:  'No',
+    onConfirm: function () {
+      showToast(name + ' exported as ' + format.toUpperCase() + '!', 'success');
+    }
+  });
 }
 
 /* ── Set default dates ──────────────────────────────── */
