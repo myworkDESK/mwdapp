@@ -9,12 +9,6 @@
 // Demo accounts (hardcoded for immediate access; replace with D1 lookup when DB is ready)
 const DEMO_ACCOUNTS = [
   {
-    email:       'superadmin@workdesk.com',
-    password:    'superadmin123',
-    role:        'superadmin',
-    displayName: 'Super Admin',
-  },
-  {
     email:       'demoadmin@workdesk.com',
     password:    'demo12345',
     role:        'admin',

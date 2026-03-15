@@ -674,15 +674,11 @@
         <div class="demo-hint">
           <span class="demo-hint-label">Demo accounts</span>
           <div class="demo-hint-accounts">
-            <button type="button" class="demo-fill-btn" data-email="superadmin@workdesk.com" data-password="superadmin123" aria-label="Fill super admin credentials">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.09 6.26H21l-5.47 3.97 2.09 6.26L12 14.52l-5.62 3.97 2.09-6.26L3 8.26h6.91z"/></svg>
-              Super Admin
-            </button>
-            <button type="button" class="demo-fill-btn" data-email="demoadmin@workdesk.com" data-password="demo12345" aria-label="Fill demo admin credentials">
+            <button type="button" class="demo-fill-btn" data-email="demoadmin@workdesk.com" aria-label="Fill demo admin credentials">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/><path d="M15 10l2 2 4-4"/></svg>
               Admin
             </button>
-            <button type="button" class="demo-fill-btn" data-email="demoemployee@workdesk.com" data-password="demo12345" aria-label="Fill demo employee credentials">
+            <button type="button" class="demo-fill-btn" data-email="demoemployee@workdesk.com" aria-label="Fill demo employee credentials">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
               Employee
             </button>
@@ -783,7 +779,7 @@
 
         <div class="card-footer org-signup-row">
           Are you an organization?
-          <a href="#org-signup" id="orgSignupLink">Sign in as Super Admin to get started.</a>
+          <a href="#org-signup" id="orgSignupLink">Please sign up here.</a>
         </div>
 
         <div class="card-copyright">© <span id="copyrightYear"></span> WorkDesk. All rights reserved.</div>
@@ -990,8 +986,7 @@
           if (data.displayName) localStorage.setItem('workdesk_display_name', data.displayName);
           if (data.role)        localStorage.setItem('workdesk_role', data.role);
           if (data.email)       localStorage.setItem('workdesk_email', data.email);
-          // Super Admins go to the Super Admin portal; everyone else to the dashboard.
-          window.location.href = data.role === 'superadmin' ? 'super-admin.html' : 'dashboard.html';
+          window.location.href = 'dashboard.html';
         } else {
           showToast(data && data.message ? data.message : 'Invalid email or password. Please try again.');
           if (btnLabel) btnLabel.textContent = 'Sign In';
@@ -1012,19 +1007,15 @@
     document.querySelectorAll('.demo-fill-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         document.getElementById('email').value    = btn.dataset.email;
-        document.getElementById('password').value = btn.dataset.password || 'demo12345';
+        document.getElementById('password').value = 'demo12345';
         clearFieldErrors();
       });
     });
 
     // ── Organization sign-up link ────────────────────────────────────────────
-    // Directs the visitor to sign in as a Super Admin to create an organisation.
     document.getElementById('orgSignupLink').addEventListener('click', function (e) {
       e.preventDefault();
-      document.getElementById('email').value    = 'superadmin@workdesk.com';
-      document.getElementById('password').value = 'superadmin123';
-      clearFieldErrors();
-      showToast('Super Admin credentials filled in. Click Sign In to access the organisation portal.');
+      showToast('Organization registration is coming soon. Contact the WorkDesk team to get started.');
     });
   </script>
 

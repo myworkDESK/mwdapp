@@ -29,7 +29,6 @@ not_found_handling = "single-page-application"
 # Each file maps automatically to its /api/<name> endpoint:
 #
 #   functions/api/auth.js          → POST/GET /api/auth
-#   functions/api/organizations.js → GET/POST/PUT/DELETE /api/organizations (superadmin only)
 #   functions/api/employees.js     → GET/POST/PUT/DELETE /api/employees
 #   functions/api/attendance.js    → GET/POST /api/attendance[/clock-in|/clock-out]
 #   functions/api/leave.js         → GET/POST /api/leave[/approve|/reject]
