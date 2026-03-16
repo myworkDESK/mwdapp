@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <title>myWORKDESK | Secure Enterprise Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
@@ -18,7 +20,7 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       height: 100vh;
       overflow: hidden;
       display: flex;
@@ -62,12 +64,18 @@
     .bg-overlay {
       position: fixed;
       inset: 0;
-      background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2000');
+      background-image: url('/Baground%20theme%20login%20page%20.png');
       background-size: cover;
       background-position: center;
-      mix-blend-mode: overlay;
-      opacity: 0.3;
-      z-index: -2;
+      z-index: -1;
+      filter: brightness(0.55) saturate(0.8);
+    }
+
+    .bg-overlay::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10, 26, 21, 0.72) 0%, rgba(5, 13, 10, 0.55) 100%);
     }
 
     /* ======= TOP HEADER — logo + horizontal login credentials ======= */
@@ -102,7 +110,7 @@
     .header-login-form {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 18px;
       flex: 1;
       justify-content: flex-end;
     }
@@ -137,7 +145,7 @@
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
       background: rgba(0, 0, 0, 0.32);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       font-size: 12.5px;
       color: #fff;
       outline: none;
@@ -188,7 +196,7 @@
       color: #fff;
       border: 1px solid var(--accent-glow);
       border-radius: 8px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 800;
       cursor: pointer;
@@ -247,7 +255,7 @@
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.06);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       font-size: 11px;
       font-weight: 700;
       color: #fff;
