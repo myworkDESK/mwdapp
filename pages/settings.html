@@ -175,6 +175,10 @@
               <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Finance &amp; Payroll
             </div>
+            <div class="settings-nav-item" data-panel="about">
+              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              About
+            </div>
           </nav>
 
           <!-- Settings Panels -->
@@ -801,6 +805,158 @@
               </div>
 
               <button class="btn btn-primary" id="saveFinanceBtn">Save Finance Settings</button>
+            </div>
+
+            <!-- ── ABOUT ── -->
+            <div class="settings-panel card" id="panel-about">
+              <div class="settings-section-title">About WorkDesk</div>
+              <div class="settings-section-desc">Platform information, policies, data privacy, and legal compliance. Visible to all users.</div>
+
+              <!-- Platform Identity -->
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+                <img src="https://res.cloudinary.com/durqetaph/image/upload/v1773377613/Jdesk_Logo.svg" alt="WorkDesk Logo" style="width:52px;height:52px;" />
+                <div>
+                  <div style="font-weight:700;font-size:16px;color:var(--text-main);">WorkDesk</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Version 1.0 &nbsp;·&nbsp; Workdesk Solutions</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Subec, Pagudpud, Ilocos Norte 2919, Philippines</div>
+                </div>
+              </div>
+
+              <div class="notice" style="background:#F0FDF4;border-left:4px solid var(--success);margin-bottom:8px;">
+                <div class="notice-title">🏢 Our Purpose</div>
+                WorkDesk is a <strong>Central WorkDesk platform for Employers and Employees</strong> — making work more sufficient, organized, and convenient. We provide a unified workspace for HRIS, payroll, attendance, talent management, communication, and analytics — all in one secure platform.
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Security Features -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">🔒 Security Features</div>
+              <div class="notice" style="background:#EFF6FF;border-left:4px solid #3B82F6;margin-bottom:8px;">
+                <div class="notice-title">How We Keep Your Data Safe</div>
+                <ul style="margin:8px 0 0 0;padding-left:20px;font-size:13px;line-height:1.8;">
+                  <li><strong>End-to-End Encryption:</strong> All data in transit is encrypted using TLS/HTTPS. Sensitive fields (passwords, tokens) are hashed and never stored in plain text.</li>
+                  <li><strong>Role-Based Access Control (RBAC):</strong> Each user is granted access only to the features and data relevant to their assigned role (Entry Level → Super Admin). No user can access data outside their permission scope.</li>
+                  <li><strong>Immutable Audit Trail:</strong> All significant data changes are recorded as tamper-proof audit logs, viewable by Manager-level users and above. These records cannot be edited or deleted.</li>
+                  <li><strong>Session Management:</strong> Sessions are authenticated using secure tokens. Idle sessions are automatically invalidated to prevent unauthorized access.</li>
+                  <li><strong>Cloudflare Security Headers:</strong> The platform is protected by security response headers (Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, etc.) enforced at the edge via Cloudflare.</li>
+                  <li><strong>Input Sanitization:</strong> All user-supplied inputs are sanitized before processing or display to prevent injection and cross-site scripting (XSS) attacks.</li>
+                  <li><strong>Access Monitoring:</strong> All login attempts and administrative actions are logged and monitored by WorkDesk operations.</li>
+                </ul>
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Data Privacy & Storage -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">🗄️ Data Privacy &amp; Storage</div>
+              <div class="notice" style="background:#FEF3C7;border-left:4px solid var(--warning);margin-bottom:8px;">
+                <div class="notice-title">⚠️ Your Data Belongs to You</div>
+                <ul style="margin:8px 0 0 0;padding-left:20px;font-size:13px;line-height:1.8;">
+                  <li><strong>Secure Storage:</strong> All organizational and employee data are stored securely in Cloudflare-managed infrastructure under strict access controls. Data at rest is encrypted.</li>
+                  <li><strong>Monitored by WorkDesk:</strong> Data access and platform activity are continuously monitored by WorkDesk to detect unauthorized access, anomalies, or breaches.</li>
+                  <li><strong>No Data Selling:</strong> WorkDesk will <u>never</u> sell, trade, lease, or otherwise transfer your data or your employees' data to any third party for commercial purposes.</li>
+                  <li><strong>No Unauthorized Sharing:</strong> Personal and organizational data is not shared with external parties without explicit written consent of the Organization Admin, except where required by Philippine law or valid legal process.</li>
+                  <li><strong>Data Minimization:</strong> We collect only the data necessary for the platform to function. Users may request access to, correction of, or deletion of their personal data in accordance with applicable law.</li>
+                  <li><strong>Retention Policy:</strong> Data is retained for the duration of the organization's active subscription, plus a minimum retention period as required by the Data Privacy Act of 2012 and the Labor Code of the Philippines. Upon account termination, data deletion is performed securely.</li>
+                </ul>
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Terms & Conditions -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">📄 Terms &amp; Conditions — Data Handling</div>
+              <div style="font-size:13px;line-height:1.8;color:var(--text-main);">
+                <p style="margin:0 0 10px 0;">By using WorkDesk, your organization and its users agree to the following data handling terms:</p>
+                <ol style="padding-left:20px;margin:0 0 10px 0;">
+                  <li style="margin-bottom:6px;"><strong>Consent to Collection:</strong> The Organization Admin consents to WorkDesk collecting and processing personal data of registered users (name, email, work details, attendance, payroll, etc.) solely for the purpose of delivering platform services.</li>
+                  <li style="margin-bottom:6px;"><strong>Accuracy Responsibility:</strong> The Organization is responsible for the accuracy and completeness of all data entered into the platform, including employee records, payroll figures, and performance data.</li>
+                  <li style="margin-bottom:6px;"><strong>Lawful Use Only:</strong> Users agree to use WorkDesk solely for lawful employment and workforce management purposes. Any misuse, unauthorized access, or attempt to circumvent security controls is strictly prohibited and may result in immediate account suspension and legal action.</li>
+                  <li style="margin-bottom:6px;"><strong>No Reverse Engineering:</strong> Users may not decompile, reverse-engineer, or attempt to extract source code from the WorkDesk platform.</li>
+                  <li style="margin-bottom:6px;"><strong>Data Portability:</strong> Upon request, organizations may export their data in standard formats before account termination, subject to identity verification.</li>
+                  <li style="margin-bottom:6px;"><strong>Incident Notification:</strong> In the event of a security incident affecting your data, WorkDesk will notify affected organizations within 72 hours of discovery, consistent with obligations under the Data Privacy Act of 2012.</li>
+                  <li style="margin-bottom:6px;"><strong>Modification of Terms:</strong> WorkDesk reserves the right to update these terms. Material changes will be communicated to Organization Admins at least 30 days before taking effect.</li>
+                </ol>
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Platform Guidelines & Policies -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">📋 Platform Guidelines &amp; Policies</div>
+              <div class="role-grid" style="margin-bottom:16px;">
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#E0F2FE;color:#0369A1;">01</div>
+                  <div class="role-card-name">Acceptable Use</div>
+                  <div class="role-card-desc">The platform is intended exclusively for legitimate employment and workforce management operations. Any use that violates applicable law, infringes on the rights of others, or compromises platform integrity is prohibited.</div>
+                </div>
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#D1FAE5;color:#065F46;">02</div>
+                  <div class="role-card-name">Account Security</div>
+                  <div class="role-card-desc">Users are responsible for maintaining the confidentiality of their credentials. Do not share passwords. Report suspected unauthorized access to your Organization Admin immediately.</div>
+                </div>
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#FEF3C7;color:#92400E;">03</div>
+                  <div class="role-card-name">Respect &amp; Conduct</div>
+                  <div class="role-card-desc">All platform interactions (messages, timeline posts, documents) must comply with workplace conduct standards. Harassment, discrimination, or abusive content is strictly prohibited.</div>
+                </div>
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#FCE7F3;color:#9D174D;">04</div>
+                  <div class="role-card-name">Content Policy</div>
+                  <div class="role-card-desc">Users must not upload, transmit, or store content that is defamatory, obscene, illegal, or violates intellectual property rights on the WorkDesk platform.</div>
+                </div>
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#EDE9FE;color:#5B21B6;">05</div>
+                  <div class="role-card-name">Administrator Responsibilities</div>
+                  <div class="role-card-desc">Organization Admins are responsible for managing user roles appropriately, ensuring only authorized personnel hold elevated access, and enforcing these policies within their organization.</div>
+                </div>
+                <div class="role-card">
+                  <div class="role-card-badge" style="background:#FEE2E2;color:#991B1B;">06</div>
+                  <div class="role-card-name">Reporting Violations</div>
+                  <div class="role-card-desc">Suspected policy violations, security vulnerabilities, or data misuse should be reported promptly to WorkDesk support. We take all reports seriously and investigate thoroughly.</div>
+                </div>
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Legal Compliance -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">⚖️ Legal Compliance</div>
+              <div class="notice" style="background:#F5F3FF;border-left:4px solid #7C3AED;margin-bottom:8px;">
+                <div class="notice-title">Aligned with Applicable Philippine Laws and Regulations</div>
+                <ul style="margin:8px 0 0 0;padding-left:20px;font-size:13px;line-height:1.9;">
+                  <li><strong>Republic Act No. 10173 — Data Privacy Act of 2012:</strong> WorkDesk operates as a Personal Information Controller (PIC) and adheres to the principles of transparency, legitimate purpose, and proportionality in processing personal data. We are committed to upholding the rights of data subjects including the right to be informed, right of access, right to object, right to erasure, and right to data portability.</li>
+                  <li><strong>National Privacy Commission (NPC) Rules:</strong> Our data protection practices are aligned with NPC guidelines, including mandatory breach notification and the appointment of a Data Protection Officer (DPO) for the organization.</li>
+                  <li><strong>Presidential Decree No. 442 — Labor Code of the Philippines:</strong> Payroll computations, leave entitlements, work hours, and employee records managed through WorkDesk are designed to support compliance with the Labor Code, including overtime rules, statutory benefits, and mandatory contributions.</li>
+                  <li><strong>Republic Act No. 8792 — Electronic Commerce Act of 2000:</strong> Electronic records and transactions conducted through WorkDesk are recognized as legally valid electronic documents under this Act.</li>
+                  <li><strong>Republic Act No. 11032 — Ease of Doing Business Act:</strong> WorkDesk supports digitalization and streamlining of HR and administrative processes consistent with the government's e-governance agenda.</li>
+                  <li><strong>Bureau of Internal Revenue (BIR) Regulations:</strong> Payroll tax withholding rates and VAT settings available in WorkDesk are configurable to align with current BIR withholding tax tables and VAT regulations.</li>
+                  <li><strong>SSS, PhilHealth, and Pag-IBIG (HDMF) Contribution Laws:</strong> Statutory contribution rates for SSS (RA 11199), PhilHealth (RA 7875 as amended), and Pag-IBIG (RA 9679) are pre-configured as default deductions in the Finance &amp; Payroll settings and may be updated by the Organization Admin in accordance with the latest agency issuances.</li>
+                </ul>
+              </div>
+
+              <hr class="section-divider" />
+
+              <!-- Contact & Support -->
+              <div style="font-weight:700;font-size:13px;margin-bottom:12px;">📬 Contact &amp; Support</div>
+              <div style="font-size:13px;line-height:1.8;color:var(--text-main);">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+                  <div style="padding:14px 16px;background:var(--bg-main);border:1px solid var(--border-card);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🏠 Registered Address</div>
+                    <div style="color:var(--text-muted);">Workdesk Solutions<br/>Subec, Pagudpud<br/>Ilocos Norte 2919<br/>Philippines</div>
+                  </div>
+                  <div style="padding:14px 16px;background:var(--bg-main);border:1px solid var(--border-card);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🌐 Platform</div>
+                    <div style="color:var(--text-muted);">WorkDesk v1.0<br/>Hosted on Cloudflare<br/>99.9% Uptime SLA<br/>Zero-build Static + Workers</div>
+                  </div>
+                  <div style="padding:14px 16px;background:var(--bg-main);border:1px solid var(--border-card);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">📧 Data Privacy Officer</div>
+                    <div style="color:var(--text-muted);">For data subject requests,<br/>privacy concerns, or<br/>breach reports, contact<br/>your Organization Admin.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notice" style="background:var(--bg-main);border-left:4px solid var(--border-card);margin-top:20px;">
+                <div style="font-size:12px;color:var(--text-muted);">
+                  Last reviewed: March 2026 &nbsp;·&nbsp; WorkDesk is committed to keeping this information current. For questions about these policies, contact your Organization Admin or the WorkDesk support team.
+                </div>
+              </div>
             </div>
 
           </div><!-- end settingsPanels -->
