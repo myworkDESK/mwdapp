@@ -822,9 +822,9 @@ This section tracks every Cloudflare binding, secret, and configuration item req
 
 ---
 
-### Main App — `workdesk-worker` (Cloudflare Pages project)
+### WorkDesk App — `workdesk-worker` (Cloudflare Pages project)
 
-Deploy from the repository **root**. Config: `wrangler.toml` / `_headers` / `_redirects`.
+Deploy from the repository **root**. Config: `wrangler.toml` / `_headers` / `_redirects`. The Super Admin Panel (`sa-portal.html`, `sa-dashboard.html`, `/api/sa-auth`) is part of this same project.
 
 #### Secrets (set via CLI — never commit)
 
@@ -855,66 +855,26 @@ wrangler secret list --name workdesk-worker
 
 | Item | Status | What it does | File |
 |---|---|---|---|
-| SA page redirects | ✅ Configured | Redirects `/sa-portal.html`, `/sa-dashboard.html`, `/api/sa-auth` → `/` so the SA panel is unreachable on the main app URL | `_redirects` |
-| Security headers | ✅ Configured | `X-Frame-Options: DENY`, `X-Content-Type-Options`, CSP, `X-Robots-Tag: noindex` for SA API routes | `_headers` |
-| SA org-admin endpoint | ✅ Configured | `GET/POST/PUT/DELETE /api/sa-org-admins` — protected by SA token guard (username verified against `SA_USERNAME`) | `functions/api/sa-org-admins.js` |
+| SA auth endpoint | ✅ Configured | `POST /api/sa-auth` (3-factor login, timing-safe), `GET /api/sa-auth` (token verify) | `functions/api/sa-auth.js` |
+| SA org-admin endpoint | ✅ Configured | `GET/POST/PUT/DELETE /api/sa-org-admins` — protected by SA token guard | `functions/api/sa-org-admins.js` |
+| SA config check | ✅ Configured | `GET /api/sa-config-check` — verifies secrets are set | `functions/api/sa-config-check.js` |
+| Security headers | ✅ Configured | `X-Frame-Options: DENY`, `X-Content-Type-Options`, CSP, `X-Robots-Tag: noindex` for SA pages/routes | `_headers` |
+| Login portal | ✅ Configured | Not linked from the app; includes `noindex` meta tag | `sa-portal.html` |
+| Dashboard | ✅ Configured | 8-hour session guard; token decoded and username cross-checked on load | `sa-dashboard.html` |
 
 ---
 
-### Super Admin Panel — `workdesk-super-admin` (separate Cloudflare Pages project)
-
-Deploy from the **`super-admin/`** subfolder as an entirely separate Cloudflare Pages project. Config: `super-admin/wrangler.toml` / `super-admin/_headers` / `super-admin/_redirects`. Full guide: `super-admin/DEPLOY.md`.
-
-```bash
-# First deploy
-wrangler pages deploy super-admin --project-name workdesk-super-admin --compatibility-date 2024-01-01
-```
-
-#### Secrets (set via CLI — never commit)
-
-| Secret | Status | Description | Command |
-|---|---|---|---|
-| `SA_USERNAME` | ❌ Required | Super-admin login username | `wrangler secret put SA_USERNAME --project-name workdesk-super-admin` |
-| `SA_SECURITY_KEY` | ❌ Required | Super-admin second-factor key | `wrangler secret put SA_SECURITY_KEY --project-name workdesk-super-admin` |
-| `SA_PASSWORD` | ❌ Required | Super-admin password | `wrangler secret put SA_PASSWORD --project-name workdesk-super-admin` |
-
-> **Important:** Use the same credential values as the main app's SA secrets so that tokens issued by the SA panel are also accepted by `/api/sa-org-admins` on the main app.
-
-After setting all three secrets, verify:
-```bash
-wrangler secret list --project-name workdesk-super-admin
-# Expected output lists SA_USERNAME, SA_SECURITY_KEY, SA_PASSWORD
-```
-
-#### Bindings (optional)
-
-| Binding | Status | Description | Setup |
-|---|---|---|---|
-| KV Namespace (`SA_SESSIONS`) | ❌ Optional | Server-side SA session store (enables forced session expiry / revocation) | `wrangler kv:namespace create "SA_SESSIONS" --project-name workdesk-super-admin` → uncomment `[[kv_namespaces]]` in `super-admin/wrangler.toml` and enable the KV blocks in `super-admin/functions/api/sa-auth.js` |
-
-#### Already Configured in Source
-
-| Item | Status | What it does | File |
-|---|---|---|---|
-| SA auth endpoint | ✅ Configured | `POST /api/sa-auth` (3-factor login, timing-safe), `GET /api/sa-auth` (token verify with username check against `SA_USERNAME`) | `super-admin/functions/api/sa-auth.js` |
-| SA org-admin endpoint | ✅ Configured | `GET/POST/PUT/DELETE /api/sa-org-admins` — protected by SA token guard | `super-admin/functions/api/sa-org-admins.js` |
-| Security headers | ✅ Configured | `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` on **all** pages; `Cache-Control: no-store` for all SA routes; full CSP | `super-admin/_headers` |
-| Login portal | ✅ Configured | Not linked from the main app; includes `noindex` meta tag | `super-admin/sa-portal.html` |
-| Dashboard | ✅ Configured | 8-hour session guard; token decoded and username cross-checked on load; `noindex` meta tag | `super-admin/sa-dashboard.html` |
-| Route fallback | ✅ Configured | `/` redirects to `sa-portal.html`; unknown routes fall back to login portal | `super-admin/_redirects` |
-
-#### Super Admin — Visibility & Security Summary
+### Super Admin — Visibility &amp; Security Summary
 
 The SA panel is protected at multiple layers to ensure it is **never publicly visible** and only accessible via a direct URL that is never linked publicly:
 
 1. **No public links** — The main app does not link to the SA panel URL anywhere.
 2. **`noindex` meta + `X-Robots-Tag`** — Search engines are instructed not to index any SA page or endpoint.
-3. **`_redirects` on main app** — Any attempt to reach SA pages via the main app URL is redirected to `/`.
-4. **Login wall** — `sa-portal.html` gates all access. `sa-dashboard.html` immediately redirects to the portal if no valid session is found.
-5. **3-factor credentials** — Login requires `SA_USERNAME`, `SA_SECURITY_KEY`, and `SA_PASSWORD` simultaneously, all stored as encrypted Cloudflare secrets (never in source code).
-6. **Timing-safe comparison** — All credential checks use HMAC-based constant-time comparison to prevent timing attacks.
-7. **Token username verification** — `GET /api/sa-auth` and every request to `/api/sa-org-admins` decode the token and verify the embedded username against `env.SA_USERNAME`, preventing forged tokens.
-8. **8-hour session expiry** — Client-side session expires automatically; KV-based server-side revocation is available (see optional SA_SESSIONS binding above).
+3. **Login wall** — `sa-portal.html` gates all access. `sa-dashboard.html` immediately redirects to the portal if no valid session is found.
+4. **3-factor credentials** — Login requires `SA_USERNAME`, `SA_SECURITY_KEY`, and `SA_PASSWORD` simultaneously, all stored as encrypted Cloudflare secrets (never in source code).
+5. **Timing-safe comparison** — All credential checks use HMAC-based constant-time comparison to prevent timing attacks.
+6. **Token username verification** — `GET /api/sa-auth` and every request to `/api/sa-org-admins` decode the token and verify the embedded username against `env.SA_USERNAME`, preventing forged tokens.
+7. **8-hour session expiry** — Client-side session expires automatically; KV-based server-side revocation is available (see optional `SA_SESSIONS` binding).
 
 ---
 

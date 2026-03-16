@@ -57,8 +57,10 @@ not_found_handling = "single-page-application"
 #   functions/api/ai.js            → POST /api/ai, GET /api/ai/history
 #   functions/api/knowledge.js     → GET/POST/PUT/DELETE /api/knowledge
 #   functions/api/integrations.js  → GET/POST/PUT/DELETE /api/integrations
-#   functions/api/reports.js       → GET/POST /api/reports
-#   functions/api/sa-org-admins.js → GET/POST/PUT/DELETE /api/sa-org-admins  (SA auth required)
+#   functions/api/reports.js        → GET/POST /api/reports
+#   functions/api/sa-auth.js        → POST/GET /api/sa-auth                    (SA login + token verify)
+#   functions/api/sa-org-admins.js  → GET/POST/PUT/DELETE /api/sa-org-admins   (SA auth required)
+#   functions/api/sa-config-check.js→ GET /api/sa-config-check                (SA auth required)
 #
 # See FEATURES.md §4 for the complete API reference.
 
@@ -134,14 +136,12 @@ not_found_handling = "single-page-application"
 # Secrets (set via CLI, never commit):
 #   wrangler secret put OPENAI_API_KEY    # optional: external LLM for AI assistant
 #
-# Super-Admin secrets (required for /api/sa-org-admins on this project).
-# These must match the SA credentials set on the Super Admin Panel project.
+# Super-Admin secrets (required for /api/sa-auth and /api/sa-org-admins).
 # Run these commands and enter each value when prompted:
 #   wrangler secret put SA_USERNAME     --name workdesk-worker
 #   wrangler secret put SA_SECURITY_KEY --name workdesk-worker
 #   wrangler secret put SA_PASSWORD     --name workdesk-worker
 #
-# Note: /api/sa-auth lives in the separate super-admin/ project, not here.
 # To verify all three are set:   wrangler secret list --name workdesk-worker
 # To re-add a deleted secret:    re-run the matching command above
 # Full guide: workers/DEPLOY.md

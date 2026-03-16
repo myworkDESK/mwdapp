@@ -1,9 +1,3 @@
-# Super admin pages are not served on this deployment.
-# They are managed and deployed separately.
-/sa-portal.html / 301
-/sa-dashboard.html / 301
-/api/sa-auth / 301
-
 # ── Legacy HTML path redirects ────────────────────────────────
 # HTML pages were moved from the root to /pages/.
 # These redirects preserve old bookmarks and links.

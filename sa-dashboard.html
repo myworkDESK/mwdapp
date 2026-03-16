@@ -1571,13 +1571,46 @@
             <div class="panel-sub">Manage super admin credentials, access keys, and session controls.</div>
           </div>
         </div>
+
         <div class="grid-2">
           <div class="content-card">
-            <div class="content-card-header"><h3>Super Admin Credentials</h3></div>
+            <div class="content-card-header">
+              <h3>Super Admin Credentials</h3>
+              <button class="card-action" id="checkSecretsBtn" onclick="checkSecretsConfig()">Check Configuration</button>
+            </div>
             <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
               <div style="background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--sa-text-muted);line-height:1.6">
                 Super admin credentials (username, security key, and password) are managed via platform environment variables: <strong style="color:var(--sa-green-dk)">SA_USERNAME</strong>, <strong style="color:var(--sa-green-dk)">SA_SECURITY_KEY</strong>, and <strong style="color:var(--sa-green-dk)">SA_PASSWORD</strong>. To rotate credentials, update these variables in your Cloudflare Pages project settings and redeploy.
               </div>
+
+              <!-- ── Secret configuration status ─────────────────────────── -->
+              <div id="secretsStatusBox" style="display:none;background:var(--sa-surface2);border:1px solid var(--sa-border);border-radius:8px;overflow:hidden">
+                <div style="padding:10px 16px;border-bottom:1px solid var(--sa-border);font-size:11px;font-weight:700;color:var(--sa-text-muted);letter-spacing:0.06em;text-transform:uppercase">Cloudflare Secret Variables</div>
+                <div style="padding:8px 0">
+                  <div class="activity-item" style="padding:8px 16px">
+                    <div style="font-size:13px;font-weight:600;color:var(--sa-text);font-family:monospace;min-width:160px">SA_USERNAME</div>
+                    <span id="secretStatus_SA_USERNAME" class="badge" style="margin-left:auto"><span class="dot"></span>—</span>
+                  </div>
+                  <div class="activity-item" style="padding:8px 16px">
+                    <div style="font-size:13px;font-weight:600;color:var(--sa-text);font-family:monospace;min-width:160px">SA_SECURITY_KEY</div>
+                    <span id="secretStatus_SA_SECURITY_KEY" class="badge" style="margin-left:auto"><span class="dot"></span>—</span>
+                  </div>
+                  <div class="activity-item" style="padding:8px 16px">
+                    <div style="font-size:13px;font-weight:600;color:var(--sa-text);font-family:monospace;min-width:160px">SA_PASSWORD</div>
+                    <span id="secretStatus_SA_PASSWORD" class="badge" style="margin-left:auto"><span class="dot"></span>—</span>
+                  </div>
+                </div>
+                <div id="secretsStatusSummary" style="padding:10px 16px;border-top:1px solid var(--sa-border);font-size:12px;color:var(--sa-text-muted)"></div>
+                <!-- ── Fix commands (shown only when any secret is missing) ── -->
+                <div id="secretsFixCommands" style="display:none;padding:12px 16px;border-top:1px solid var(--sa-border);background:var(--sa-red-soft)">
+                  <div style="font-size:11px;font-weight:700;color:var(--sa-red);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">Run these commands to set the missing secrets</div>
+                  <pre style="font-size:11px;color:var(--sa-text-muted);line-height:1.8;background:var(--sa-surface);border:1px solid var(--sa-border);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:0">wrangler secret put SA_USERNAME     --name workdesk-worker
+wrangler secret put SA_SECURITY_KEY --name workdesk-worker
+wrangler secret put SA_PASSWORD     --name workdesk-worker</pre>
+                  <div style="font-size:11px;color:var(--sa-text-muted);margin-top:8px">Enter each value when prompted, then redeploy the project.</div>
+                </div>
+              </div>
+
               <button class="sa-btn danger" onclick="showConfirmModal('Revoke all active super admin sessions? This will require re-authentication.', function(){ showToast(\'All SA sessions revoked.\', \'success\'); })">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
                 Revoke All SA Sessions
@@ -2090,6 +2123,52 @@
       window.location.replace('sa-portal.html');
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SA SECRETS CONFIGURATION CHECK
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function checkSecretsConfig() {
+    var btn = document.getElementById('checkSecretsBtn');
+    if (btn) { btn.textContent = 'Checking…'; btn.disabled = true; }
+
+    fetch('/api/sa-config-check', { headers: saAuthHeaders() })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var box = document.getElementById('secretsStatusBox');
+        if (box) box.style.display = 'block';
+
+        var keys = ['SA_USERNAME', 'SA_SECURITY_KEY', 'SA_PASSWORD'];
+        keys.forEach(function (key) {
+          var el = document.getElementById('secretStatus_' + key);
+          if (!el) return;
+          var isSet = data.ok && data.secrets && data.secrets[key];
+          el.className = 'badge ' + (isSet ? 'active' : 'inactive');
+          el.innerHTML = '<span class="dot"></span>' + (isSet ? 'Configured' : 'Not set');
+        });
+
+        var summary = document.getElementById('secretsStatusSummary');
+        var fixCmds = document.getElementById('secretsFixCommands');
+        if (summary) {
+          if (data.ok && data.allConfigured) {
+            summary.innerHTML = '<span style="color:var(--sa-green)">✓ All three secrets are configured correctly.</span>';
+            if (fixCmds) fixCmds.style.display = 'none';
+          } else if (data.ok) {
+            summary.innerHTML = '<span style="color:var(--sa-red)">✗ One or more secrets are missing. Set them via <code style="font-size:11px">wrangler secret put</code> and redeploy.</span>';
+            if (fixCmds) fixCmds.style.display = 'block';
+          } else {
+            summary.innerHTML = '<span style="color:var(--sa-text-muted)">' + (data.message || 'Could not retrieve configuration status.') + '</span>';
+            if (fixCmds) fixCmds.style.display = 'none';
+          }
+        }
+
+        if (btn) { btn.textContent = 'Check Configuration'; btn.disabled = false; }
+      })
+      .catch(function () {
+        showToast('Failed to check secret configuration.', 'error');
+        if (btn) { btn.textContent = 'Check Configuration'; btn.disabled = false; }
+      });
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   // ORG ADMIN MANAGEMENT

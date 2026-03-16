@@ -36,8 +36,9 @@ Cloudflare will print the worker URL (e.g. `https://workdesk-worker.<account>.wo
 ## Step 2 — Set the Super-Admin Secrets
 
 The worker needs three secrets to authenticate Super-Admin login requests at
-`POST /api/sa-auth`. **Never put real credentials in any file** — always set them
-via the CLI so they are stored encrypted in Cloudflare's vault.
+`POST /api/sa-auth` and validate tokens at `/api/sa-org-admins`. **Never put real
+credentials in any file** — always set them via the CLI so they are stored encrypted
+in Cloudflare's vault.
 
 Run each command below and enter the value when prompted:
 
