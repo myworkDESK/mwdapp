@@ -57,8 +57,9 @@ not_found_handling = "single-page-application"
 #   functions/api/ai.js            → POST /api/ai, GET /api/ai/history
 #   functions/api/knowledge.js     → GET/POST/PUT/DELETE /api/knowledge
 #   functions/api/integrations.js  → GET/POST/PUT/DELETE /api/integrations
-#   functions/api/reports.js       → GET/POST /api/reports
-#   functions/api/sa-org-admins.js → GET/POST/PUT/DELETE /api/sa-org-admins  (SA auth required)
+#   functions/api/reports.js        → GET/POST /api/reports
+#   functions/api/sa-org-admins.js  → GET/POST/PUT/DELETE /api/sa-org-admins   (SA auth required)
+#   functions/api/sa-config-check.js→ GET /api/sa-config-check                (SA auth required)
 #
 # See FEATURES.md §4 for the complete API reference.
 

@@ -30,8 +30,9 @@ not_found_handling = "single-page-application"
 # ── Workers API routes ────────────────────────────────────────
 # Cloudflare Pages Functions live in functions/api/*.js
 #
-#   functions/api/sa-auth.js       → POST/GET /api/sa-auth
-#   functions/api/sa-org-admins.js → GET/POST/PUT/DELETE /api/sa-org-admins
+#   functions/api/sa-auth.js        → POST/GET /api/sa-auth
+#   functions/api/sa-org-admins.js  → GET/POST/PUT/DELETE /api/sa-org-admins
+#   functions/api/sa-config-check.js→ GET /api/sa-config-check               (SA auth required)
 #
 # POST /api/sa-auth        — Authenticate with username + security key + password
 # GET  /api/sa-auth        — Verify an existing super admin session token
