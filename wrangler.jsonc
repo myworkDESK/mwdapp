@@ -1,3 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "myworkdeskapp",
+  "compatibility_date": "2024-01-01",
+  "assets": {
+    "directory": "."
+  }
 }
