@@ -1,0 +1,147 @@
+# WorkDesk — Cloudflare Pages + Workers Configuration
+# Design system: see DESIGN_SYSTEM.md
+# Feature docs:  see FEATURES.md
+# Worker deploy guide (incl. SA secrets setup): see workers/DEPLOY.md
+# Deploy: https://pages.cloudflare.com
+# Docs: https://developers.cloudflare.com/pages/
+
+name = "super-admin"
+compatibility_date = "2024-01-01"
+# Use the latest Workers runtime for best performance on Cloudflare Pages Functions
+compatibility_flags = ["nodejs_compat"]
+
+# ── Project Structure ─────────────────────────────────────────
+# pages/        — All HTML frontend pages (login, dashboard, etc.)
+# assets/       — Static assets: CSS, JS, images
+# functions/api/— Cloudflare Pages Functions (API endpoints)
+# workers/      — Standalone Cloudflare Workers:
+#   api-worker.js          — API gateway worker (standalone deployments)
+#   queues/job-consumer.js — Queue consumer (background jobs)
+#   cron/payroll.js        — Scheduled payroll trigger
+# middleware/   — Shared client-side scripts (auth.js)
+# database/     — D1 SQL schema (schema.sql)
+
+# ── Static Assets (zero-build static site) ───────────────────
+# All HTML, CSS, JS and assets are served as-is from Cloudflare's global CDN.
+[assets]
+directory = "."
+# Serve index.html for requests to "/"; add .html extension automatically
+html_handling = "auto-trailing-slash"
+# Return index.html for any unmatched route (SPA-style fallback)
+not_found_handling = "single-page-application"
+
+# ── Pages (static site) ──────────────────────────────────────
+# Framework preset: None
+# Build command:    (leave empty — zero-build static site)
+# Build output dir: /
+# Root directory:   /
+# Frontend pages:   /pages/*.html
+
+# ── Workers API routes ────────────────────────────────────────
+# Cloudflare Pages Functions live in /functions/api/*.js
+# Each file maps automatically to its /api/<name> endpoint:
+#
+#   functions/api/auth.js          → POST/GET /api/auth
+#   functions/api/employees.js     → GET/POST/PUT/DELETE /api/employees
+#   functions/api/attendance.js    → GET/POST /api/attendance[/clock-in|/clock-out]
+#   functions/api/leave.js         → GET/POST /api/leave[/approve|/reject]
+#   functions/api/payroll.js       → GET/POST /api/payroll[/run]
+#   functions/api/performance.js   → GET/POST/PUT /api/performance
+#   functions/api/recruitment.js   → GET/POST/PUT/DELETE /api/recruitment
+#   functions/api/tickets.js       → GET/POST/PUT/DELETE /api/tickets
+#   functions/api/documents.js     → GET/POST/PUT/DELETE /api/documents
+#   functions/api/messages.js      → GET/POST/DELETE /api/messages
+#   functions/api/timeline.js      → GET/POST/DELETE /api/timeline[/react|/comments]
+#   functions/api/engagement.js    → GET/POST /api/engagement[/survey]
+#   functions/api/analytics.js     → GET /api/analytics
+#   functions/api/ai.js            → POST /api/ai, GET /api/ai/history
+#   functions/api/knowledge.js     → GET/POST/PUT/DELETE /api/knowledge
+#   functions/api/integrations.js  → GET/POST/PUT/DELETE /api/integrations
+#   functions/api/reports.js        → GET/POST /api/reports
+#   functions/api/sa-auth.js        → POST/GET /api/sa-auth                    (SA login + token verify)
+#   functions/api/sa-org-admins.js  → GET/POST/PUT/DELETE /api/sa-org-admins   (SA auth required)
+#   functions/api/sa-config-check.js→ GET /api/sa-config-check                (SA auth required)
+#
+# See FEATURES.md §4 for the complete API reference.
+
+# ── D1 Database ───────────────────────────────────────────────
+# Stores employees, attendance, leave, payroll, messages, timeline,
+# tickets, documents, performance, recruitment, surveys, knowledge, integrations.
+#
+# Setup:
+#   wrangler d1 create workdesk-db
+#   wrangler d1 execute workdesk-db --file=./database/schema.sql
+#
+# Then uncomment and fill in database_id below:
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "workdesk-db"
+# database_id = "YOUR_D1_DATABASE_ID"
+
+# ── KV Namespaces ─────────────────────────────────────────────
+# SESSIONS: stores user session tokens
+#   wrangler kv:namespace create "SESSIONS"
+#
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# ── R2 Storage ────────────────────────────────────────────────
+# ATTACHMENTS: stores file uploads (documents, message attachments)
+#   wrangler r2 bucket create workdesk-attachments
+#
+# [[r2_buckets]]
+# binding = "ATTACHMENTS"
+# bucket_name = "workdesk-attachments"
+
+# ── Cloudflare Queues ─────────────────────────────────────────
+# WorkDesk uses a Queue to offload background jobs:
+# notifications, payroll runs, and report generation.
+#
+# Setup:
+#   npx wrangler queues create workdesk-queue
+#
+# Producer binding: lets any Pages Function publish messages to the queue.
+# Uncomment after running the setup command above.
+
+# [[queues.producers]]
+# binding = "WORKDESK_QUEUE"
+# queue   = "workdesk-queue"
+
+# Consumer: Queue consumers are NOT supported in Cloudflare Pages Functions.
+# The consumer is a separate standalone Cloudflare Worker defined in the
+# workers/queues/ directory. See workers/queues/wrangler.toml for its config.
+#
+# To deploy the consumer:
+#   cd workers/queues
+#   wrangler deploy
+
+# ── AI Binding (optional) ─────────────────────────────────────
+# Enable Cloudflare Workers AI for the AI Assistant page.
+# Uncomment after enabling Workers AI on your account.
+#
+# [ai]
+# binding = "AI"
+
+# ── Environment variables ─────────────────────────────────────
+# Set sensitive values via: wrangler secret put SECRET_NAME
+# Non-sensitive vars can go here:
+#
+# [vars]
+# ENVIRONMENT = "production"
+# APP_NAME = "WorkDesk"
+# ALLOWED_EMAIL_DOMAIN = "yourcompany.com"
+#
+# Secrets (set via CLI, never commit):
+#   wrangler secret put OPENAI_API_KEY    # optional: external LLM for AI assistant
+#
+# Super-Admin secrets (required for /api/sa-auth and /api/sa-org-admins).
+# Run these commands and enter each value when prompted:
+#   wrangler secret put SA_USERNAME     --name workdesk-worker
+#   wrangler secret put SA_SECURITY_KEY --name workdesk-worker
+#   wrangler secret put SA_PASSWORD     --name workdesk-worker
+#
+# To verify all three are set:   wrangler secret list --name workdesk-worker
+# To re-add a deleted secret:    re-run the matching command above
+# Full guide: workers/DEPLOY.md
