@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myWORKDESK | Secure Enterprise Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-green: #0a4d3c;
+            --accent-glow: #51cf66;
+            --glass-card: rgba(255, 255, 255, 0.08); 
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-color: #020d0a;
+        }
+
+        /* --- 24/7 SKY CYCLE ANIMATION --- */
+        .sky-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -3;
+            animation: skyTransition 60s linear infinite;
+        }
+
+        @keyframes skyTransition {
+            0%, 100% { background: #020d0a; } /* Midnight */
+            20% { background: #11332b; }      /* Dawn */
+            50% { background: #2d7a6a; }      /* Midday */
+            80% { background: #11332b; }      /* Dusk */
+        }
+
+        .celestial-body {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: -2;
+            animation: celestialMovement 60s linear infinite;
+        }
+
+        @keyframes celestialMovement {
+            0% { bottom: -10%; left: 0%; background: #4dabf7; opacity: 0; }
+            50% { bottom: 85%; left: 50%; background: #fff; opacity: 0.6; }
+            100% { bottom: -10%; left: 100%; background: #4dabf7; opacity: 0; }
+        }
+
+        .bg-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            mix-blend-mode: overlay;
+            opacity: 0.3;
+            z-index: -2;
+        }
+
+        /* --- HEADER --- */
+        header { padding: 15px 25px; position: absolute; width: 100%; z-index: 10; }
+        .logo { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; opacity: 0.7; }
+        .logo span { color: var(--accent-glow); }
+
+        .main-wrapper { display: flex; height: calc(100vh - 80px); width: 100%; }
+
+        /* LEFT PANEL: HERO TEXT */
+        .hero-panel { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding-left: 10%; }
+        .hero-panel h1 { font-size: 70px; font-weight: 800; line-height: 0.95; text-transform: uppercase; margin-bottom: 20px; }
+        .animated-sub { font-size: 20px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 10px; }
+        .animated-sub span { color: var(--accent-glow); font-weight: 700; border-left: 2px solid var(--accent-glow); padding-left: 12px; }
+
+        /* RIGHT PANEL: CENTERED COMPACT BOX */
+        .login-panel { flex: 0.8; display: flex; align-items: center; justify-content: center; }
+
+        .login-card {
+            background: var(--glass-card);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 320px;
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+        }
+
+        .login-card h2 { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: white; }
+        .login-card p.subtitle { font-size: 11px; opacity: 0.6; margin-bottom: 15px; }
+
+        .quote-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-glow);
+            margin-bottom: 20px;
+            font-style: italic;
+            font-size: 11px;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 10px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; opacity: 0.7; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+            font-size: 13px;
+            color: white;
+            transition: 0.3s;
+        }
+        .form-group input:focus { border-color: var(--accent-glow); outline: none; background: rgba(0,0,0,0.4); }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-green);
+            color: white;
+            border: 1px solid var(--accent-glow);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+
+        .divider { text-align: center; margin: 15px 0; font-size: 9px; font-weight: 800; opacity: 0.4; letter-spacing: 1px; }
+
+        .sso-btns { display: flex; gap: 8px; margin-bottom: 20px; }
+        .sso-btn {
+            flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+            background: rgba(255,255,255,0.05); color: white; display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-weight: 700; cursor: pointer; font-size: 11px;
+        }
+
+        .footer-links { text-align: center; font-size: 10px; line-height: 1.6; opacity: 0.6; }
+        .footer-links a { color: var(--accent-glow); text-decoration: none; font-weight: 800; }
+
+        .org-cta {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            font-size: 11px;
+        }
+        .org-cta a { color: var(--accent-glow); font-weight: 800; text-decoration: none; border-bottom: 1px solid; }
+
+        /* --- GLOBAL SECURITY CERTIFICATIONS FOOTER --- */
+        .security-footer {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .cert-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.5;
+            filter: grayscale(1);
+            transition: 0.3s;
+            cursor: default;
+        }
+
+        .cert-badge:hover { opacity: 1; filter: grayscale(0); }
+
+        .cert-badge i { font-size: 18px; color: var(--accent-glow); }
+        .cert-badge span { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* HERO ANIMATIONS */
+        .fade-text { animation: fadeCycle 4s infinite; }
+        @keyframes fadeCycle { 
+            0%, 100% { opacity: 0; transform: translateY(5px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1100px) {
+            .hero-panel { display: none; }
+            .login-panel { flex: 1; }
+            .security-footer { gap: 20px; padding: 0 10px; }
+            .cert-badge span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sky-canvas"></div>
+    <div class="celestial-body"></div>
+    <div class="bg-overlay"></div>
+
+    <header>
+        <div class="logo">my<span>WORKDESK</span></div>
+    </header>
+
+    <main class="main-wrapper">
+        <section class="hero-panel">
+            <h1>Elevate Your<br>Workforce.</h1>
+            <div class="animated-sub">
+                Driven by <span id="textRotator" class="fade-text">Performance Analytics</span>
+            </div>
+        </section>
+
+        <section class="login-panel">
+            <div class="login-card">
+                <h2>Secure Login</h2>
+                <p class="subtitle">Access your workspace</p>
+
+                <div class="quote-box" id="dailyQuote">
+                    <!-- Daily Quote -->
+                </div>
+
+                <div class="form-group">
+                    <label>Organization ID</label>
+                    <input type="text" placeholder="Corp-ID">
+                </div>
+
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <input type="text" placeholder="User-Ref">
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+
+                <button class="btn-login">Sign In</button>
+
+                <div class="divider">SSO GATEWAY</div>
+
+                <div class="sso-btns">
+                    <button class="sso-btn">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="12"> Google
+                    </button>
+                    <button class="sso-btn">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" width="12"> Microsoft
+                    </button>
+                </div>
+
+                <div class="footer-links">
+                    Locked out? <a href="#">Contact HR</a><br>
+                    Need Help? <a href="#">Admin Support</a>
+                </div>
+
+                <div class="org-cta">
+                    New Organization? <a href="#">SIGN UP</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Global Security Certifications -->
+    <footer class="security-footer">
+        <div class="cert-badge">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>ISO 27001 Certified</span>
+        </div>
+        <div class="cert-badge">
+            <i class="fa-solid fa-lock"></i>
+            <span>SOC 2 Type II</span>
+        </div>
+        <div class="cert-badge">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span>GDPR Compliant</span>
+        </div>
+        <div class="cert-badge">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>AES-256 Encrypted</span>
+        </div>
+        <div class="cert-badge">
+            <i class="fa-solid fa-fingerprint"></i>
+            <span>2FA Secured</span>
+        </div>
+    </footer>
+
+    <script>
+        const roles = ["Performance Analytics", "Global Recruitment", "Real-time Attendance", "Integrated Payroll", "Strategic Reporting"];
+        let roleIndex = 0;
+        const textElement = document.getElementById('textRotator');
+
+        setInterval(() => {
+            roleIndex = (roleIndex + 1) % roles.length;
+            textElement.classList.remove('fade-text');
+            void textElement.offsetWidth; 
+            textElement.innerText = roles[roleIndex];
+            textElement.classList.add('fade-text');
+        }, 4000);
+
+        const quotes = [
+            "Success is the sum of small efforts repeated daily.",
+            "Elevate your potential. Every task counts.",
+            "Energy and persistence conquer all things.",
+            "The secret of getting ahead is getting started.",
+            "Consistency transforms average into excellence.",
+            "Hustle until your signature becomes an autograph.",
+            "Focus on being productive instead of busy.",
+            "Excellence is not a skill, it is an attitude.",
+            "Don't stop until you're proud of your progress.",
+            "Innovation distinguishes between a leader and a follower.",
+            "Your keyboard missed you. Welcome back!",
+            "The future depends on what you do today.",
+            "Stay humble. Hustle hard.",
+            "Do it for the 'After' photo of your career.",
+            "One small step today, one giant leap tomorrow.",
+            "Success is earned, not given. Log in and earn it.",
+            "Be the best version of you today.",
+            "A goal without a plan is just a wish.",
+            "Great things never come from comfort zones.",
+            "Difficult roads lead to beautiful destinations.",
+            "You are the engine of this organization.",
+            "Efficiency is doing things right; effectiveness is doing the right things.",
+            "Wake up with determination. Log out with satisfaction.",
+            "Opportunity is usually disguised as hard work.",
+            "Believe you can and you're halfway there.",
+            "Hustle in silence, let your success be your noise.",
+            "Your limit is only your imagination.",
+            "May your coffee be strong and your WiFi be stable.",
+            "One team, one dream. Let's hit those goals.",
+            "Consistency beats talent every single time.",
+            "End the month strong. You've got this!"
+        ];
+
+        const day = new Date().getDate();
+        document.getElementById('dailyQuote').innerText = `"${quotes[day-1]}"`;
+    </script>
+</body>
+</html>
