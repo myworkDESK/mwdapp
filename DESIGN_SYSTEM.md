@@ -226,7 +226,7 @@ WorkDesk/
 ├── recruitment.html        ← Job postings & applicant pipeline
 ├── tickets.html            ← Support ticket help-desk
 ├── documents.html          ← Document repository
-├── projects.html           ← Projects (coming soon placeholder)
+├── projects.html           ← DeskProjects (coming soon placeholder)
 ├── messaging.html          ← Direct & group messaging
 ├── timeline.html           ← Company-wide timeline feed
 ├── engagement.html         ← Pulse surveys & engagement scores

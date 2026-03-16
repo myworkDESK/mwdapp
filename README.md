@@ -18,7 +18,7 @@
    - [Recruitment](#8-recruitment)
    - [Support Tickets](#9-support-tickets)
    - [Documents](#10-documents)
-   - [Projects](#11-projects)
+   - [DeskProjects](#11-deskprojects)
    - [Messaging](#12-messaging)
    - [Timeline / Announcements](#13-timeline--announcements)
    - [Engagement Surveys](#14-engagement-surveys)
@@ -305,7 +305,7 @@ Central repository for company policies, contracts, employee files, and other HR
 
 ---
 
-### 11. Projects
+### 11. DeskProjects
 
 **Page:** `projects.html`
 
@@ -652,7 +652,7 @@ WorkDesk/
 ├── recruitment.html                   ← Job postings and applicant pipeline
 ├── tickets.html                       ← Internal IT/HR help-desk
 ├── documents.html                     ← Document repository (R2-backed)
-├── projects.html                      ← Team projects (coming soon placeholder)
+├── projects.html                      ← DeskProjects (coming soon placeholder)
 ├── messaging.html                     ← Direct and group messaging
 ├── timeline.html                      ← Company-wide announcement feed
 ├── engagement.html                    ← Pulse surveys and satisfaction scores

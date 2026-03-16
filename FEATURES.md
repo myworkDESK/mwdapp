@@ -60,7 +60,7 @@
 | `recruitment.html`            | Recruitment        | Job postings, applicant pipeline            | `/api/recruitment`                    |
 | `tickets.html`                | Support Tickets    | Internal IT/HR help-desk tickets            | `/api/tickets`                        |
 | `documents.html`              | Documents          | Policy docs, contracts, file storage        | `/api/documents`                      |
-| `projects.html`               | Projects           | Team projects and milestones (planned)      | —                                     |
+| `projects.html`               | DeskProjects       | Team projects and milestones (planned)      | —                                     |
 | `messaging.html`              | Messaging          | Direct and group chat                       | `/api/messages`                       |
 | `timeline.html`               | Timeline           | Company-wide announcements feed             | `/api/timeline`                       |
 | `engagement.html`             | Engagement         | Pulse surveys, satisfaction scores          | `/api/engagement`                     |
@@ -140,7 +140,7 @@
 - **API**: `GET /api/documents?category=&search=`, `POST /api/documents` (create metadata record),
   `DELETE?id=` (delete record + R2 object).
 
-### 3.11 Projects (`projects.html`)
+### 3.11 DeskProjects (`projects.html`)
 - **Purpose**: Team project management — task boards, milestones (planned).
 - **Status**: Placeholder "coming soon" page. No backend required until feature is built.
 - **Do not add backend API for this page until the UI is built out.**
@@ -314,7 +314,7 @@ Each sidebar `<li>` has `onclick="window.location.href='<page>.html'"`.
 | Recruitment          | `recruitment.html`     |
 | Support / Ticketing  | `tickets.html`         |
 | Documents            | `documents.html`       |
-| Projects             | `projects.html`        |
+| DeskProjects         | `projects.html`        |
 | Messages             | `messaging.html`       |
 | Timeline             | `timeline.html`        |
 | Engagement           | `engagement.html`      |

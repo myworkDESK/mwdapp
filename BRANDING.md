@@ -54,6 +54,7 @@ enterprise capability.
 | Recruitment           | TalentDesk           |
 | Support Tickets       | HelpDesk             |
 | Documents             | DocDesk              |
+| Projects              | DeskProjects         |
 | Messaging             | TalkDesk             |
 | Timeline / Feed       | DeskStream           |
 | Employee Engagement   | PulseDesk            |
@@ -145,6 +146,17 @@ enterprise capability.
 | Upload Document      | Store File          |
 | File Storage         | DocVault            |
 | Document Repository  | DocLibrary          |
+
+### Project Management
+
+| Standard Term        | myWorkDesk Branding |
+|----------------------|---------------------|
+| Projects             | DeskProjects        |
+| Project              | DeskProject         |
+| Task Board           | DeskBoard           |
+| Milestone            | DeskMilestone       |
+| Task                 | DeskTask            |
+| Team Collaboration   | DeskCollab          |
 
 ### Messaging System
 
