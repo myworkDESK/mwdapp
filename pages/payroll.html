@@ -514,6 +514,20 @@
     return labels[r]||r;
   }
 
+  // ── Reusable deduction calculator ────────────────────────────────────────
+  function calcDeductions(basic,ot,allow,fs){
+    var ded0=fs.deductions[0]||{name:'SSS',rate:4.5,fixed:false};
+    var ded1=fs.deductions[1]||{name:'PhilHealth',rate:1.5,fixed:false};
+    var ded2=fs.deductions[2]||{name:'Pag-IBIG',rate:0,fixed:true,fixedAmt:100};
+    var sss=Math.round(basic*(ded0.fixed?(ded0.fixedAmt||0):ded0.rate)/100);
+    var philhealth=Math.round(basic*(ded1.fixed?(ded1.fixedAmt||0):ded1.rate)/100);
+    var pagibig=ded2.fixed?(ded2.fixedAmt||0):Math.round(basic*ded2.rate/100);
+    var taxable=basic+ot+allow-sss-philhealth-pagibig;
+    var tax=Math.round(taxable*(fs.taxRate||10)/100);
+    var total=sss+philhealth+pagibig+tax;
+    return{sss:sss,philhealth:philhealth,pagibig:pagibig,tax:tax,total:total,net:basic+ot+allow-total};
+  }
+
   // ── Seed Data ─────────────────────────────────────────────────────────────
   var SEED_PAYROLL=(function(){
     var employees=JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
@@ -533,15 +547,10 @@
       var base=baseSalaries[e.dept]||30000;
       var ot=Math.floor(Math.random()*3000);
       var allow=5000;
-      var sss=Math.round(base*(fs.deductions[0]?fs.deductions[0].rate/100:0.045));
-      var philhealth=Math.round(base*(fs.deductions[1]?fs.deductions[1].rate/100:0.015));
-      var pagibig=fs.deductions[2]&&fs.deductions[2].fixed?(fs.deductions[2].fixedAmt||100):Math.round(base*(fs.deductions[2]?fs.deductions[2].rate/100:0));
-      var tax=Math.round((base+ot+allow-sss-philhealth-pagibig)*(fs.taxRate||10)/100);
-      var deductions=sss+philhealth+pagibig+tax;
-      var net=base+ot+allow-deductions;
+      var d=calcDeductions(base,ot,allow,fs);
       return{id:e.id,name:e.first+' '+e.last,dept:e.dept,
-             basic:base,ot:ot,allow:allow,sss:sss,philhealth:philhealth,pagibig:pagibig,tax:tax,
-             deductions:deductions,net:net,status:'Draft',period:'March 2025'};
+             basic:base,ot:ot,allow:allow,sss:d.sss,philhealth:d.philhealth,pagibig:d.pagibig,tax:d.tax,
+             deductions:d.total,net:d.net,status:'Draft',period:'March 2025'};
     });
   })();
 
@@ -631,14 +640,17 @@
   }
   function renderDeductionChart(){
     var fs=getFinanceSettings();
-    var totals={};
-    fs.deductions.forEach(function(d){totals[d.name]=0;});
-    totals['W/Tax']=0;
+    var totals={'W/Tax':0};
+    // Use ledger sss/philhealth/pagibig mapped to configured deduction names
+    var d0=(fs.deductions[0]||{name:'SSS'}).name;
+    var d1=(fs.deductions[1]||{name:'PhilHealth'}).name;
+    var d2=(fs.deductions[2]||{name:'Pag-IBIG'}).name;
+    totals[d0]=0;totals[d1]=0;totals[d2]=0;
     ledger.forEach(function(r){
-      if(fs.deductions[0]) totals[fs.deductions[0].name]=(totals[fs.deductions[0].name]||0)+r.sss;
-      if(fs.deductions[1]) totals[fs.deductions[1].name]=(totals[fs.deductions[1].name]||0)+r.philhealth;
-      if(fs.deductions[2]) totals[fs.deductions[2].name]=(totals[fs.deductions[2].name]||0)+r.pagibig;
-      totals['W/Tax']+=r.tax;
+      totals[d0]=(totals[d0]||0)+(r.sss||0);
+      totals[d1]=(totals[d1]||0)+(r.philhealth||0);
+      totals[d2]=(totals[d2]||0)+(r.pagibig||0);
+      totals['W/Tax']+=(r.tax||0);
     });
     var max=Math.max.apply(null,Object.keys(totals).map(function(k){return totals[k];}))||1;
     document.getElementById('deductionChart').innerHTML=Object.keys(totals).map(function(k){
@@ -903,12 +915,9 @@
     var actor=localStorage.getItem('workdesk_display_name')||getRoleLabel(getUserRole());
     var fs=getFinanceSettings();
     r.basic=newBasic;r.ot=newOT;r.allow=newAllow;
-    r.sss=Math.round(newBasic*(fs.deductions[0]?fs.deductions[0].rate/100:0.045));
-    r.philhealth=Math.round(newBasic*(fs.deductions[1]?fs.deductions[1].rate/100:0.015));
-    r.pagibig=fs.deductions[2]&&fs.deductions[2].fixed?(fs.deductions[2].fixedAmt||100):Math.round(newBasic*(fs.deductions[2]?fs.deductions[2].rate/100:0));
-    r.tax=Math.round((newBasic+newOT+newAllow-r.sss-r.philhealth-r.pagibig)*(fs.taxRate||10)/100);
-    r.deductions=r.sss+r.philhealth+r.pagibig+r.tax;
-    r.net=newBasic+newOT+newAllow-r.deductions;
+    var d=calcDeductions(newBasic,newOT,newAllow,fs);
+    r.sss=d.sss;r.philhealth=d.philhealth;r.pagibig=d.pagibig;r.tax=d.tax;
+    r.deductions=d.total;r.net=d.net;
     saveLedger();
     addAuditEntry('Salary Updated','Employee: '+r.name+' ('+r.id+'). '+changes.join('; ')+'. Note: '+note+'. Applied by: '+actor,'success');
     renderTable();renderDeductionChart();updateKPIs();renderAudit();
