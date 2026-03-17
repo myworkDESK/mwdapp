@@ -8,420 +8,431 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     :root {
-      --primary:       #5A8F7B;
-      --primary-dark:  #497263;
-      --primary-rgb:   90, 143, 123;
-      --primary-soft:  #EBF4F1;
-      --accent:        #F4C86A;
-      --danger:        #E74C3C;
-      --glass-border:  rgba(90, 143, 123, 0.22);
+      --primary:      #5A8F7B;
+      --primary-dark: #497263;
+      --primary-rgb:  90, 143, 123;
+      --accent:       #F4C86A;
+      --accent-dark:  #E6B84E;
+      --danger:       #E74C3C;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      color: #fff;
-      background-color: #1a2e28;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #E8E4DE 0%, #CEC9C1 100%);
       -webkit-font-smoothing: antialiased;
+      padding: 24px 16px;
     }
 
-    /* ======= COVER PHOTO BACKGROUND ======= */
-    .bg-cover {
-      position: fixed;
-      inset: 0;
-      z-index: -3;
-      background-image: url('/assets/login-cover-happy.png');
-      background-size: cover;
-      background-position: center;
-    }
-
-    /* 10% transparent glass overlay — slightly visible frosted layer */
-    .bg-glass-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      background: rgba(255, 255, 255, 0.10);
-      backdrop-filter: blur(2px) saturate(120%);
-      -webkit-backdrop-filter: blur(2px) saturate(120%);
-    }
-
-    /* 3D depth vignette */
-    .bg-vignette {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.22) 100%);
-      pointer-events: none;
-    }
-
-    /* ======= TOP HEADER — logo only (form repositioned) ======= */
-    .top-header {
-      position: relative;
-      z-index: 20;
+    /* ======= OUTER CARD ======= */
+    .login-card {
+      width: 940px;
+      max-width: 100%;
+      min-height: 600px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
       display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 0 28px;
-      height: 66px;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(12px) saturate(130%);
-      -webkit-backdrop-filter: blur(12px) saturate(130%);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      overflow: hidden;
     }
 
-    /* ── Logo image ─────── */
-    .header-logo-img {
-      height: 48px;
-      width: auto;
-      object-fit: contain;
-      flex-shrink: 0;
-      filter: brightness(1.15) saturate(1.1) drop-shadow(0 2px 10px rgba(0,0,0,0.30));
-    }
-
-    /* ── Login form ─────── */
-    .header-login-form {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    /* Each field group: wraps input + below-error */
-    .h-field {
+    /* ======= LEFT: FORM PANEL ======= */
+    .form-panel {
+      flex: 0 0 42%;
       display: flex;
       flex-direction: column;
-      flex-shrink: 0;
+      padding: 44px 48px 36px;
+      background: #fff;
     }
 
-    /* Inner wrap: holds icon + input (+ eye toggle for password) */
-    .h-input-wrap {
+    /* ── Logo pill ─────── */
+    .logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1.5px solid #D8D8D8;
+      border-radius: 50px;
+      padding: 7px 18px 7px 10px;
+      align-self: flex-start;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    .logo-pill img {
+      height: 26px;
+      width: auto;
+    }
+
+    .logo-pill span {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a2e28;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Heading ─────── */
+    .form-heading {
+      font-size: 30px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.18;
+      margin-bottom: 8px;
+    }
+
+    .form-sub {
+      font-size: 13.5px;
+      color: #9CA3AF;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+
+    /* ── Field groups ─────── */
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6B7280;
+      margin-bottom: 7px;
+    }
+
+    .field-input-wrap {
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .h-input-wrap .h-icon {
-      position: absolute;
-      left: 10px;
-      color: var(--primary-dark);
-      font-size: 12px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .h-input-wrap input {
-      height: 38px;
-      width: 158px;
-      padding: 0 12px 0 30px;
-      border: 1px solid rgba(var(--primary-rgb), 0.40);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 12.5px;
-      color: #1a2e28;
+    .field-input {
+      width: 100%;
+      height: 50px;
+      padding: 0 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      background: #FAFAFA;
+      font-family: inherit;
+      font-size: 14px;
+      color: #111827;
       outline: none;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.60), 0 2px 8px rgba(0,0,0,0.10);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
-    .h-input-wrap input::placeholder { color: rgba(26, 46, 40, 0.45); }
+    .field-input::placeholder { color: #C4C4C4; }
 
-    .h-input-wrap input:focus {
+    .field-input:focus {
       border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.60), 0 0 0 3px rgba(var(--primary-rgb), 0.18);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
     }
 
-    .h-input-wrap input.is-invalid { border-color: var(--danger); }
+    .field-input.is-invalid { border-color: var(--danger); }
 
     /* ── Password eye toggle ─────── */
-    .h-input-wrap input.pwd-input { padding-right: 32px; }
+    .field-input.pwd-input { padding-right: 44px; }
 
-    .h-eye-toggle {
+    .pwd-eye {
       position: absolute;
-      right: 9px;
+      right: 13px;
       background: none;
       border: none;
       cursor: pointer;
-      color: var(--primary-dark);
+      color: #9CA3AF;
       padding: 0;
       display: flex;
       align-items: center;
+      transition: color 0.15s;
     }
 
-    .h-eye-toggle svg { width: 14px; height: 14px; }
+    .pwd-eye:hover { color: var(--primary-dark); }
 
-    /* ── Field error beneath input ─────── */
-    .h-field-error {
+    /* ── Field error ─────── */
+    .field-error {
       font-size: 11px;
       color: var(--danger);
-      margin-top: 2px;
+      margin-top: 5px;
       display: none;
-      white-space: nowrap;
       padding-left: 2px;
     }
 
-    /* ── Sign In button ─────── */
-    .btn-header-signin {
-      height: 38px;
-      padding: 0 18px;
-      background: var(--primary);
-      color: #fff;
-      border: 1px solid var(--primary-dark);
-      border-radius: 8px;
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 12px;
-      font-weight: 800;
+    /* ── Submit button ─────── */
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #1a2e28;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
+      margin-top: 6px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-      flex-shrink: 0;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
     }
 
-    .btn-header-signin:hover {
+    .btn-submit:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 8px 22px rgba(230, 184, 78, 0.40);
       transform: translateY(-1px);
-      background: var(--primary-dark);
-      box-shadow: 0 6px 18px rgba(var(--primary-rgb), 0.40);
     }
 
-    .btn-header-signin:active { transform: scale(0.97); }
-    .btn-header-signin:disabled { opacity: 0.68; cursor: not-allowed; transform: none; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.68; cursor: not-allowed; transform: none; }
 
-    .btn-header-signin .h-spinner {
+    .h-spinner {
       display: none;
-      width: 13px;
-      height: 13px;
-      border: 2px solid rgba(255, 255, 255, 0.38);
-      border-top-color: #fff;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(26, 46, 40, 0.28);
+      border-top-color: #1a2e28;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn-header-signin.loading .h-spinner { display: block; }
+    .btn-submit.loading .h-spinner { display: block; }
 
-    /* ── Header separator ─────── */
-    .h-sep {
-      font-size: 11px;
-      font-weight: 800;
-      opacity: 0.65;
-      letter-spacing: 1px;
-      white-space: nowrap;
-      flex-shrink: 0;
-      color: #1a2e28;
-    }
-
-    /* ── SSO buttons in header ─────── */
-    .h-sso-btns {
+    /* ── OR separator ─────── */
+    .or-sep {
       display: flex;
-      gap: 7px;
-      flex-shrink: 0;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #D1D5DB;
     }
 
-    .h-sso-btn {
-      height: 38px;
-      padding: 0 13px;
-      border: 1px solid rgba(var(--primary-rgb), 0.35);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      color: #1a2e28;
+    .or-sep::before,
+    .or-sep::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E5E7EB;
+    }
+
+    /* ── SSO buttons ─────── */
+    .sso-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .sso-btn {
+      flex: 1;
+      height: 48px;
+      background: #fff;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      transition: background 0.2s, border-color 0.2s;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.60);
+      justify-content: center;
+      gap: 8px;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
 
-    .h-sso-btn:hover { background: rgba(255, 255, 255, 0.98); border-color: var(--primary); }
+    .sso-btn:hover {
+      background: #F9FAFB;
+      border-color: #C9CDD4;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
 
-    /* ── Aux links (forgot / sign up) ─────── */
-    .h-aux-links {
+    /* ── Bottom links row ─────── */
+    .bottom-links {
+      margin-top: auto;
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 3px;
-      flex-shrink: 0;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #9CA3AF;
     }
 
-    .h-aux-links a {
+    .bottom-links a {
       color: var(--primary-dark);
+      font-weight: 600;
       text-decoration: none;
-      font-size: 10px;
-      font-weight: 700;
-      opacity: 0.90;
       transition: opacity 0.15s;
     }
 
-    .h-aux-links a:hover { opacity: 1; text-decoration: underline; }
+    .bottom-links a:hover { text-decoration: underline; }
 
-    /* ======= MAIN HERO AREA ======= */
-    .main-hero {
+    /* ======= RIGHT: IMAGE PANEL ======= */
+    .image-panel {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 0 20px 20px 0;
+    }
+
+    .panel-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Floating event cards ─────── */
+    .float-card {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+      padding: 14px 18px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* ── Top floating card (event) ─────── */
+    .float-card-top {
+      top: 28px;
+      left: 20px;
+      min-width: 190px;
+    }
+
+    .fc-event-header {
       display: flex;
       align-items: flex-start;
-      justify-content: flex-start;
-      padding-left: 5%;
-      padding-right: 28px;
-      padding-top: 48px;
-      min-height: 0;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
-    /* Hero content panel — no glass card */
-    .hero-content {
-      max-width: 600px;
-    }
-
-    .hero-content h1 {
-      font-size: clamp(44px, 6vw, 72px);
-      font-weight: 800;
-      line-height: 0.93;
-      text-transform: uppercase;
-      margin-bottom: 22px;
-      color: #1a2e28;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.15);
-    }
-
-    .animated-sub {
-      font-size: clamp(15px, 1.8vw, 20px);
-      color: #1a2e28;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 38px;
-    }
-
-    .animated-sub .rotator-text {
-      color: var(--primary-dark);
+    .fc-event-title {
+      font-size: 12px;
       font-weight: 700;
-      border-left: 2px solid var(--primary-dark);
-      padding-left: 12px;
+      color: #111827;
+      line-height: 1.3;
     }
 
-    /* ── "All in one workspace tool" tagline ─────── */
-    .hero-tagline {
+    .fc-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .fc-event-time {
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--primary-dark);
-      opacity: 0.82;
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
+      color: #9CA3AF;
     }
 
-    .hero-tagline::before {
-      content: '';
-      display: inline-block;
-      width: 18px;
-      height: 2px;
-      background: var(--primary-dark);
-      border-radius: 2px;
-      opacity: 0.7;
+    /* ── Bottom floating card (meeting) ─────── */
+    .float-card-bottom {
+      bottom: 36px;
+      left: 20px;
+      min-width: 200px;
     }
 
-    /* ── Mobile form welcome tagline ─────── */
-    .h-form-tagline {
-      display: none;
-      font-size: 15px;
+    .fc-meeting-title {
+      font-size: 12px;
       font-weight: 700;
-      color: #fff;
-      text-align: center;
-      letter-spacing: 0.01em;
-      line-height: 1.4;
+      color: #111827;
       margin-bottom: 2px;
     }
 
-    @media (max-width: 640px) {
-      .h-form-tagline { display: block; }
-    }
-
-    /* ── Motivational quote box ─────── */
-    .hero-quote-box {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(14px) saturate(130%);
-      -webkit-backdrop-filter: blur(14px) saturate(130%);
-      border: 1px solid rgba(var(--primary-rgb), 0.25);
-      border-left: 3px solid var(--primary);
-      border-radius: 12px;
-      padding: 16px 20px;
-      max-width: 500px;
-      box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.10),
-        inset 0 1px 0 rgba(255, 255, 255, 0.60);
-    }
-
-    .hero-quote-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .hero-quote-text {
-      font-size: 13px;
-      font-style: italic;
-      color: #1a2e28;
-      line-height: 1.6;
-      margin-bottom: 7px;
-    }
-
-    .hero-quote-author {
+    .fc-meeting-time {
       font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-dark);
+      color: #9CA3AF;
+      margin-bottom: 10px;
     }
 
-    /* ======= SECURITY FOOTER ======= */
-    .security-footer {
-      display: none;
+    .fc-avatars {
+      display: flex;
     }
 
-    .cert-badge {
+    .fc-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+      margin-right: -6px;
       display: flex;
       align-items: center;
-      gap: 7px;
-      opacity: 0.48;
-      filter: grayscale(1);
-      transition: opacity 0.2s, filter 0.2s;
-      cursor: default;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
     }
 
-    .cert-badge:hover { opacity: 1; filter: grayscale(0); }
-    .cert-badge i { font-size: 16px; color: var(--accent); }
-    .cert-badge span { font-size: 11px; font-weight: 800; letter-spacing: 0.9px; text-transform: uppercase; }
+    .fc-avatar:nth-child(2) { background: linear-gradient(135deg, #7B9EA6, #B0CED6); }
+    .fc-avatar:nth-child(3) { background: linear-gradient(135deg, #A0826D, #C8A898); }
+    .fc-avatar:nth-child(4) { background: linear-gradient(135deg, #6B7280, #9CA3AF); }
 
-    .footer-copyright {
-      font-size: 11px;
-      opacity: 0.55;
-      letter-spacing: 0.3px;
+    /* ── Calendar strip (middle of image) ─────── */
+    .float-card-cal {
+      position: absolute;
+      bottom: 50%;
+      right: 20px;
+      transform: translateY(50%);
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.30);
+    }
+
+    .fc-cal-days {
+      display: flex;
+      gap: 6px;
+    }
+
+    .fc-cal-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 28px;
+    }
+
+    .fc-cal-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .fc-cal-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .fc-cal-day.today .fc-cal-num {
+      background: var(--accent);
+      color: #1a2e28;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
     }
 
     /* ======= TOAST ======= */
@@ -449,316 +460,212 @@
     }
 
     /* ======= RESPONSIVE ======= */
+    @media (max-width: 720px) {
+      body { padding: 0; align-items: stretch; }
 
-    /* Desktop: form overlays the header */
-    @media (min-width: 641px) {
-      body { position: relative; }
-
-      .header-login-form {
-        position: absolute;
-        top: 14px;
-        right: 28px;
-        z-index: 25;
-        justify-content: flex-end;
-        flex-wrap: nowrap;
-      }
-    }
-
-    @media (max-width: 1280px) and (min-width: 641px) {
-      .h-input-wrap input { width: 138px; }
-    }
-
-    @media (max-width: 1100px) and (min-width: 641px) {
-      .h-sso-btns, .h-sep, .h-aux-links { display: none; }
-      .h-input-wrap input { width: 132px; }
-    }
-
-    @media (max-width: 860px) and (min-width: 641px) {
-      .h-input-wrap input { width: 150px; }
-      .main-hero { padding-right: 28px; }
-      .hero-content h1 { font-size: 40px; }
-    }
-
-    /* Mobile: form shown below hero content */
-    @media (max-width: 640px) {
-      body {
-        height: auto;
-        min-height: 100vh;
-        overflow-y: auto;
-      }
-
-      .top-header {
-        height: 58px;
-        padding: 0 20px;
-      }
-
-      .header-logo-img { height: 40px; }
-
-      .main-hero {
-        flex: none;
-        justify-content: center;
-        min-height: 55vh;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-top: 12px;
-        padding-bottom: 12px;
-      }
-
-      .hero-content h1 { font-size: 36px; }
-
-      .header-login-form {
+      .login-card {
         flex-direction: column;
-        align-items: stretch;
-        width: 100%;
-        gap: 10px;
-        padding: 24px 20px 32px;
-        background: rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(20px) saturate(130%);
-        -webkit-backdrop-filter: blur(20px) saturate(130%);
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0;
+        min-height: 100vh;
+        box-shadow: none;
       }
 
-      .h-field { flex: none; }
-
-      .h-input-wrap input {
-        width: 100%;
+      .form-panel {
+        flex: none;
+        padding: 40px 28px 32px;
+        order: 1;
       }
 
-      .h-sso-btns {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
+      .image-panel {
+        flex: none;
+        height: 220px;
+        border-radius: 0;
+        order: 0;
       }
 
-      .h-sso-btn { flex: 1; justify-content: center; }
+      .float-card-cal { display: none; }
+    }
 
-      .h-sep { text-align: center; }
-
-      .h-aux-links {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .btn-header-signin {
-        width: 100%;
-        justify-content: center;
-        height: 42px;
-        font-size: 13px;
-      }
+    @media (max-width: 900px) and (min-width: 721px) {
+      .form-panel { padding: 36px 36px 28px; }
+      .float-card-cal { display: none; }
     }
 
   </style>
 </head>
 <body>
 
-  <!-- Cover photo background layers -->
-  <div class="bg-cover"></div>
-  <div class="bg-glass-overlay"></div>
-  <div class="bg-vignette"></div>
+  <!-- ── OUTER CARD ─────── -->
+  <div class="login-card">
 
-  <!-- ── TOP HEADER: Logo only ─────── -->
-  <header class="top-header">
-    <img class="header-logo-img" src="/assets/workdesk-logo.svg" alt="WorkDesk" />
-  </header>
+    <!-- ── LEFT: form panel ─────── -->
+    <div class="form-panel">
 
-  <!-- ── MAIN HERO CONTENT ─────── -->
-  <main class="main-hero" aria-label="Welcome">
-    <div class="hero-content">
-      <h1>Elevate Your<br>Workforce.</h1>
+      <!-- Logo pill -->
+      <a class="logo-pill" href="/" aria-label="myWORKDESK home">
+        <img src="/assets/workdesk-logo.svg" alt="myWORKDESK" />
+        <span>myWORKDESK</span>
+      </a>
 
-      <div class="animated-sub">
-        Driven by
-        <span class="rotator-text">Global Recruitment</span>
-      </div>
+      <!-- Heading -->
+      <h1 class="form-heading">Welcome Back</h1>
+      <p class="form-sub">Sign in to access your workspace</p>
 
-      <div class="hero-tagline">All in one workspace tool</div>
+      <!-- Form -->
+      <form id="loginForm" novalidate>
 
-      <!-- Motivational quote — Working Hard · Future of Success -->
-      <div class="hero-quote-box">
-        <div class="hero-quote-label"><i class="fa-solid fa-quote-left"></i> Working Hard &middot; Future of Success</div>
-        <p class="hero-quote-text" id="quoteText"></p>
-        <span class="hero-quote-author" id="quoteAuthor"></span>
-      </div>
-    </div>
-  </main>
+        <!-- Organization ID -->
+        <div class="field-group">
+          <label class="field-label" for="orgId">Organization ID</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="orgId"
+              name="orgId"
+              class="field-input"
+              placeholder="e.g. acme-corp"
+              autocomplete="off"
+              required
+            />
+          </div>
+          <span class="field-error" id="orgIdError">Required</span>
+        </div>
 
-  <!-- ── LOGIN FORM (desktop: overlaid on header; mobile: below hero) ─────── -->
-  <form class="header-login-form" id="loginForm" novalidate>
+        <!-- Employee ID -->
+        <div class="field-group">
+          <label class="field-label" for="employeeId">Employee ID</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="employeeId"
+              name="employeeId"
+              class="field-input"
+              placeholder="e.g. john.smith"
+              autocomplete="username"
+              required
+            />
+          </div>
+          <span class="field-error" id="employeeIdError">Required</span>
+        </div>
 
-    <!-- Mobile welcome text -->
-    <div class="h-form-tagline">Your task misses you, do you wanna login?</div>
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label" for="password">Password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="field-input pwd-input"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="pwd-eye" id="eyeToggle" aria-label="Toggle password visibility">
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="passwordError">Required</span>
+        </div>
 
-    <!-- Organization ID -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-building h-icon"></i>
-        <input
-          type="text"
-          id="orgId"
-          name="orgId"
-          placeholder="Organization ID"
-          autocomplete="off"
-          required
-        />
-      </div>
-      <span class="h-field-error" id="orgIdError">Required</span>
-    </div>
-
-    <!-- Employee ID -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-user h-icon"></i>
-        <input
-          type="text"
-          id="employeeId"
-          name="employeeId"
-          placeholder="Employee ID"
-          autocomplete="username"
-          required
-        />
-      </div>
-      <span class="h-field-error" id="employeeIdError">Required</span>
-    </div>
-
-    <!-- Password -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-lock h-icon"></i>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          class="pwd-input"
-          placeholder="Password"
-          autocomplete="current-password"
-          required
-        />
-        <button type="button" class="h-eye-toggle" id="eyeToggle" aria-label="Toggle password visibility">
-          <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
+        <!-- Sign In button -->
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <span class="btn-label">Sign In</span>
+          <span class="h-spinner" aria-hidden="true"></span>
         </button>
+
+        <!-- OR separator -->
+        <div class="or-sep">OR</div>
+
+        <!-- SSO buttons -->
+        <div class="sso-row">
+          <button type="button" class="sso-btn" id="googleBtn" aria-label="Sign in with Google">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" class="sso-btn" id="msBtn" aria-label="Sign in with Microsoft">
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
+              <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
+              <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
+              <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
+            </svg>
+            Microsoft
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Bottom links -->
+      <div class="bottom-links">
+        <span>Need help? <a href="#forgot" id="forgotLink">Forgot Password?</a></span>
+        <a href="#terms" id="termsLink">Terms &amp; Conditions</a>
       </div>
-      <span class="h-field-error" id="passwordError">Required</span>
+
     </div>
 
-    <!-- Sign In -->
-    <button type="submit" class="btn-header-signin" id="loginBtn">
-      <span class="btn-label">Sign In</span>
-      <span class="h-spinner" aria-hidden="true"></span>
-    </button>
+    <!-- ── RIGHT: image panel ─────── -->
+    <div class="image-panel">
+      <img class="panel-photo" src="/assets/login-cover-happy.png" alt="Team at work" />
 
-    <!-- SSO divider + buttons -->
-    <span class="h-sep">OR</span>
+      <!-- Top floating event card -->
+      <div class="float-card float-card-top">
+        <div class="fc-event-header">
+          <span class="fc-event-title">Team Standup</span>
+          <span class="fc-dot"></span>
+        </div>
+        <div class="fc-event-time">09:30am – 10:00am</div>
+      </div>
 
-    <div class="h-sso-btns">
-      <button class="h-sso-btn" type="button" id="googleBtn" aria-label="Sign in with Google">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        Google
-      </button>
-      <button class="h-sso-btn" type="button" id="msBtn" aria-label="Sign in with Microsoft">
-        <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
-          <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
-          <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
-          <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
-        </svg>
-        Microsoft
-      </button>
-    </div>
+      <!-- Calendar strip -->
+      <div class="float-card-cal" aria-hidden="true">
+        <div class="fc-cal-days" id="calDays"></div>
+      </div>
 
-    <!-- Aux links -->
-    <div class="h-aux-links">
-      <a href="#forgot" id="forgotLink">Forgot Password?</a>
-      <a href="#signup" id="orgSignupLink">Sign Up</a>
+      <!-- Bottom floating meeting card -->
+      <div class="float-card float-card-bottom">
+        <div class="fc-meeting-title">Daily Meeting</div>
+        <div class="fc-meeting-time">12:00pm – 1:00pm</div>
+        <div class="fc-avatars">
+          <div class="fc-avatar">JD</div>
+          <div class="fc-avatar">AL</div>
+          <div class="fc-avatar">MR</div>
+          <div class="fc-avatar">+2</div>
+        </div>
+      </div>
     </div>
 
-  </form>
-
-  <!-- ── SECURITY CERTIFICATIONS FOOTER (hidden) ─────── -->
-  <footer class="security-footer">
-    <div class="cert-badge">
-      <i class="fa-solid fa-shield-halved"></i>
-      <span>ISO 27001 Certified</span>
-    </div>
-    <div class="cert-badge">
-      <i class="fa-solid fa-lock"></i>
-      <span>SOC 2 Type II</span>
-    </div>
-    <div class="cert-badge">
-      <i class="fa-solid fa-earth-americas"></i>
-      <span>GDPR Compliant</span>
-    </div>
-    <div class="cert-badge">
-      <i class="fa-solid fa-user-shield"></i>
-      <span>AES-256 Encrypted</span>
-    </div>
-    <div class="cert-badge">
-      <i class="fa-solid fa-fingerprint"></i>
-      <span>2FA Secured</span>
-    </div>
-    <span class="footer-copyright">© <span id="copyrightYear"></span> WorkDesk. All rights reserved.</span>
-  </footer>
+  </div><!-- /.login-card -->
 
   <!-- Toast notification -->
   <div class="login-toast" id="loginToast" role="status" aria-live="polite"></div>
 
   <script>
-    // ── Dynamic copyright year ────────────────────────────────────────────────
-    document.getElementById('copyrightYear').textContent = new Date().getFullYear();
-
-    // ── 31 daily-rotating "Working Hard · Future of Success" motivational quotes ──
-    var QUOTES = [
-      { text: 'Hard work beats talent when talent doesn\u2019t work hard.', author: 'Tim Notke' },
-      { text: 'The future belongs to those who believe in the beauty of their dreams.', author: 'Eleanor Roosevelt' },
-      { text: 'Success is the sum of small efforts, repeated day in and day out.', author: 'Robert Collier' },
-      { text: 'Great things never came from comfort zones.', author: 'Unknown' },
-      { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
-      { text: 'Your hard work today is the foundation of your success tomorrow.', author: 'Unknown' },
-      { text: 'Push yourself, because no one else is going to do it for you.', author: 'Unknown' },
-      { text: 'Wake up with determination. Go to bed with satisfaction.', author: 'Unknown' },
-      { text: 'Don\u2019t stop when you\u2019re tired. Stop when you\u2019re done.', author: 'Unknown' },
-      { text: 'Dream big. Work hard. Stay focused.', author: 'Unknown' },
-      { text: 'The harder you work for something, the greater you\u2019ll feel when you achieve it.', author: 'Unknown' },
-      { text: 'Opportunities don\u2019t happen. You create them.', author: 'Chris Grosser' },
-      { text: 'I find that the harder I work, the more luck I seem to have.', author: 'Thomas Jefferson' },
-      { text: 'Success usually comes to those who are too busy to be looking for it.', author: 'Henry David Thoreau' },
-      { text: 'Don\u2019t watch the clock; do what it does. Keep going.', author: 'Sam Levenson' },
-      { text: 'Build your dream, or someone else will hire you to build theirs.', author: 'Tony Gaskins' },
-      { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
-      { text: 'The future rewards those who press on.', author: 'Barack Obama' },
-      { text: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
-      { text: 'Believe you can and you\u2019re halfway there.', author: 'Theodore Roosevelt' },
-      { text: 'The only place where success comes before work is in the dictionary.', author: 'Vidal Sassoon' },
-      { text: 'Do what you have to do until you can do what you want to do.', author: 'Oprah Winfrey' },
-      { text: 'Success is not overnight. It\u2019s when every day you get a little better than the day before.', author: 'Dwayne Johnson' },
-      { text: 'Hard work is the real investment. The returns are always worth it.', author: 'Unknown' },
-      { text: 'Your future is created by what you do today, not tomorrow.', author: 'Robert Kiyosaki' },
-      { text: 'Work hard in silence. Let success make the noise.', author: 'Unknown' },
-      { text: 'The difference between ordinary and extraordinary is that little extra.', author: 'Jimmy Johnson' },
-      { text: 'Motivation is what gets you started. Habit is what keeps you going.', author: 'Jim Ryun' },
-      { text: 'Every champion was once a contender who refused to give up.', author: 'Sylvester Stallone' },
-      { text: 'The man who moves a mountain begins by carrying away small stones.', author: 'Confucius' },
-      { text: 'Your time is limited, so don\u2019t waste it living someone else\u2019s life.', author: 'Steve Jobs' }
-    ];
-
-    // Pick quote by day-of-year so it changes each calendar day
+    // ── Build 7-day calendar strip centred on today ───────────────────────────
     (function () {
-      var now = new Date();
-      var start = new Date(now.getFullYear(), 0, 1);
-      var diff = now - start;
-      var oneDay = 1000 * 60 * 60 * 24;
-      var dayOfYear = Math.floor(diff / oneDay);
-      var q = QUOTES[dayOfYear % QUOTES.length];
-      document.getElementById('quoteText').textContent = '\u201c' + q.text + '\u201d';
-      document.getElementById('quoteAuthor').textContent = '\u2014 ' + q.author;
+      var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      var today = new Date();
+      var todayNum = today.getDate();
+      var container = document.getElementById('calDays');
+      for (var i = -3; i <= 3; i++) {
+        var d = new Date(today);
+        d.setDate(todayNum + i);
+        var isToday = i === 0;
+        var div = document.createElement('div');
+        div.className = 'fc-cal-day' + (isToday ? ' today' : '');
+        div.innerHTML =
+          '<span class="fc-cal-label">' + days[d.getDay()] + '</span>' +
+          '<span class="fc-cal-num">' + d.getDate() + '</span>';
+        container.appendChild(div);
+      }
     }());
 
     // ── Toast helper ─────────────────────────────────────────────────────────
@@ -832,8 +739,8 @@
       showToast('Microsoft SSO is configured via your Cloudflare Access policy.');
     });
 
-    // ── Organization sign-up link ─────────────────────────────────────────────
-    document.getElementById('orgSignupLink').addEventListener('click', function (e) {
+    // ── Terms & Conditions link ───────────────────────────────────────────────
+    document.getElementById('termsLink').addEventListener('click', function (e) {
       e.preventDefault();
       showToast('Organization registration is coming soon. Contact the WorkDesk team to get started.');
     });
