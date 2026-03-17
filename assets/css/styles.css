@@ -10,15 +10,15 @@
 =============================== */
 
 :root {
-  --primary: #3A8F7B;
-  --primary-dark: #2F7263;
-  --primary-soft: #E7F4F1;
-  --primary-rgb: 58, 143, 123;
+  --primary: #5A8F7B;
+  --primary-dark: #497263;
+  --primary-soft: #EBF4F1;
+  --primary-rgb: 90, 143, 123;
 
   --accent: #F4C86A;
   --accent-soft: #FFF6DF;
 
-  --bg-main: #FAF7EE;
+  --bg-main: #F5E9DA;
   --card-bg: #FFFFFF;
 
   --text-main: #1F2933;
@@ -769,7 +769,7 @@ img {
 }
 
 .login-hero {
-  background: linear-gradient(135deg, #E7F4F1, #ffffff);
+  background: linear-gradient(135deg, #EBF4F1, #ffffff);
   padding: 50px;
   display: flex;
   flex-direction: column;

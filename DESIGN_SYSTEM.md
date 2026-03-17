@@ -13,7 +13,7 @@
 |---|---|
 | Product name | **WorkDesk** |
 | Tagline | "HR made simple" |
-| Primary brand colour | `#3A8F7B` (teal-green) |
+| Primary brand colour | `#5A8F7B` (teal-green) |
 | Logo type | SVG wordmark + checkmark icon |
 | Tone | Professional, clean, trustworthy |
 
@@ -27,9 +27,9 @@ All colours are defined as CSS custom properties in `assets/css/styles.css` unde
 ### Primary Palette
 | Token | Value | Usage |
 |---|---|---|
-| `--primary` | `#3A8F7B` | Buttons, active states, links, accents |
-| `--primary-dark` | `#2F7263` | Hover states for primary |
-| `--primary-soft` | `#E7F4F1` | Backgrounds, pill badges, soft highlights |
+| `--primary` | `#5A8F7B` | Buttons, active states, links, accents |
+| `--primary-dark` | `#497263` | Hover states for primary |
+| `--primary-soft` | `#EBF4F1` | Backgrounds, pill badges, soft highlights |
 
 ### Accent Palette
 | Token | Value | Usage |
@@ -40,7 +40,7 @@ All colours are defined as CSS custom properties in `assets/css/styles.css` unde
 ### Neutral / Surface
 | Token | Value | Usage |
 |---|---|---|
-| `--bg-main` | `#F5F7F6` | Page background |
+| `--bg-main` | `#F5E9DA` | Page background |
 | `--card-bg` | `#FFFFFF` | Cards, panels, modals |
 | `--border-light` | `#E5E7EB` | Dividers, input borders |
 

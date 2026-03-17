@@ -13,13 +13,13 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --sa-bg:          #FAF7EE;
+      --sa-bg:          #F5E9DA;
       --sa-surface:     #FFFFFF;
       --sa-surface2:    #F3F4F6;
       --sa-border:      #E5E7EB;
       --sa-border-hi:   #D1D5DB;
-      --sa-green:       #3A8F7B;
-      --sa-green-dk:    #2F7263;
+      --sa-green:       #5A8F7B;
+      --sa-green-dk:    #497263;
       --sa-overlay:     rgba(31,41,51,0.45);
       --sa-text:        #1F2933;
       --sa-text-muted:  #6B7280;
@@ -2325,7 +2325,7 @@ wrangler secret put SA_PASSWORD     --name workdesk-worker</pre>
       { label: 'Very Weak', color: '#ef4444', pct: '20%' },
       { label: 'Weak',      color: '#f59e0b', pct: '40%' },
       { label: 'Fair',      color: '#f59e0b', pct: '60%' },
-      { label: 'Strong',    color: '#3A8F7B', pct: '80%' },
+      { label: 'Strong',    color: '#5A8F7B', pct: '80%' },
       { label: 'Very Strong', color: '#4dd4a8', pct: '100%' },
     ];
     var lvl = levels[Math.min(score, levels.length - 1)];

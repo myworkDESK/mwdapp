@@ -960,13 +960,13 @@ WorkDesk uses a **token-based design system** defined in `assets/css/styles.css`
 
 | Token | Value | Usage |
 |---|---|---|
-| `--primary` | `#3A8F7B` | Buttons, active states, links |
+| `--primary` | `#5A8F7B` | Buttons, active states, links |
 | `--accent` | `#F4C86A` | Warnings, highlights |
 | `--success` | `#3CB371` | Success states |
 | `--danger` | `#E74C3C` | Error states, delete actions |
 | `--text-main` | `#1A202C` | Body text |
 | `--text-muted` | `#718096` | Secondary text |
-| `--bg-main` | `#F7F8FA` | Page background |
+| `--bg-main` | `#F5E9DA` | Page background |
 
 ### Typography
 
