@@ -9,341 +9,312 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     :root {
-      --primary:       #5A8F7B;
-      --primary-dark:  #497263;
-      --primary-rgb:   90, 143, 123;
-      --primary-soft:  #EBF4F1;
-      --accent:        #F4C86A;
-      --danger:        #E74C3C;
-      --glass-border:  rgba(90, 143, 123, 0.22);
+      --primary:      #5A8F7B;
+      --primary-dark: #497263;
+      --primary-rgb:  90, 143, 123;
+      --accent:       #F4C86A;
+      --accent-dark:  #E6B84E;
+      --danger:       #E74C3C;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      color: #fff;
-      background-color: #1a2e28;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ======= COVER PHOTO BACKGROUND ======= */
-    .bg-cover {
-      position: fixed;
-      inset: 0;
-      z-index: -3;
-      background-image: url('/assets/login-cover-happy.png');
-      background-size: cover;
-      background-position: center;
-    }
-
-    /* 10% transparent glass overlay */
-    .bg-glass-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      background: rgba(255, 255, 255, 0.10);
-      backdrop-filter: blur(2px) saturate(120%);
-      -webkit-backdrop-filter: blur(2px) saturate(120%);
-    }
-
-    /* 3D depth vignette */
-    .bg-vignette {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.22) 100%);
-      pointer-events: none;
-    }
-
-    /* ======= TOP HEADER ======= */
-    .top-header {
-      position: relative;
-      z-index: 20;
+      min-height: 100vh;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 0 28px;
-      height: 66px;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(12px) saturate(130%);
-      -webkit-backdrop-filter: blur(12px) saturate(130%);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      justify-content: center;
+      background: linear-gradient(145deg, #E8E4DE 0%, #CEC9C1 100%);
+      -webkit-font-smoothing: antialiased;
+      padding: 24px 16px;
     }
 
-    /* ── Logo image ─────── */
-    .header-logo-img {
-      height: 48px;
-      width: auto;
-      object-fit: contain;
-      flex-shrink: 0;
-      filter: brightness(1.15) saturate(1.1) drop-shadow(0 2px 10px rgba(0,0,0,0.30));
+    /* ======= OUTER CARD ======= */
+    .login-card {
+      width: 940px;
+      max-width: 100%;
+      min-height: 600px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
+      display: flex;
+      overflow: hidden;
     }
 
-    /* ── Super Admin badge ─────── */
-    .sa-header-badge {
+    /* ======= LEFT: FORM PANEL ======= */
+    .form-panel {
+      flex: 0 0 42%;
+      display: flex;
+      flex-direction: column;
+      padding: 44px 48px 36px;
+      background: #fff;
+    }
+
+    /* ── Logo pill ─────── */
+    .logo-pill {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      background: rgba(244, 200, 106, 0.18);
-      border: 1px solid rgba(244, 200, 106, 0.45);
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 10px;
+      gap: 9px;
+      border: 1.5px solid #D8D8D8;
+      border-radius: 50px;
+      padding: 7px 18px 7px 10px;
+      align-self: flex-start;
+      margin-bottom: 28px;
+      text-decoration: none;
+    }
+
+    .logo-pill img {
+      height: 26px;
+      width: auto;
+    }
+
+    .logo-pill span {
+      font-size: 13px;
       font-weight: 700;
-      color: #F4C86A;
+      color: #1a2e28;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── SA restricted badge ─────── */
+    .sa-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(90, 143, 123, 0.09);
+      border: 1px solid rgba(90, 143, 123, 0.28);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--primary-dark);
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-left: 4px;
-      flex-shrink: 0;
+      margin-bottom: 16px;
+      align-self: flex-start;
     }
 
-    .sa-header-badge i { font-size: 9px; }
-
-    /* ── Login form ─────── */
-    .header-login-form {
-      display: flex;
-      align-items: center;
-      gap: 18px;
+    /* ── Heading ─────── */
+    .form-heading {
+      font-size: 30px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.18;
+      margin-bottom: 8px;
     }
 
-    /* Each field group */
-    .h-field {
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
+    .form-sub {
+      font-size: 13.5px;
+      color: #9CA3AF;
+      margin-bottom: 30px;
+      line-height: 1.4;
     }
 
-    /* Inner wrap: icon + input */
-    .h-input-wrap {
+    /* ── Field groups ─────── */
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6B7280;
+      margin-bottom: 7px;
+    }
+
+    .field-input-wrap {
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .h-input-wrap .h-icon {
-      position: absolute;
-      left: 10px;
-      color: var(--primary-dark);
-      font-size: 12px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .h-input-wrap input {
-      height: 38px;
-      width: 158px;
-      padding: 0 12px 0 30px;
-      border: 1px solid rgba(var(--primary-rgb), 0.40);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 12.5px;
-      color: #1a2e28;
+    .field-input {
+      width: 100%;
+      height: 50px;
+      padding: 0 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      background: #FAFAFA;
+      font-family: inherit;
+      font-size: 14px;
+      color: #111827;
       outline: none;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.60), 0 2px 8px rgba(0,0,0,0.10);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
-    .h-input-wrap input::placeholder { color: rgba(26, 46, 40, 0.45); }
+    .field-input::placeholder { color: #C4C4C4; }
 
-    .h-input-wrap input:focus {
+    .field-input:focus {
       border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.60), 0 0 0 3px rgba(var(--primary-rgb), 0.18);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
     }
 
-    .h-input-wrap input.is-invalid { border-color: var(--danger); }
+    .field-input.is-invalid { border-color: var(--danger); }
 
-    /* ── Password / Key eye toggle ─────── */
-    .h-input-wrap input.pwd-input { padding-right: 32px; }
+    /* ── Password / key eye toggle ─────── */
+    .field-input.pwd-input { padding-right: 44px; }
 
-    .h-eye-toggle {
+    .pwd-eye {
       position: absolute;
-      right: 9px;
+      right: 13px;
       background: none;
       border: none;
       cursor: pointer;
-      color: var(--primary-dark);
+      color: #9CA3AF;
       padding: 0;
       display: flex;
       align-items: center;
+      transition: color 0.15s;
     }
 
-    .h-eye-toggle svg { width: 14px; height: 14px; }
+    .pwd-eye:hover { color: var(--primary-dark); }
 
-    /* ── Field error beneath input ─────── */
-    .h-field-error {
+    /* ── Field error ─────── */
+    .field-error {
       font-size: 11px;
       color: var(--danger);
-      margin-top: 2px;
+      margin-top: 5px;
       display: none;
-      white-space: nowrap;
       padding-left: 2px;
     }
 
-    /* ── Sign In button ─────── */
-    .btn-header-signin {
-      height: 38px;
-      padding: 0 18px;
-      background: var(--primary);
-      color: #fff;
-      border: 1px solid var(--primary-dark);
-      border-radius: 8px;
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 12px;
-      font-weight: 800;
+    /* ── Submit button ─────── */
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #1a2e28;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
+      margin-top: 6px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-      flex-shrink: 0;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
     }
 
-    .btn-header-signin:hover {
+    .btn-submit:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 8px 22px rgba(230, 184, 78, 0.40);
       transform: translateY(-1px);
-      background: var(--primary-dark);
-      box-shadow: 0 6px 18px rgba(var(--primary-rgb), 0.40);
     }
 
-    .btn-header-signin:active { transform: scale(0.97); }
-    .btn-header-signin:disabled { opacity: 0.68; cursor: not-allowed; transform: none; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.68; cursor: not-allowed; transform: none; }
 
-    .btn-header-signin .h-spinner {
+    .h-spinner {
       display: none;
-      width: 13px;
-      height: 13px;
-      border: 2px solid rgba(255, 255, 255, 0.38);
-      border-top-color: #fff;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(26, 46, 40, 0.28);
+      border-top-color: #1a2e28;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn-header-signin.loading .h-spinner { display: block; }
+    .btn-submit.loading .h-spinner { display: block; }
 
-    /* ── Header separator ─────── */
-    .h-sep {
-      font-size: 11px;
-      font-weight: 800;
-      opacity: 0.65;
-      letter-spacing: 1px;
-      white-space: nowrap;
-      flex-shrink: 0;
-      color: #1a2e28;
+    /* ── Bottom note ─────── */
+    .bottom-note {
+      margin-top: auto;
+      font-size: 11.5px;
+      color: #D1D5DB;
+      text-align: center;
+      line-height: 1.5;
     }
 
-    /* ======= MAIN HERO AREA ======= */
-    .main-hero {
+    /* ======= RIGHT: IMAGE PANEL ======= */
+    .image-panel {
       flex: 1;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
-      padding-left: 5%;
-      padding-right: 28px;
-      padding-top: 48px;
-      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      border-radius: 0 20px 20px 0;
     }
 
-    /* Hero content panel */
-    .hero-content {
-      max-width: 600px;
+    .panel-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
-    /* ── Super Admin badge in hero ─────── */
-    .hero-sa-badge {
+    /* ── Dark tint overlay over photo ─────── */
+    .panel-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(26, 46, 40, 0.55) 0%, rgba(26, 46, 40, 0.20) 60%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* ── SA label inside image panel ─────── */
+    .panel-label {
+      position: absolute;
+      top: 28px;
+      left: 24px;
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      background: rgba(244, 200, 106, 0.15);
-      border: 1px solid rgba(244, 200, 106, 0.40);
+      background: rgba(26, 46, 40, 0.55);
+      backdrop-filter: blur(10px) saturate(130%);
+      -webkit-backdrop-filter: blur(10px) saturate(130%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 20px;
       padding: 5px 14px;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       color: #F4C86A;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      margin-bottom: 16px;
     }
 
-    .hero-sa-badge i { font-size: 10px; }
-
-    .hero-content h1 {
-      font-size: clamp(44px, 6vw, 72px);
-      font-weight: 800;
-      line-height: 0.93;
-      text-transform: uppercase;
-      margin-bottom: 22px;
-      color: #1a2e28;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    /* ── Quote box (lower area of image) ─────── */
+    .float-card-quote {
+      position: absolute;
+      bottom: 32px;
+      left: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 14px 18px;
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
-    .hero-content h1 .accent {
-      color: var(--primary-dark);
-    }
-
-    .hero-sub {
-      font-size: clamp(14px, 1.5vw, 17px);
-      color: #1a2e28;
-      line-height: 1.6;
-      margin-bottom: 30px;
-      max-width: 480px;
-      opacity: 0.85;
-    }
-
-    /* ── Motivational quote box ─────── */
-    .hero-quote-box {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(14px) saturate(130%);
-      -webkit-backdrop-filter: blur(14px) saturate(130%);
-      border: 1px solid rgba(var(--primary-rgb), 0.25);
-      border-left: 3px solid var(--primary);
-      border-radius: 12px;
-      padding: 16px 20px;
-      max-width: 500px;
-      box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.10),
-        inset 0 1px 0 rgba(255, 255, 255, 0.60);
-    }
-
-    .hero-quote-label {
-      font-size: 10px;
+    .quote-label {
+      font-size: 9px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .hero-quote-text {
-      font-size: 13px;
-      font-style: italic;
-      color: #1a2e28;
-      line-height: 1.6;
+      color: var(--accent);
       margin-bottom: 7px;
     }
 
-    .hero-quote-author {
+    .quote-text {
+      font-size: 12.5px;
+      font-style: italic;
+      color: #fff;
+      line-height: 1.55;
+      margin-bottom: 6px;
+    }
+
+    .quote-author {
       font-size: 11px;
       font-weight: 700;
-      color: var(--primary-dark);
+      color: rgba(255, 255, 255, 0.72);
     }
 
     /* ======= TOAST ======= */
@@ -370,207 +341,175 @@
       opacity: 1;
     }
 
-    .login-toast.error {
-      background: #c0392b;
-    }
+    .login-toast.error { background: #c0392b; }
 
     /* ======= RESPONSIVE ======= */
+    @media (max-width: 720px) {
+      body { padding: 0; align-items: stretch; }
 
-    /* Desktop: form overlays the header */
-    @media (min-width: 641px) {
-      body { position: relative; }
-
-      .header-login-form {
-        position: absolute;
-        top: 14px;
-        right: 28px;
-        z-index: 25;
-        justify-content: flex-end;
-        flex-wrap: nowrap;
-      }
-    }
-
-    @media (max-width: 1280px) and (min-width: 641px) {
-      .h-input-wrap input { width: 138px; }
-    }
-
-    @media (max-width: 1100px) and (min-width: 641px) {
-      .h-input-wrap input { width: 132px; }
-    }
-
-    @media (max-width: 860px) and (min-width: 641px) {
-      .h-input-wrap input { width: 150px; }
-      .main-hero { padding-right: 28px; }
-      .hero-content h1 { font-size: 40px; }
-    }
-
-    /* Mobile: form shown below hero content */
-    @media (max-width: 640px) {
-      body {
-        height: auto;
-        min-height: 100vh;
-        overflow-y: auto;
-      }
-
-      .top-header {
-        height: 58px;
-        padding: 0 20px;
-      }
-
-      .header-logo-img { height: 40px; }
-
-      .main-hero {
-        flex: none;
-        justify-content: center;
-        min-height: 55vh;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-top: 12px;
-        padding-bottom: 12px;
-      }
-
-      .hero-content h1 { font-size: 36px; }
-
-      .header-login-form {
+      .login-card {
         flex-direction: column;
-        align-items: stretch;
-        width: 100%;
-        gap: 10px;
-        padding: 24px 20px 32px;
-        background: rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(20px) saturate(130%);
-        -webkit-backdrop-filter: blur(20px) saturate(130%);
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0;
+        min-height: 100vh;
+        box-shadow: none;
       }
 
-      .h-field { flex: none; }
-
-      .h-input-wrap input { width: 100%; }
-
-      .btn-header-signin {
-        width: 100%;
-        justify-content: center;
-        height: 42px;
-        font-size: 13px;
+      .form-panel {
+        flex: none;
+        padding: 36px 28px 32px;
+        order: 1;
       }
+
+      .image-panel {
+        flex: none;
+        height: 200px;
+        border-radius: 0;
+        order: 0;
+      }
+
+      .float-card-quote { display: none; }
+      .panel-label { top: 16px; left: 16px; }
+    }
+
+    @media (max-width: 900px) and (min-width: 721px) {
+      .form-panel { padding: 36px 36px 28px; }
     }
 
   </style>
 </head>
 <body>
 
-  <!-- Cover photo background layers -->
-  <div class="bg-cover"></div>
-  <div class="bg-glass-overlay"></div>
-  <div class="bg-vignette"></div>
+  <!-- ── OUTER CARD ─────── -->
+  <div class="login-card">
 
-  <!-- ── TOP HEADER: Logo + SA badge ─────── -->
-  <header class="top-header">
-    <img class="header-logo-img" src="/assets/workdesk-logo.svg" alt="myWORKDESK" />
-    <span class="sa-header-badge"><i class="fa-solid fa-shield-halved"></i> Super Admin</span>
-  </header>
+    <!-- ── LEFT: form panel ─────── -->
+    <div class="form-panel">
 
-  <!-- ── MAIN HERO CONTENT ─────── -->
-  <main class="main-hero" aria-label="Super Admin Portal">
-    <div class="hero-content">
+      <!-- Logo pill -->
+      <a class="logo-pill" href="/" aria-label="myWORKDESK home">
+        <img src="/assets/workdesk-logo.svg" alt="myWORKDESK" />
+        <span>myWORKDESK</span>
+      </a>
 
-      <div class="hero-sa-badge">
-        <i class="fa-solid fa-lock"></i> Restricted Access — Authorized Personnel Only
+      <!-- Restricted access badge -->
+      <div class="sa-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5l8.25 3v6.75A9.75 9.75 0 0112 22.5 9.75 9.75 0 013.75 11.25V4.5L12 1.5z"/>
+        </svg>
+        Super Admin — Restricted Access
       </div>
 
-      <h1>Admin<br><span class="accent">Control.</span></h1>
+      <!-- Heading -->
+      <h1 class="form-heading">Admin Sign In</h1>
+      <p class="form-sub">Authorized personnel only. All access attempts are logged.</p>
 
-      <p class="hero-sub">
-        Super administrator portal. Manage all organizations, users, roles, and platform-wide settings from this secure console.
-      </p>
+      <!-- Form -->
+      <form id="saLoginForm" novalidate>
 
-      <!-- Daily motivational quote -->
-      <div class="hero-quote-box">
-        <div class="hero-quote-label"><i class="fa-solid fa-quote-left"></i> Daily Motivation</div>
-        <p class="hero-quote-text" id="quoteText"></p>
-        <span class="hero-quote-author" id="quoteAuthor"></span>
-      </div>
-    </div>
-  </main>
+        <!-- Username -->
+        <div class="field-group">
+          <label class="field-label" for="saUsername">Username</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="saUsername"
+              name="username"
+              class="field-input"
+              placeholder="Super admin username"
+              autocomplete="off"
+              required
+            />
+          </div>
+          <span class="field-error" id="saUsernameError">Required</span>
+        </div>
 
-  <!-- ── SA LOGIN FORM (desktop: overlaid on header; mobile: below hero) ─────── -->
-  <form class="header-login-form" id="saLoginForm" novalidate>
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label" for="saPassword">Password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="saPassword"
+              name="password"
+              class="field-input pwd-input"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="pwd-eye" id="eyeTogglePwd" aria-label="Toggle password visibility">
+              <svg id="eyeIconPwd" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="saPasswordError">Required</span>
+        </div>
 
-    <!-- Username -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-user h-icon"></i>
-        <input
-          type="text"
-          id="saUsername"
-          name="username"
-          placeholder="Username"
-          autocomplete="off"
-          required
-        />
-      </div>
-      <span class="h-field-error" id="saUsernameError">Required</span>
-    </div>
+        <!-- Secret Key -->
+        <div class="field-group">
+          <label class="field-label" for="saSecretKey">Security Key</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="saSecretKey"
+              name="secretKey"
+              class="field-input pwd-input"
+              placeholder="••••••••••••"
+              autocomplete="off"
+              required
+            />
+            <button type="button" class="pwd-eye" id="eyeToggleKey" aria-label="Toggle security key visibility">
+              <svg id="eyeIconKey" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="saSecretKeyError">Required</span>
+        </div>
 
-    <!-- Password -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-lock h-icon"></i>
-        <input
-          type="password"
-          id="saPassword"
-          name="password"
-          class="pwd-input"
-          placeholder="Password"
-          autocomplete="current-password"
-          required
-        />
-        <button type="button" class="h-eye-toggle" id="eyeTogglePwd" aria-label="Toggle password visibility">
-          <svg id="eyeIconPwd" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
+        <!-- Sign In button -->
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <span class="btn-label">Sign In</span>
+          <span class="h-spinner" aria-hidden="true"></span>
         </button>
-      </div>
-      <span class="h-field-error" id="saPasswordError">Required</span>
+
+      </form>
+
+      <!-- Bottom note -->
+      <div class="bottom-note">This portal is not linked from any public page.<br>Unauthorized access attempts will be reported.</div>
+
     </div>
 
-    <!-- Secret Key -->
-    <div class="h-field">
-      <div class="h-input-wrap">
-        <i class="fa-solid fa-key h-icon"></i>
-        <input
-          type="password"
-          id="saSecretKey"
-          name="secretKey"
-          class="pwd-input"
-          placeholder="Secret Key"
-          autocomplete="off"
-          required
-        />
-        <button type="button" class="h-eye-toggle" id="eyeToggleKey" aria-label="Toggle secret key visibility">
-          <svg id="eyeIconKey" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
-        </button>
+    <!-- ── RIGHT: image panel ─────── -->
+    <div class="image-panel">
+      <img class="panel-photo" src="/assets/login-cover-happy.png" alt="Workspace" />
+      <div class="panel-overlay"></div>
+
+      <!-- SA restricted label -->
+      <div class="panel-label" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5l8.25 3v6.75A9.75 9.75 0 0112 22.5 9.75 9.75 0 013.75 11.25V4.5L12 1.5z"/>
+        </svg>
+        Super Admin Portal
       </div>
-      <span class="h-field-error" id="saSecretKeyError">Required</span>
+
+      <!-- Motivational quote -->
+      <div class="float-card-quote" aria-hidden="true">
+        <div class="quote-label">&#x275D; Daily Motivation</div>
+        <p class="quote-text" id="quoteText"></p>
+        <span class="quote-author" id="quoteAuthor"></span>
+      </div>
     </div>
 
-    <!-- Authenticate -->
-    <button type="submit" class="btn-header-signin" id="loginBtn">
-      <span class="btn-label">Sign In</span>
-      <span class="h-spinner" aria-hidden="true"></span>
-    </button>
-
-  </form>
+  </div><!-- /.login-card -->
 
   <!-- Toast notification -->
   <div class="login-toast" id="loginToast" role="alert" aria-live="assertive"></div>
 
   <script>
-    /* ── 30 daily-rotating motivational quotes ─────────────────────────────── */
+    /* ── 30 daily-rotating motivational quotes ─────────────────────────── */
     var QUOTES = [
       { text: 'Hard work beats talent when talent doesn\u2019t work hard.', author: 'Tim Notke' },
       { text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', author: 'Winston Churchill' },
@@ -606,17 +545,15 @@
 
     /* Pick quote by day-of-year so it changes each calendar day */
     (function () {
-      var now = new Date();
-      var start = new Date(now.getFullYear(), 0, 0);
-      var diff = now - start;
-      var oneDay = 1000 * 60 * 60 * 24;
-      var dayOfYear = Math.floor(diff / oneDay);
+      var now   = new Date();
+      var start = new Date(now.getFullYear(), 0, 1);
+      var dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       var q = QUOTES[dayOfYear % QUOTES.length];
-      document.getElementById('quoteText').textContent = '\u201c' + q.text + '\u201d';
+      document.getElementById('quoteText').textContent   = '\u201c' + q.text + '\u201d';
       document.getElementById('quoteAuthor').textContent = '\u2014 ' + q.author;
     }());
 
-    /* ── Toast helper ─────────────────────────────────────────────────────── */
+    /* ── Toast helper ──────────────────────────────────────────────────── */
     function showToast(msg, isError, duration) {
       var toast = document.getElementById('loginToast');
       toast.textContent = msg;
@@ -625,7 +562,7 @@
       setTimeout(function () { toast.classList.remove('show'); }, duration || 3500);
     }
 
-    /* ── Field error helpers ──────────────────────────────────────────────── */
+    /* ── Field error helpers ───────────────────────────────────────────── */
     function setFieldError(inputId, errorId, message) {
       var input = document.getElementById(inputId);
       var err   = document.getElementById(errorId);
@@ -651,7 +588,7 @@
       if (el) el.addEventListener('input', function () { setFieldError(id, id + 'Error', null); });
     });
 
-    /* ── Eye toggle helper ────────────────────────────────────────────────── */
+    /* ── Eye toggle helper ─────────────────────────────────────────────── */
     function makeEyeToggle(btnId, inputId, iconId) {
       var btn = document.getElementById(btnId);
       if (!btn) return;
@@ -671,11 +608,11 @@
     makeEyeToggle('eyeTogglePwd', 'saPassword',  'eyeIconPwd');
     makeEyeToggle('eyeToggleKey', 'saSecretKey', 'eyeIconKey');
 
-    /* ── Rate limiting (client-side guard) ────────────────────────────────── */
+    /* ── Rate limiting (client-side guard) ─────────────────────────────── */
     var failCount  = 0;
     var lockedUntil = 0;
 
-    /* ── Form submission ──────────────────────────────────────────────────── */
+    /* ── Form submission ───────────────────────────────────────────────── */
     document.getElementById('saLoginForm').addEventListener('submit', function (e) {
       e.preventDefault();
       clearFieldErrors();
@@ -703,9 +640,9 @@
       btn.disabled = true;
 
       fetch('/api/sa-auth', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password, securityKey: secretKey })
+        body:    JSON.stringify({ username: username, password: password, securityKey: secretKey })
       })
       .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
       .then(function (result) {
