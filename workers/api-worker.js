@@ -36,7 +36,7 @@
  *   env.WORKDESK_QUEUE — Cloudflare Queue producer (workdesk-queue)
  *   env.AI             — Cloudflare Workers AI binding (optional)
  *
- * Super-Admin secrets (set via: wrangler secret put <NAME> --name workdesk-worker):
+ * Super-Admin secrets (set via: wrangler secret put <NAME> --name myworkdeskapp):
  *   env.SA_USERNAME     — Super admin username
  *   env.SA_SECURITY_KEY — Super admin security key (second factor)
  *   env.SA_PASSWORD     — Super admin password

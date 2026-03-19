@@ -26,10 +26,10 @@ wrangler login
 From the **root** of the WorkDesk repository:
 
 ```bash
-wrangler deploy workers/api-worker.js --name workdesk-worker
+wrangler deploy workers/api-worker.js --name myworkdeskapp
 ```
 
-Cloudflare will print the worker URL (e.g. `https://workdesk-worker.<account>.workers.dev`).
+Cloudflare will print the worker URL (e.g. `https://myworkdeskapp.<account>.workers.dev`).
 
 ---
 
@@ -43,9 +43,9 @@ in Cloudflare's vault.
 Run each command below and enter the value when prompted:
 
 ```bash
-wrangler secret put SA_USERNAME     --name workdesk-worker
-wrangler secret put SA_SECURITY_KEY --name workdesk-worker
-wrangler secret put SA_PASSWORD     --name workdesk-worker
+wrangler secret put SA_USERNAME     --name myworkdeskapp
+wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
+wrangler secret put SA_PASSWORD     --name myworkdeskapp
 ```
 
 | Secret | Description |
@@ -64,7 +64,7 @@ simultaneously on every login attempt.
 List the secrets currently stored for the worker to confirm all three are present:
 
 ```bash
-wrangler secret list --name workdesk-worker
+wrangler secret list --name myworkdeskapp
 ```
 
 Expected output (values are never shown, only names):
@@ -90,12 +90,12 @@ If you accidentally deleted one or more secrets:
 
    ```bash
    # Re-add a deleted security key:
-   wrangler secret put SA_SECURITY_KEY --name workdesk-worker
+   wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
 
    # Re-add all three if unsure:
-   wrangler secret put SA_USERNAME     --name workdesk-worker
-   wrangler secret put SA_SECURITY_KEY --name workdesk-worker
-   wrangler secret put SA_PASSWORD     --name workdesk-worker
+   wrangler secret put SA_USERNAME     --name myworkdeskapp
+   wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
+   wrangler secret put SA_PASSWORD     --name myworkdeskapp
    ```
 
 2. **Enter the value when prompted.** The new value takes effect immediately —
@@ -107,7 +107,7 @@ If you accidentally deleted one or more secrets:
 4. **Test the login** by sending a POST to `/api/sa-auth`:
 
    ```bash
-   curl -s -X POST https://workdesk-worker.<account>.workers.dev/api/sa-auth \
+   curl -s -X POST https://myworkdeskapp.<account>.workers.dev/api/sa-auth \
      -H "Content-Type: application/json" \
      -d '{"username":"<SA_USERNAME>","securityKey":"<SA_SECURITY_KEY>","password":"<SA_PASSWORD>"}' \
      | jq .
@@ -131,7 +131,7 @@ To change a secret value (e.g. rotate the security key on a schedule or after a
 suspected compromise), simply run `wrangler secret put` again with the same name:
 
 ```bash
-wrangler secret put SA_SECURITY_KEY --name workdesk-worker
+wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
 ```
 
 Enter the new value at the prompt. The old value is immediately replaced. No
@@ -144,7 +144,7 @@ redeploy is needed.
 After the first deploy, redeploy at any time with:
 
 ```bash
-wrangler deploy workers/api-worker.js --name workdesk-worker
+wrangler deploy workers/api-worker.js --name myworkdeskapp
 ```
 
 Secrets survive redeployments — you only need to re-set them if you explicitly
@@ -155,20 +155,20 @@ delete them or if you are setting up the worker on a new Cloudflare account.
 ## Troubleshooting
 
 **`/api/sa-auth` returns `503 Super admin access is not configured.`**
-→ One or more of the three secrets is missing. Run `wrangler secret list --name workdesk-worker` and re-add any that are absent.
+→ One or more of the three secrets is missing. Run `wrangler secret list --name myworkdeskapp` and re-add any that are absent.
 
 **`/api/sa-auth` returns `401 Invalid credentials. Access denied.`**
 → All three secrets are present but the values don't match what you entered at login. Re-set the secrets with the correct values using `wrangler secret put`.
 
 **`wrangler secret put` prompts for a value but shows an error**
-→ Make sure you are authenticated (`wrangler whoami`) and that the worker name matches (`--name workdesk-worker`). Run `wrangler whoami` to verify the logged-in account.
+→ Make sure you are authenticated (`wrangler whoami`) and that the worker name matches (`--name myworkdeskapp`). Run `wrangler whoami` to verify the logged-in account.
 
 **Worker returns `404 Not Found` for all routes**
-→ The worker may not have been deployed yet. Run `wrangler deploy workers/api-worker.js --name workdesk-worker` from the repository root.
+→ The worker may not have been deployed yet. Run `wrangler deploy workers/api-worker.js --name myworkdeskapp` from the repository root.
 
 **I need to use the Cloudflare Dashboard instead of the CLI**
 
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com/) → **Workers & Pages** → select **workdesk-worker**.
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com/) → **Workers & Pages** → select **myworkdeskapp**.
 2. Click **Settings** → **Variables and Secrets**.
 3. Under **Secret variables**, click **Add variable** for each missing secret:
    - Name: `SA_USERNAME` / `SA_SECURITY_KEY` / `SA_PASSWORD`
@@ -182,6 +182,6 @@ delete them or if you are setting up the worker on a new Cloudflare account.
 
 Before going live, confirm:
 
-- [ ] All three secrets (`SA_USERNAME`, `SA_SECURITY_KEY`, `SA_PASSWORD`) appear in `wrangler secret list --name workdesk-worker`.
+- [ ] All three secrets (`SA_USERNAME`, `SA_SECURITY_KEY`, `SA_PASSWORD`) appear in `wrangler secret list --name myworkdeskapp`.
 - [ ] No credentials are hardcoded in any source file — they live only in Cloudflare's encrypted secret store.
 - [ ] The worker URL is kept private and not published on any public page.

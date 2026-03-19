@@ -1,12 +1,6 @@
-// WorkDesk — Cloudflare Pages + Workers Configuration
-// Design system: see DESIGN_SYSTEM.md
-// Feature docs:  see FEATURES.md
-// Deploy guide:  see super-admin/DEPLOY.md
-// Deploy: https://pages.cloudflare.com
-// Docs: https://developers.cloudflare.com/pages/
 {
   "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
-  "name": "myworkdeskapp",
+  "name": "superadminaccess",
   "compatibility_date": "2025-09-27",
   "compatibility_flags": [
     "nodejs_compat"
@@ -18,29 +12,5 @@
     "directory": ".",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "single-page-application"
-  },
-
-  // ── Static Assets (zero-build static site) ──────────────────────────────
-  // All HTML, CSS, JS and assets are served as-is from Cloudflare's global CDN.
-  "assets": {
-    "directory": ".",
-    // Serve index.html for requests to "/"; add .html extension automatically
-    "html_handling": "auto-trailing-slash",
-    // Return index.html for any unmatched route (SPA-style fallback)
-    "not_found_handling": "single-page-application"
   }
-
-  // ── Secrets (set via Cloudflare dashboard or wrangler CLI) ───────────────
-  // Set these in Cloudflare Pages → Settings → Environment variables,
-  // or via CLI:
-  //   wrangler secret put SA_USERNAME     --name superadminaccess
-  //   wrangler secret put SA_SECURITY_KEY --name superadminaccess
-  //   wrangler secret put SA_PASSWORD     --name superadminaccess
-  //
-  // IMPORTANT: After a Cloudflare project reset, all secrets are wiped.
-  // Re-add them using the commands above before attempting to log in to
-  // the Super Admin dashboard (/super-admin/sa-portal.html).
-  //
-  // To verify all three are set:
-  //   wrangler secret list --name superadminaccess
 }
