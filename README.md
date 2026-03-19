@@ -822,22 +822,30 @@ This section tracks every Cloudflare binding, secret, and configuration item req
 
 ---
 
-### WorkDesk App — `workdesk-worker` (Cloudflare Pages project)
+### WorkDesk App — `myworkdeskapp` (Cloudflare Pages project)
 
 Deploy from the repository **root**. Config: `wrangler.toml` / `_headers` / `_redirects`. The Super Admin Panel (`sa-portal.html`, `sa-dashboard.html`, `/api/sa-auth`) is part of this same project.
+
+> **Cloudflare Pages Git integration settings:**
+> - Framework preset: `None`
+> - Build command: *(leave empty — zero-build static site)*
+> - Build output directory: `/`
+> - Root directory: `/` *(leave empty, use repository root)*
+>
+> See `super-admin/DEPLOY.md` for a full step-by-step guide.
 
 #### Secrets (set via CLI — never commit)
 
 | Secret | Status | Description | Command |
 |---|---|---|---|
-| `SA_USERNAME` | ❌ Required | Super-admin login username | `wrangler secret put SA_USERNAME --name workdesk-worker` |
-| `SA_SECURITY_KEY` | ❌ Required | Super-admin second-factor key | `wrangler secret put SA_SECURITY_KEY --name workdesk-worker` |
-| `SA_PASSWORD` | ❌ Required | Super-admin password | `wrangler secret put SA_PASSWORD --name workdesk-worker` |
-| `OPENAI_API_KEY` | ❌ Optional | External LLM for AI Assistant | `wrangler secret put OPENAI_API_KEY --name workdesk-worker` |
+| `SA_USERNAME` | ❌ Required | Super-admin login username | `wrangler secret put SA_USERNAME --name myworkdeskapp` |
+| `SA_SECURITY_KEY` | ❌ Required | Super-admin second-factor key | `wrangler secret put SA_SECURITY_KEY --name myworkdeskapp` |
+| `SA_PASSWORD` | ❌ Required | Super-admin password | `wrangler secret put SA_PASSWORD --name myworkdeskapp` |
+| `OPENAI_API_KEY` | ❌ Optional | External LLM for AI Assistant | `wrangler secret put OPENAI_API_KEY --name myworkdeskapp` |
 
 After setting all three SA secrets, verify with:
 ```bash
-wrangler secret list --name workdesk-worker
+wrangler secret list --name myworkdeskapp
 # Expected output lists SA_USERNAME, SA_SECURITY_KEY, SA_PASSWORD
 ```
 
