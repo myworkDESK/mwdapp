@@ -12,7 +12,12 @@
 
   <style>
     :root {
-      --danger: #F87171;
+      --primary:      #5A8F7B;
+      --primary-dark: #497263;
+      --primary-rgb:  90, 143, 123;
+      --accent:       #F4C86A;
+      --accent-dark:  #E6B84E;
+      --danger:       #E74C3C;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,7 +28,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(145deg, #0C1128 0%, #1A2340 100%);
+      background: linear-gradient(145deg, #E8E4DE 0%, #CEC9C1 100%);
       -webkit-font-smoothing: antialiased;
       padding: 24px 16px;
     }
@@ -33,9 +38,9 @@
       width: 940px;
       max-width: 100%;
       min-height: 600px;
-      background: #111827;
+      background: #fff;
       border-radius: 24px;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
       display: flex;
       overflow: hidden;
     }
@@ -46,7 +51,7 @@
       display: flex;
       flex-direction: column;
       padding: 44px 48px 36px;
-      background: #111827;
+      background: #fff;
     }
 
     /* ── Logo pill ─────── */
@@ -54,7 +59,7 @@
       display: inline-flex;
       align-items: center;
       gap: 9px;
-      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border: 1.5px solid #D8D8D8;
       border-radius: 50px;
       padding: 7px 18px 7px 10px;
       align-self: flex-start;
@@ -65,13 +70,12 @@
     .logo-pill img {
       height: 26px;
       width: auto;
-      filter: brightness(0) invert(1);
     }
 
     .logo-pill span {
       font-size: 13px;
       font-weight: 700;
-      color: #F1F5F9;
+      color: #1a2e28;
       letter-spacing: 0.01em;
     }
 
@@ -80,13 +84,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.35);
+      background: rgba(90, 143, 123, 0.09);
+      border: 1px solid rgba(90, 143, 123, 0.28);
       border-radius: 20px;
       padding: 4px 12px;
       font-size: 10.5px;
       font-weight: 700;
-      color: #FCA5A5;
+      color: var(--primary-dark);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       margin-bottom: 16px;
@@ -97,14 +101,14 @@
     .form-heading {
       font-size: 30px;
       font-weight: 700;
-      color: #F1F5F9;
+      color: #111827;
       line-height: 1.18;
       margin-bottom: 8px;
     }
 
     .form-sub {
       font-size: 13.5px;
-      color: #94A3B8;
+      color: #9CA3AF;
       margin-bottom: 30px;
       line-height: 1.4;
     }
@@ -118,7 +122,7 @@
       display: block;
       font-size: 12px;
       font-weight: 500;
-      color: #94A3B8;
+      color: #6B7280;
       margin-bottom: 7px;
     }
 
@@ -132,22 +136,22 @@
       width: 100%;
       height: 50px;
       padding: 0 16px;
-      border: 1px solid #334155;
+      border: 1px solid #E5E7EB;
       border-radius: 14px;
-      background: #1E293B;
+      background: #FAFAFA;
       font-family: inherit;
       font-size: 14px;
-      color: #E2E8F0;
+      color: #111827;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
-    .field-input::placeholder { color: #4B5563; }
+    .field-input::placeholder { color: #C4C4C4; }
 
     .field-input:focus {
-      border-color: #EF4444;
-      background: #1E293B;
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
     }
 
     .field-input.is-invalid { border-color: var(--danger); }
@@ -161,14 +165,14 @@
       background: none;
       border: none;
       cursor: pointer;
-      color: #4B5563;
+      color: #9CA3AF;
       padding: 0;
       display: flex;
       align-items: center;
       transition: color 0.15s;
     }
 
-    .pwd-eye:hover { color: #94A3B8; }
+    .pwd-eye:hover { color: var(--primary-dark); }
 
     /* ── Field error ─────── */
     .field-error {
@@ -183,10 +187,10 @@
     .btn-submit {
       width: 100%;
       height: 52px;
-      background: #DC2626;
+      background: var(--accent);
       border: none;
       border-radius: 14px;
-      color: #fff;
+      color: #1a2e28;
       font-family: inherit;
       font-size: 15px;
       font-weight: 600;
@@ -201,8 +205,8 @@
     }
 
     .btn-submit:hover {
-      background: #B91C1C;
-      box-shadow: 0 8px 22px rgba(220, 38, 38, 0.40);
+      background: var(--accent-dark);
+      box-shadow: 0 8px 22px rgba(230, 184, 78, 0.40);
       transform: translateY(-1px);
     }
 
@@ -213,8 +217,8 @@
       display: none;
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.28);
-      border-top-color: #fff;
+      border: 2px solid rgba(26, 46, 40, 0.28);
+      border-top-color: #1a2e28;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
@@ -227,121 +231,90 @@
     .bottom-note {
       margin-top: auto;
       font-size: 11.5px;
-      color: #374151;
+      color: #D1D5DB;
       text-align: center;
       line-height: 1.5;
     }
 
-    /* ======= RIGHT: SECURITY PANEL ======= */
+    /* ======= RIGHT: IMAGE PANEL ======= */
     .image-panel {
       flex: 1;
       position: relative;
       overflow: hidden;
       border-radius: 0 20px 20px 0;
-      background: linear-gradient(160deg, #0F172A 0%, #1E1B4B 55%, #2D1B69 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 32px;
     }
 
-    /* ── Decorative grid overlay ─────── */
-    .image-panel::before {
-      content: '';
+    .panel-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Dark tint overlay over photo ─────── */
+    .panel-overlay {
       position: absolute;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
+      background: linear-gradient(160deg, rgba(26, 46, 40, 0.55) 0%, rgba(26, 46, 40, 0.20) 60%, transparent 100%);
       pointer-events: none;
     }
 
-    /* ── Shield icon container ─────── */
-    .sa-shield {
-      width: 80px;
-      height: 80px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 2px solid rgba(239, 68, 68, 0.28);
+    /* ── SA label inside image panel ─────── */
+    .panel-label {
+      position: absolute;
+      top: 28px;
+      left: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(26, 46, 40, 0.55);
+      backdrop-filter: blur(10px) saturate(130%);
+      -webkit-backdrop-filter: blur(10px) saturate(130%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 24px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ── Panel heading & sub ─────── */
-    .sa-panel-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #F1F5F9;
-      text-align: center;
-      margin-bottom: 10px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .sa-panel-sub {
-      font-size: 13px;
-      color: #64748B;
-      text-align: center;
-      line-height: 1.6;
-      margin-bottom: 36px;
-      max-width: 260px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ── Info rows ─────── */
-    .sa-info-list {
-      width: 100%;
-      max-width: 280px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .sa-info-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 12px 14px;
-    }
-
-    .sa-info-icon {
-      width: 32px;
-      height: 32px;
-      background: rgba(239, 68, 68, 0.1);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .sa-info-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .sa-info-label {
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #E2E8F0;
-    }
-
-    .sa-info-desc {
+      padding: 5px 14px;
       font-size: 10.5px;
-      color: #4B5563;
+      font-weight: 700;
+      color: #F4C86A;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    /* ── Quote box (lower area of image) ─────── */
+    .float-card-quote {
+      position: absolute;
+      bottom: 32px;
+      left: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 14px 18px;
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .quote-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 7px;
+    }
+
+    .quote-text {
+      font-size: 12.5px;
+      font-style: italic;
+      color: #fff;
+      line-height: 1.55;
+      margin-bottom: 6px;
+    }
+
+    .quote-author {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.72);
     }
 
     /* ======= TOAST ======= */
@@ -350,9 +323,8 @@
       bottom: 28px;
       left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: #1E293B;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #E2E8F0;
+      background: var(--primary);
+      color: #fff;
       padding: 11px 22px;
       border-radius: 10px;
       font-size: 13px;
@@ -369,7 +341,7 @@
       opacity: 1;
     }
 
-    .login-toast.error { background: #7F1D1D; border-color: rgba(239, 68, 68, 0.3); color: #FCA5A5; }
+    .login-toast.error { background: #c0392b; }
 
     /* ======= RESPONSIVE ======= */
     @media (max-width: 720px) {
@@ -393,11 +365,10 @@
         height: 200px;
         border-radius: 0;
         order: 0;
-        padding: 20px;
       }
 
-      .sa-info-list { display: none; }
-      .sa-panel-sub { display: none; }
+      .float-card-quote { display: none; }
+      .panel-label { top: 16px; left: 16px; }
     }
 
     @media (max-width: 900px) and (min-width: 721px) {
@@ -511,58 +482,24 @@
 
     </div>
 
-    <!-- ── RIGHT: security panel ─────── -->
+    <!-- ── RIGHT: image panel ─────── -->
     <div class="image-panel">
+      <img class="panel-photo" src="/assets/login-cover-happy.png" alt="Workspace" />
+      <div class="panel-overlay"></div>
 
-      <!-- Shield icon -->
-      <div class="sa-shield" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="1.5">
+      <!-- SA restricted label -->
+      <div class="panel-label" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5l8.25 3v6.75A9.75 9.75 0 0112 22.5 9.75 9.75 0 013.75 11.25V4.5L12 1.5z"/>
         </svg>
+        Super Admin Portal
       </div>
 
-      <h2 class="sa-panel-title">Super Admin Portal</h2>
-      <p class="sa-panel-sub">This portal provides full system access. All actions are logged and monitored.</p>
-
-      <!-- Security info rows -->
-      <div class="sa-info-list" aria-hidden="true">
-
-        <div class="sa-info-row">
-          <div class="sa-info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
-            </svg>
-          </div>
-          <div class="sa-info-text">
-            <span class="sa-info-label">Three-Factor Auth</span>
-            <span class="sa-info-desc">Username &middot; Password &middot; Security Key</span>
-          </div>
-        </div>
-
-        <div class="sa-info-row">
-          <div class="sa-info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/>
-            </svg>
-          </div>
-          <div class="sa-info-text">
-            <span class="sa-info-label">Full Audit Logging</span>
-            <span class="sa-info-desc">All access attempts are recorded</span>
-          </div>
-        </div>
-
-        <div class="sa-info-row">
-          <div class="sa-info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div class="sa-info-text">
-            <span class="sa-info-label">8-Hour Session Limit</span>
-            <span class="sa-info-desc">Sessions expire automatically</span>
-          </div>
-        </div>
-
+      <!-- Motivational quote -->
+      <div class="float-card-quote" aria-hidden="true">
+        <div class="quote-label">&#x275D; Daily Motivation</div>
+        <p class="quote-text" id="quoteText"></p>
+        <span class="quote-author" id="quoteAuthor"></span>
       </div>
     </div>
 
@@ -572,6 +509,50 @@
   <div class="login-toast" id="loginToast" role="alert" aria-live="assertive"></div>
 
   <script>
+    /* ── 30 daily-rotating motivational quotes ─────────────────────────── */
+    var QUOTES = [
+      { text: 'Hard work beats talent when talent doesn\u2019t work hard.', author: 'Tim Notke' },
+      { text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', author: 'Winston Churchill' },
+      { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
+      { text: 'Don\u2019t watch the clock; do what it does. Keep going.', author: 'Sam Levenson' },
+      { text: 'Success usually comes to those who are too busy to be looking for it.', author: 'Henry David Thoreau' },
+      { text: 'Opportunities don\u2019t happen. You create them.', author: 'Chris Grosser' },
+      { text: 'I find that the harder I work, the more luck I seem to have.', author: 'Thomas Jefferson' },
+      { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
+      { text: 'It always seems impossible until it\u2019s done.', author: 'Nelson Mandela' },
+      { text: 'Don\u2019t limit your challenges. Challenge your limits.', author: 'Jerry Dunn' },
+      { text: 'The way to get started is to quit talking and begin doing.', author: 'Walt Disney' },
+      { text: 'Dream big, work hard, stay focused, and surround yourself with good people.', author: 'Unknown' },
+      { text: 'Hustle until your haters ask if you\u2019re hiring.', author: 'Unknown' },
+      { text: 'A dream doesn\u2019t become reality through magic; it takes sweat, determination, and hard work.', author: 'Colin Powell' },
+      { text: 'Push yourself, because no one else is going to do it for you.', author: 'Unknown' },
+      { text: 'Great things never come from comfort zones.', author: 'Unknown' },
+      { text: 'Wake up with determination. Go to bed with satisfaction.', author: 'Unknown' },
+      { text: 'The harder you work for something, the greater you\u2019ll feel when you achieve it.', author: 'Unknown' },
+      { text: 'Build your dream, or someone else will hire you to build theirs.', author: 'Tony Gaskins' },
+      { text: 'Success is not overnight. It\u2019s when every day you get a little better than the day before.', author: 'Dwayne Johnson' },
+      { text: 'The only place where success comes before work is in the dictionary.', author: 'Vidal Sassoon' },
+      { text: 'Do what you have to do until you can do what you want to do.', author: 'Oprah Winfrey' },
+      { text: 'You don\u2019t have to be great to start, but you have to start to be great.', author: 'Zig Ziglar' },
+      { text: 'Believe you can and you\u2019re halfway there.', author: 'Theodore Roosevelt' },
+      { text: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
+      { text: 'The difference between ordinary and extraordinary is that little extra.', author: 'Jimmy Johnson' },
+      { text: 'Motivation is what gets you started. Habit is what keeps you going.', author: 'Jim Ryun' },
+      { text: 'If you are not willing to risk the usual, you will have to settle for the ordinary.', author: 'Jim Rohn' },
+      { text: 'The man who moves a mountain begins by carrying away small stones.', author: 'Confucius' },
+      { text: 'Your time is limited, so don\u2019t waste it living someone else\u2019s life.', author: 'Steve Jobs' }
+    ];
+
+    /* Pick quote by day-of-year so it changes each calendar day */
+    (function () {
+      var now   = new Date();
+      var start = new Date(now.getFullYear(), 0, 1);
+      var dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      var q = QUOTES[dayOfYear % QUOTES.length];
+      document.getElementById('quoteText').textContent   = '\u201c' + q.text + '\u201d';
+      document.getElementById('quoteAuthor').textContent = '\u2014 ' + q.author;
+    }());
+
     /* ── Toast helper ──────────────────────────────────────────────────── */
     function showToast(msg, isError, duration) {
       var toast = document.getElementById('loginToast');
