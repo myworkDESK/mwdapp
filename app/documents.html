@@ -98,6 +98,16 @@
     .tag-filter-btn { padding:4px 12px; border-radius:20px; border:1px solid var(--border-light); background:#fff; font-size:12px; cursor:pointer; color:var(--text-muted); transition:all .2s; }
     .tag-filter-btn:hover, .tag-filter-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 
+    /* ── Folders ─────────────────────────────────────────── */
+    .doc-icon.folder { background:#FFF3E0; }
+    .folders-section { margin-bottom:24px; }
+    .folders-section-header { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+
+    /* ── Undo/Redo buttons ──────────────────────────────── */
+    .cmd-btn { padding:7px 11px; background:#fff; border:1px solid var(--border-light); border-radius:8px; cursor:pointer; color:var(--text-muted); font-size:12px; font-weight:500; display:inline-flex; align-items:center; gap:4px; transition:all .2s; font-family:inherit; }
+    .cmd-btn:hover:not(:disabled) { border-color:var(--primary); color:var(--primary); background:var(--primary-soft); }
+    .cmd-btn:disabled { opacity:.4; cursor:not-allowed; }
+
     .form-group { margin-bottom:16px; }
     .form-label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
     .form-control { width:100%; padding:10px 13px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text-main); background:#fff; outline:none; box-sizing:border-box; }
@@ -304,6 +314,14 @@
           <option value="Pending">Pending</option>
           <option value="Archived">Archived</option>
         </select>
+        <button class="cmd-btn" id="undoBtn" onclick="undo()" disabled title="Undo last action (Ctrl+Z)" aria-label="Undo">
+          <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 010 16H3m0-16l4-4M3 10l4 4"/></svg>
+          Undo
+        </button>
+        <button class="cmd-btn" id="redoBtn" onclick="redo()" disabled title="Redo last action (Ctrl+Y)" aria-label="Redo">
+          <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a8 8 0 000 16h10m0-16l-4-4m4 4l-4 4"/></svg>
+          Redo
+        </button>
         <div class="view-toggle" style="margin-left:auto;">
           <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view" aria-label="Grid view">
             <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
@@ -312,6 +330,9 @@
             <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
           </button>
         </div>
+        <button class="btn btn-soft btn-sm" onclick="openCreateFolderModal()">
+          📁 New Folder
+        </button>
         <button class="btn btn-primary btn-sm" onclick="openUploadModal()">
           <svg width="15" height="15" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           Upload Document
@@ -342,6 +363,17 @@
 
       <!-- ── TAB: All Documents ── -->
       <div class="tab-panel active" id="tab-all">
+        <!-- Folders section -->
+        <div class="folders-section" id="allFoldersSection" style="display:none;">
+          <div class="folders-section-header">📁 Folders</div>
+          <div class="doc-grid" id="allFoldersContainer"></div>
+          <div class="doc-table-wrap" id="allFoldersTableWrap">
+            <table class="list-table">
+              <thead><tr><th>Name</th><th>Owner</th><th>Category</th><th>Size</th><th>Version</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="allFoldersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
         <div id="allDocsContainer" class="doc-grid"></div>
         <div id="allDocsTable" class="doc-table-wrap">
           <table class="list-table">
@@ -358,6 +390,17 @@
 
       <!-- ── TAB: My Documents ── -->
       <div class="tab-panel" id="tab-mine">
+        <!-- Folders section -->
+        <div class="folders-section" id="myFoldersSection" style="display:none;">
+          <div class="folders-section-header">📁 Folders</div>
+          <div class="doc-grid" id="myFoldersContainer"></div>
+          <div class="doc-table-wrap" id="myFoldersTableWrap">
+            <table class="list-table">
+              <thead><tr><th>Name</th><th>Owner</th><th>Category</th><th>Size</th><th>Version</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="myFoldersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
         <div id="myDocsContainer" class="doc-grid"></div>
         <div id="myDocsTable" class="doc-table-wrap">
           <table class="list-table">
@@ -623,6 +666,26 @@
   </div>
 </div>
 
+<!-- ══ MODAL: Folder Name (Create / Rename) ══ -->
+<div class="modal-backdrop" id="folderNameModal" role="dialog" aria-modal="true" aria-labelledby="folderNameModalTitle">
+  <div class="modal" style="width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="folderNameModalTitle">New Folder</span>
+      <button class="modal-close" onclick="closeModal('folderNameModal')" aria-label="Close">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="folderNameInput">Name *</label>
+      <input class="form-control" id="folderNameInput" placeholder="Enter name…" onkeydown="if(event.key==='Enter')confirmFolderName()" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('folderNameModal')">Cancel</button>
+      <button class="btn btn-primary" id="folderNameConfirmBtn" onclick="confirmFolderName()">Create Folder</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -724,7 +787,232 @@ let currentView = 'grid';
 let activeTag = '';
 let currentDocId = null;
 
-/* ── Helpers ── */
+/* ── Folders Data ── */
+const folders = [
+  { id:'FL1', name:'HR Documents',      type:'folder', owner:'HR Admin', created:'2024-01-01', itemCount:8 },
+  { id:'FL2', name:'Legal & Contracts', type:'folder', owner:'Legal',    created:'2024-01-05', itemCount:4 },
+  { id:'FL3', name:'Finance Reports',   type:'folder', owner:'Finance',  created:'2024-02-01', itemCount:6 },
+  { id:'FL4', name:'Employee Files',    type:'folder', owner:'HR Admin', created:'2024-03-10', itemCount:12 }
+];
+
+/* ── Undo/Redo System ── */
+const undoStack = [];
+const redoStack = [];
+
+function pushUndo(cmd) {
+  undoStack.push(cmd);
+  redoStack.length = 0;
+  updateUndoRedoBtns();
+}
+function undo() {
+  if (!undoStack.length) return;
+  const cmd = undoStack.pop();
+  cmd.undo();
+  redoStack.push(cmd);
+  updateUndoRedoBtns();
+  showToast('Undone: ' + cmd.description, 'info');
+}
+function redo() {
+  if (!redoStack.length) return;
+  const cmd = redoStack.pop();
+  cmd.redo();
+  undoStack.push(cmd);
+  updateUndoRedoBtns();
+  showToast('Redone: ' + cmd.description, 'info');
+}
+function updateUndoRedoBtns() {
+  const uBtn = document.getElementById('undoBtn');
+  const rBtn = document.getElementById('redoBtn');
+  if (uBtn) uBtn.disabled = undoStack.length === 0;
+  if (rBtn) rBtn.disabled = redoStack.length === 0;
+}
+
+/* ── Folder Helpers ── */
+function buildFolderCard(folder) {
+  return `
+    <div class="doc-card" role="button" tabindex="0" aria-label="Open folder ${folder.name}" onclick="openFolder('${folder.id}')" onkeydown="if(event.key==='Enter'||event.key===' ')openFolder('${folder.id}')">
+      <div class="doc-icon folder">📁</div>
+      <div class="doc-name">${folder.name}</div>
+      <div class="doc-meta">${folder.owner} &bull; ${folder.itemCount} item${folder.itemCount !== 1 ? 's' : ''}</div>
+      <div style="font-size:11px;color:var(--text-muted);">Created ${folder.created}</div>
+      <div class="doc-actions">
+        <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openFolder('${folder.id}')">Open</button>
+        <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openRenameDialog('folder','${folder.id}')">Rename</button>
+        <button class="btn btn-soft btn-sm" style="color:var(--danger);" onclick="event.stopPropagation();confirmDeleteFolder('${folder.id}')">Delete</button>
+      </div>
+    </div>`;
+}
+
+function buildFolderTableRow(folder) {
+  return `
+    <tr onclick="openFolder('${folder.id}')">
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📁</span>
+        <span style="font-weight:500;">${folder.name}</span>
+        <span class="badge badge-blue" style="font-size:10px;">Folder</span>
+      </div></td>
+      <td>${folder.owner}</td>
+      <td>—</td>
+      <td>${folder.itemCount} item${folder.itemCount !== 1 ? 's' : ''}</td>
+      <td>—</td>
+      <td>—</td>
+      <td><span class="badge badge-gray">Folder</span></td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-soft btn-sm" onclick="openFolder('${folder.id}')">Open</button>
+        <button class="btn btn-soft btn-sm" onclick="openRenameDialog('folder','${folder.id}')" style="margin-left:4px;">Rename</button>
+      </td>
+    </tr>`;
+}
+
+function renderFolders() {
+  const allGrid  = document.getElementById('allFoldersContainer');
+  const allTbl   = document.getElementById('allFoldersTableBody');
+  const allSec   = document.getElementById('allFoldersSection');
+  const allTblW  = document.getElementById('allFoldersTableWrap');
+  const myGrid   = document.getElementById('myFoldersContainer');
+  const myTbl    = document.getElementById('myFoldersTableBody');
+  const mySec    = document.getElementById('myFoldersSection');
+  const myTblW   = document.getElementById('myFoldersTableWrap');
+
+  const isListView = (currentView === 'list');
+
+  if (allGrid)  allGrid.innerHTML  = folders.map(f => buildFolderCard(f)).join('');
+  if (allTbl)   allTbl.innerHTML   = folders.map(f => buildFolderTableRow(f)).join('');
+  if (allSec)   allSec.style.display = folders.length ? '' : 'none';
+  if (allTblW)  allTblW.style.display = isListView ? 'block' : 'none';
+  if (allGrid)  allGrid.style.display  = isListView ? 'none'  : '';
+
+  const myFolders = folders.filter(f => f.owner === 'HR Admin');
+  if (myGrid)  myGrid.innerHTML  = myFolders.map(f => buildFolderCard(f)).join('');
+  if (myTbl)   myTbl.innerHTML   = myFolders.map(f => buildFolderTableRow(f)).join('');
+  if (mySec)   mySec.style.display = myFolders.length ? '' : 'none';
+  if (myTblW)  myTblW.style.display = isListView ? 'block' : 'none';
+  if (myGrid)  myGrid.style.display  = isListView ? 'none'  : '';
+}
+
+function openFolder(id) {
+  const folder = folders.find(f => f.id === id);
+  showToast('Opening folder "' + (folder ? folder.name : id) + '"…', 'info');
+}
+
+/* ── Create / Rename dialog ── */
+let _folderNameMode   = '';
+let _folderNameTarget = null;
+
+function openCreateFolderModal() {
+  _folderNameMode   = 'create';
+  _folderNameTarget = null;
+  document.getElementById('folderNameInput').value = '';
+  document.getElementById('folderNameModalTitle').textContent = 'New Folder';
+  document.getElementById('folderNameConfirmBtn').textContent = 'Create Folder';
+  openModal('folderNameModal');
+  setTimeout(function() { document.getElementById('folderNameInput').focus(); }, 50);
+}
+
+function openRenameDialog(itemType, itemId) {
+  var currentName = '';
+  if (itemType === 'folder') {
+    var folder = folders.find(function(f) { return f.id === itemId; });
+    currentName = folder ? folder.name : '';
+    _folderNameMode   = 'rename-folder';
+    _folderNameTarget = itemId;
+  } else {
+    var docId = Number(itemId);
+    var doc = documents.find(function(d) { return d.id === docId; }) ||
+              sharedDocs.find(function(d) { return d.id === docId; });
+    currentName = doc ? doc.name : '';
+    _folderNameMode   = 'rename-doc';
+    _folderNameTarget = docId;
+  }
+  document.getElementById('folderNameInput').value = currentName;
+  document.getElementById('folderNameModalTitle').textContent = itemType === 'folder' ? 'Rename Folder' : 'Rename Document';
+  document.getElementById('folderNameConfirmBtn').textContent = 'Rename';
+  openModal('folderNameModal');
+  setTimeout(function() {
+    var inp = document.getElementById('folderNameInput');
+    inp.focus();
+    inp.select();
+  }, 50);
+}
+
+function confirmFolderName() {
+  var name = document.getElementById('folderNameInput').value.trim();
+  if (!name) { showToast('Please enter a name', 'error'); return; }
+
+  if (_folderNameMode === 'create') {
+    var newFolder = {
+      id: 'FL' + (Date.now()),
+      name: name,
+      type: 'folder',
+      owner: 'HR Admin',
+      created: new Date().toISOString().slice(0, 10),
+      itemCount: 0
+    };
+    folders.push(newFolder);
+    pushUndo({
+      description: 'Create folder "' + name + '"',
+      undo: function() { var i = folders.indexOf(newFolder); if (i > -1) folders.splice(i, 1); renderFolders(); },
+      redo: function() { folders.push(newFolder); renderFolders(); }
+    });
+    closeModal('folderNameModal');
+    renderFolders();
+    showToast('Folder "' + name + '" created', 'success');
+
+  } else if (_folderNameMode === 'rename-folder') {
+    var folder = folders.find(function(f) { return f.id === _folderNameTarget; });
+    if (folder) {
+      var oldName = folder.name;
+      folder.name = name;
+      pushUndo({
+        description: 'Rename folder to "' + name + '"',
+        undo: function() { folder.name = oldName; renderFolders(); },
+        redo: function() { folder.name = name;    renderFolders(); }
+      });
+      renderFolders();
+    }
+    closeModal('folderNameModal');
+    showToast('Folder renamed to "' + name + '"', 'success');
+
+  } else if (_folderNameMode === 'rename-doc') {
+    var doc = documents.find(function(d) { return d.id === _folderNameTarget; }) ||
+              sharedDocs.find(function(d) { return d.id === _folderNameTarget; });
+    if (doc) {
+      var oldDocName = doc.name;
+      doc.name = name;
+      pushUndo({
+        description: 'Rename document to "' + name + '"',
+        undo: function() { doc.name = oldDocName; renderAll(); },
+        redo: function() { doc.name = name;        renderAll(); }
+      });
+      renderAll();
+    }
+    closeModal('folderNameModal');
+    showToast('Renamed to "' + name + '"', 'success');
+  }
+}
+
+function confirmDeleteFolder(id) {
+  var folder = folders.find(function(f) { return f.id === id; });
+  if (!folder) return;
+  WDConfirm.show({
+    title:       'Delete Folder',
+    message:     'Are you sure you want to delete the folder "' + folder.name + '"? Documents inside will not be deleted.',
+    type:        'danger',
+    confirmText: 'Yes, Delete',
+    cancelText:  'No',
+    onConfirm: function() {
+      var idx = folders.indexOf(folder);
+      folders.splice(idx, 1);
+      pushUndo({
+        description: 'Delete folder "' + folder.name + '"',
+        undo: function() { folders.splice(idx, 0, folder); renderFolders(); },
+        redo: function() { var i = folders.indexOf(folder); if (i > -1) folders.splice(i, 1); renderFolders(); }
+      });
+      renderFolders();
+      showToast('Folder deleted', 'error');
+    }
+  });
+}
 function fileIcon(type) {
   const icons = { pdf:'🔴', word:'🔵', excel:'🟢', image:'🟣' };
   return icons[type] || '📄';
@@ -769,6 +1057,7 @@ function buildCard(doc, extraActions) {
   const tags = doc.tags.map(t => `<span class="doc-tag">${t}</span>`).join('');
   const actions = extraActions || `
     <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openDetail(${doc.id})">View</button>
+    <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openRenameDialog('doc',${doc.id})">Rename</button>
     <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();showToast('Share dialog opened','info')">Share</button>
     ${!doc.signed ? `<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openSignModalFor(${doc.id})">Sign</button>` : ''}
   `;
@@ -844,6 +1133,7 @@ function handleGlobalSearch(val) {
 
 /* ── Render all ── */
 function renderAll() {
+  renderFolders();
   renderAllDocs();
   renderMyDocs();
   renderSharedDocs();
@@ -893,6 +1183,8 @@ function setView(v) {
     const el = document.getElementById(id);
     el.classList.toggle('doc-list-view', v === 'list');
   });
+  /* Sync folder grid/table visibility */
+  renderFolders();
 }
 
 /* ── Tab switching ── */
