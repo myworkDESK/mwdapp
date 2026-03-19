@@ -52,12 +52,16 @@ export async function onRequest(context) {
       return diff === 0;
     }
 
-    const demoOrgId      = env.DEMO_ORG_ID      || '';
-    const demoEmployeeId = env.DEMO_EMPLOYEE_ID  || '';
-    const demoPassword   = env.DEMO_PASSWORD     || '';
-    const valid = demoOrgId && demoEmployeeId && demoPassword
-      ? (await safeEqual(orgId, demoOrgId) && await safeEqual(employeeId, demoEmployeeId) && await safeEqual(password, demoPassword))
-      : false;
+    // Fall back to built-in demo credentials when env vars are not configured.
+    // Override these by setting DEMO_ORG_ID, DEMO_EMPLOYEE_ID, and DEMO_PASSWORD
+    // as Cloudflare Pages environment variables (never commit real credentials).
+    const demoOrgId      = env.DEMO_ORG_ID      || 'DEMO';
+    const demoEmployeeId = env.DEMO_EMPLOYEE_ID  || 'EMP001';
+    const demoPassword   = env.DEMO_PASSWORD     || 'WorkDesk@2025';
+    const valid =
+      await safeEqual(orgId, demoOrgId) &&
+      await safeEqual(employeeId, demoEmployeeId) &&
+      await safeEqual(password, demoPassword);
 
     if (!valid) {
       return json({ ok: false, message: 'Invalid Organization ID, Employee ID, or password.' }, 401);
