@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Attendance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .data-table td { padding:12px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:var(--primary-soft); }
+
+    /* ── Clock card ── */
+    .clock-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; border-radius: var(--radius-lg); padding: 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: var(--shadow-card); margin-bottom: 24px;
+    }
+    .clock-card h2 { font-size:28px; font-weight:700; letter-spacing:0.04em; margin-bottom:4px; }
+    .clock-card p { opacity:.85; font-size:13px; }
+    .clock-btn {
+      padding: 13px 28px; border: none; border-radius: 10px; font-size: 15px;
+      font-weight: 700; cursor: pointer; transition: background .2s, transform .1s;
+      font-family: inherit;
+    }
+    .clock-btn.in  { background: #fff; color: var(--primary); }
+    .clock-btn.out { background: rgba(255,255,255,0.25); color: #fff; border: 2px solid rgba(255,255,255,0.7); }
+    .clock-btn:hover { opacity:.88; }
+    .clock-btn:active { transform: scale(0.97); }
+
+    /* ── Summary chips ── */
+    .att-chips { display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+    .att-chip { flex:1; min-width:130px; background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:16px 18px; box-shadow:var(--shadow-card); text-align:center; }
+    .att-chip .val { font-size:24px; font-weight:700; line-height:1; }
+    .att-chip .lbl { font-size:11px; color:var(--text-muted); margin-top:4px; font-weight:500; }
+
+    /* ── Bar chart ── */
+    .bar-chart { display:flex; align-items:flex-end; gap:6px; height:120px; padding:0 2px; }
+    .bar-group  { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .bar-group .bar { width:100%; border-radius:5px 5px 0 0; background:var(--primary); opacity:0.7; transition:background .2s, opacity .2s; }
+    .bar-group .bar:hover { background:var(--primary); opacity:1; }
+    .bar-group .bar-label { font-size:10px; color:var(--text-muted); }
+
+    /* ── Filter bar ── */
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .filter-bar input,.filter-bar select { padding:9px 14px; border:1px solid var(--border-light); border-radius:8px; font-family:var(--font-primary); font-size:13px; color:var(--text-main); background:#fff; outline:none; }
+    .filter-bar input:focus,.filter-bar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+
+    /* ── Toast ── */
+    .toast { position:fixed; bottom:24px; right:24px; background:#1F2933; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:999; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s,transform .3s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+
+    /* ── Pagination ── */
+    .pagination { display:flex; align-items:center; gap:6px; margin-top:16px; justify-content:flex-end; }
+    .page-btn { width:32px; height:32px; border:1px solid var(--border-light); border-radius:7px; background:#fff; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:background .2s; }
+    .page-btn:hover { background:var(--primary-soft); color:var(--primary); border-color:var(--primary); }
+    .page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span>
+      </li>
+      <li class="active" role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+        <span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span>
+        <span class="msg-nav-badge">3</span>
+      </li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        <span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+        <span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h2>Attendance</h2>
+        <input class="search-box" type="search" id="globalSearch" placeholder="Search employee…" aria-label="Search" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid #fff;" aria-hidden="true"></span>
+        </button>
+        <div class="topbar-notif-wrap" id="notifWrap">
+          <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <button class="notif-mark-all" id="notifMarkAll">Mark all as read</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-footer">
+              <button class="notif-view-all" id="notifViewAll">See all notifications</button>
+            </div>
+          </div>
+        </div>
+        <!-- Status -->
+        <div class="topbar-status-wrap" id="statusWrap">
+          <button class="aux-clock-btn clock-in" id="auxClockIn" title="Clock In — start your work session">
+            &#9654; Clock In
+          </button>
+          <button class="aux-clock-btn clock-out" id="auxClockOut" title="Clock Out — end your work session" style="display:none;">
+            &#9632; Clock Out
+          </button>
+          <button class="status-badge" id="statusBadgeBtn" aria-label="Set your status" aria-expanded="false">
+            <span class="status-dot online" id="statusDot"></span>
+            <span id="statusLabel">Online</span>
+          </button>
+          <div class="status-dropdown" id="statusDropdown" role="menu">
+            <div class="status-dropdown-item" data-status="online" role="menuitem">
+              <span class="status-dot online"></span> Online
+            </div>
+            <div class="status-dropdown-item" data-status="away" role="menuitem">
+              <span class="status-dot away"></span> Away
+            </div>
+            <div class="status-dropdown-item" data-status="busy" role="menuitem">
+              <span class="status-dot busy"></span> Busy
+            </div>
+            <div class="status-dropdown-item" data-status="offline" role="menuitem">
+              <span class="status-dot offline"></span> Offline
+            </div>
+          </div>
+        </div>
+        <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar">JD</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Clock In/Out card -->
+      <div class="clock-card">
+        <div>
+          <h2 id="clockTime">--:-- --</h2>
+          <p id="clockDate">Loading…</p>
+          <p style="margin-top:8px;font-size:12px;opacity:.75;" id="clockStatus">Not clocked in today</p>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <button class="clock-btn in" id="clockInBtn">⏱ Clock In</button>
+          <button class="clock-btn out" id="clockOutBtn" disabled>🚪 Clock Out</button>
+        </div>
+      </div>
+
+      <!-- Summary chips -->
+      <div class="att-chips">
+        <div class="att-chip">
+          <div class="val" style="color:var(--primary);" id="chipPresent">212</div>
+          <div class="lbl">Present Today</div>
+        </div>
+        <div class="att-chip">
+          <div class="val" style="color:var(--warning);" id="chipLate">14</div>
+          <div class="lbl">Late</div>
+        </div>
+        <div class="att-chip">
+          <div class="val" style="color:var(--danger);" id="chipAbsent">22</div>
+          <div class="lbl">Absent</div>
+        </div>
+        <div class="att-chip">
+          <div class="val" style="color:#2563EB;" id="chipOnLeave">18</div>
+          <div class="lbl">On Leave</div>
+        </div>
+        <div class="att-chip">
+          <div class="val" id="chipRate">85%</div>
+          <div class="lbl">Attendance Rate</div>
+        </div>
+      </div>
+
+      <!-- Charts + Table grid -->
+      <div class="grid mb-20">
+
+        <!-- Weekly overview chart -->
+        <div class="card col-span-2">
+          <div class="card-header">
+            <span class="card-title">Weekly Attendance Overview</span>
+            <button class="btn btn-soft btn-sm" id="exportAttBtn">⬇ Export Report</button>
+          </div>
+          <div class="bar-chart" aria-label="Weekly attendance bar chart" id="weekChart"></div>
+        </div>
+
+        <!-- Monthly trend -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Monthly Trend</span>
+          </div>
+          <div class="bar-chart" id="monthChart" style="height:100px;"></div>
+        </div>
+
+      </div>
+
+      <!-- Attendance log table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Daily Attendance Log</span>
+          <button class="btn btn-soft btn-sm" id="manualEntryBtn">+ Manual Entry</button>
+        </div>
+        <div class="filter-bar">
+          <input type="search" id="attSearch" placeholder="Search employee…" />
+          <input type="date" id="attDate" />
+          <select id="attStatus">
+            <option value="">All</option>
+            <option>Present</option>
+            <option>Late</option>
+            <option>Absent</option>
+            <option>On Leave</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Hours</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="attTableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="attPagination"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var PAGE_SIZE = 10;
+  var currentPage = 1;
+
+  // Seed attendance log
+  var today = new Date();
+  var SEED_LOG = (function(){
+    var employees = JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
+    if (!employees.length) employees = [
+      {id:'EMP-001',first:'Maria',last:'Santos'},{id:'EMP-002',first:'Jose',last:'Reyes'},
+      {id:'EMP-003',first:'Liza',last:'Cruz'},{id:'EMP-004',first:'Ben',last:'Mendoza'},
+      {id:'EMP-005',first:'Ana',last:'Garcia'},{id:'EMP-006',first:'Carlos',last:'Ramos'}
+    ];
+    var log = [];
+    var statuses = ['Present','Present','Present','Present','Late','Late','Absent','On Leave'];
+    for (var d = 0; d < 7; d++) {
+      var dt = new Date(today); dt.setDate(dt.getDate() - d);
+      if (dt.getDay() === 0 || dt.getDay() === 6) continue;
+      var dateStr = dt.toISOString().slice(0,10);
+      employees.slice(0, 8).forEach(function(e, i){
+        var status = statuses[(i + d) % statuses.length];
+        var timeIn  = status === 'Present' ? '08:' + String(Math.floor(Math.random()*10)).padStart(2,'0') + ' AM'
+                    : status === 'Late'    ? '09:' + String(30+Math.floor(Math.random()*30)).padStart(2,'0') + ' AM'
+                    : '—';
+        var timeOut = (status === 'Present' || status === 'Late') ? '05:' + String(Math.floor(Math.random()*30)).padStart(2,'0') + ' PM' : '—';
+        var hours = (status === 'Present') ? '8h' : (status === 'Late') ? '7h' : '—';
+        log.push({ id: e.id, name: e.first + ' ' + e.last, date: dateStr, timeIn, timeOut, hours, status, remarks: '' });
+      });
+    }
+    return log;
+  })();
+
+  var log = JSON.parse(localStorage.getItem('workdesk_att_log')||'null') || SEED_LOG;
+  function saveLog() { localStorage.setItem('workdesk_att_log', JSON.stringify(log)); }
+
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show');},3000);
+  }
+
+  function initUserInfo() {
+    var name = localStorage.getItem('workdesk_display_name')||'HR Admin';
+    var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var topbarAvatar = document.getElementById('topbarAvatar');
+    if (topbarAvatar) { topbarAvatar.textContent = initials; }
+  }
+
+  // ── Live clock ────────────────────────────────────────────────────────────
+  function updateClock() {
+    var now = new Date();
+    var h = now.getHours(); var m = now.getMinutes(); var s = now.getSeconds();
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12 || 12;
+    document.getElementById('clockTime').textContent =
+      String(h12).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + ' ' + ampm;
+    document.getElementById('clockDate').textContent =
+      DAYS[now.getDay()] + ', ' + MONTHS[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Clock In/Out ──────────────────────────────────────────────────────────
+  var clockedIn = !!localStorage.getItem('workdesk_clocked_in');
+  function syncClockBtns() {
+    document.getElementById('clockInBtn').disabled  = clockedIn;
+    document.getElementById('clockOutBtn').disabled = !clockedIn;
+    document.getElementById('clockStatus').textContent = clockedIn
+      ? 'Clocked in at ' + (localStorage.getItem('workdesk_clock_in_time')||'—')
+      : 'Not clocked in today';
+  }
+  syncClockBtns();
+
+  document.getElementById('clockInBtn').addEventListener('click', function(){
+    WDConfirm.show({
+      title:       'Clock In',
+      message:     'Are you sure you want to clock in and start your work session?',
+      type:        'info',
+      confirmText: 'Yes, Clock In',
+      cancelText:  'No',
+      onConfirm: function () {
+        var now = new Date();
+        var ampm = now.getHours()>=12?'PM':'AM';
+        var h = String(now.getHours()%12||12).padStart(2,'0');
+        var m = String(now.getMinutes()).padStart(2,'0');
+        var t = h+':'+m+' '+ampm;
+        localStorage.setItem('workdesk_clocked_in','1');
+        localStorage.setItem('workdesk_clock_in_time', t);
+        clockedIn = true; syncClockBtns();
+        toast('Clocked in at ' + t);
+        fetch('/api/attendance/clock-in', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t, date: now.toISOString().slice(0,10)}) }).catch(function(){});
+      }
+    });
+  });
+  document.getElementById('clockOutBtn').addEventListener('click', function(){
+    WDConfirm.show({
+      title:       'Clock Out',
+      message:     'Are you sure you want to clock out and end your work session?',
+      type:        'warn',
+      confirmText: 'Yes, Clock Out',
+      cancelText:  'No',
+      onConfirm: function () {
+        var now = new Date();
+        var ampm = now.getHours()>=12?'PM':'AM';
+        var h = String(now.getHours()%12||12).padStart(2,'0');
+        var m = String(now.getMinutes()).padStart(2,'0');
+        var t = h+':'+m+' '+ampm;
+        localStorage.removeItem('workdesk_clocked_in');
+        clockedIn = false; syncClockBtns();
+        toast('Clocked out at ' + t);
+        fetch('/api/attendance/clock-out', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({time: t}) }).catch(function(){});
+      }
+    });
+  });
+
+  // ── Charts ────────────────────────────────────────────────────────────────
+  function renderWeekChart() {
+    var days = [];
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(today); d.setDate(d.getDate()-i);
+      if (d.getDay()===0||d.getDay()===6) continue;
+      var ds = d.toISOString().slice(0,10);
+      var dayLog = log.filter(function(r){return r.date===ds;});
+      var present = dayLog.filter(function(r){return r.status==='Present'||r.status==='Late';}).length;
+      days.push({ label: DAYS[d.getDay()], present: present });
+    }
+    var max = Math.max.apply(null, days.map(function(d){return d.present;})) || 1;
+    document.getElementById('weekChart').innerHTML = days.map(function(d){
+      var h = Math.round((d.present/max)*100);
+      return '<div class="bar-group"><div class="bar" style="height:'+h+'px;"></div><div class="bar-label">'+d.label+'</div></div>';
+    }).join('');
+  }
+
+  function renderMonthChart() {
+    var months = [];
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+      var m = d.getMonth(); var y = d.getFullYear();
+      var present = log.filter(function(r){
+        var rd = new Date(r.date);
+        return rd.getMonth()===m && rd.getFullYear()===y && (r.status==='Present'||r.status==='Late');
+      }).length;
+      months.push({ label: MONTHS[m], val: present||Math.floor(Math.random()*80+120) });
+    }
+    var max = Math.max.apply(null, months.map(function(m){return m.val;})) || 1;
+    document.getElementById('monthChart').innerHTML = months.map(function(m){
+      var h = Math.round((m.val/max)*80);
+      return '<div class="bar-group"><div class="bar" style="height:'+h+'px;background:var(--accent);"></div><div class="bar-label">'+m.label+'</div></div>';
+    }).join('');
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function getFiltered() {
+    var q = (document.getElementById('attSearch').value||document.getElementById('globalSearch').value).toLowerCase();
+    var date = document.getElementById('attDate').value;
+    var status = document.getElementById('attStatus').value;
+    return log.filter(function(r){
+      var nameMatch = r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q);
+      var dateMatch = !date||r.date===date;
+      var statusMatch = !status||r.status===status;
+      return nameMatch&&dateMatch&&statusMatch;
+    }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  }
+
+  function statusTag(s) {
+    var map = { Present:'tag-green', Late:'tag-yellow', Absent:'tag-red', 'On Leave':'tag-blue' };
+    return '<span class="tag '+(map[s]||'tag-green')+'">'+s+'</span>';
+  }
+
+  function renderTable() {
+    var filtered = getFiltered();
+    var start = (currentPage-1)*PAGE_SIZE;
+    var page = filtered.slice(start, start+PAGE_SIZE);
+    document.getElementById('attTableBody').innerHTML = page.map(function(r){
+      return '<tr><td><strong>'+r.name+'</strong><br><span style="font-size:11px;color:var(--text-muted);">'+r.id+'</span></td>' +
+        '<td>'+r.date+'</td><td>'+r.timeIn+'</td><td>'+r.timeOut+'</td><td>'+r.hours+'</td>' +
+        '<td>'+statusTag(r.status)+'</td><td style="color:var(--text-muted);">'+r.remarks+'</td></tr>';
+    }).join('');
+    var total = Math.ceil(filtered.length/PAGE_SIZE);
+    var pag = document.getElementById('attPagination');
+    var html = '';
+    for (var i=1;i<=total;i++) html+='<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>';
+    pag.innerHTML = html;
+    pag.querySelectorAll('.page-btn').forEach(function(btn){ btn.addEventListener('click',function(){ currentPage=parseInt(btn.dataset.page); renderTable(); }); });
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  document.getElementById('exportAttBtn').addEventListener('click', function(){
+    var rows = [['ID','Name','Date','Time In','Time Out','Hours','Status']];
+    log.forEach(function(r){ rows.push([r.id,r.name,r.date,r.timeIn,r.timeOut,r.hours,r.status]); });
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
+    var a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='attendance-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+    toast('Attendance report exported.');
+  });
+
+  // ── Manual entry ──────────────────────────────────────────────────────────
+  document.getElementById('manualEntryBtn').addEventListener('click', function(){
+    var name = prompt('Employee Name:'); if (!name) return;
+    var date = prompt('Date (YYYY-MM-DD):', new Date().toISOString().slice(0,10)); if (!date) return;
+    var timeIn = prompt('Time In (e.g. 08:00 AM):') || '—';
+    var timeOut = prompt('Time Out (e.g. 05:00 PM):') || '—';
+    var status = prompt('Status (Present/Late/Absent/On Leave):', 'Present') || 'Present';
+    WDConfirm.show({
+      title:       'Add Manual Entry',
+      message:     'Are you sure you want to add a manual attendance entry for ' + name + ' on ' + date + '?',
+      type:        'warn',
+      confirmText: 'Yes, Add Entry',
+      cancelText:  'No',
+      onConfirm: function () {
+        log.push({ id:'MANUAL', name: name, date: date, timeIn: timeIn, timeOut: timeOut, hours: '8h', status: status, remarks: 'Manual entry' });
+        saveLog(); renderTable();
+        toast('Manual entry added.');
+        fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}, body: JSON.stringify({name,date,timeIn,timeOut,status}) }).catch(function(){});
+      }
+    });
+  });
+
+  // ── Filter events ─────────────────────────────────────────────────────────
+  ['attSearch','globalSearch','attDate','attStatus'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.addEventListener('input',function(){ currentPage=1; renderTable(); });
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function(){
+    initUserInfo();
+    document.getElementById('attDate').value = today.toISOString().slice(0,10);
+    renderWeekChart();
+    renderMonthChart();
+    renderTable();
+    fetch('/api/attendance',{headers:{'Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}})
+      .then(function(r){return r.json();})
+      .then(function(data){ if(data&&Array.isArray(data.log)&&data.log.length){ log=data.log; saveLog(); renderTable(); renderWeekChart(); renderMonthChart(); } })
+      .catch(function(){});
+  });
+}());
+</script>
+
+<script>
+(function(){
+  'use strict';
+  document.addEventListener('DOMContentLoaded', function(){
+
+  });
+}());
+</script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/aux-status.js"></script>
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+</body>
+</html>

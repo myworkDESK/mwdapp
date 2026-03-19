@@ -1,30 +1,35 @@
-# ── Legacy HTML path redirects ────────────────────────────────
-# HTML pages were moved from the root to /pages/.
-# These redirects preserve old bookmarks and links.
-/login.html              /pages/login.html              301
-/dashboard.html          /pages/dashboard.html          301
-/employees.html          /pages/employees.html          301
-/attendance.html         /pages/attendance.html         301
-/leave.html              /pages/leave.html              301
-/payroll.html            /pages/payroll.html            301
-/performance.html        /pages/performance.html        301
-/recruitment.html        /pages/recruitment.html        301
-/tickets.html            /pages/tickets.html            301
-/documents.html          /pages/documents.html          301
-/projects.html           /pages/projects.html           301
-/messaging.html          /pages/messaging.html          301
-/timeline.html           /pages/timeline.html           301
-/engagement.html         /pages/engagement.html         301
-/analytics.html          /pages/analytics.html          301
-/ai-assistant.html       /pages/ai-assistant.html       301
-/knowledge.html          /pages/knowledge.html          301
-/integrations.html       /pages/integrations.html       301
-/settings.html           /pages/settings.html           301
+# ── Admin (SA) portal ─────────────────────────────────────────
+/admin                         /admin/login.html              302
+/admin/                        /admin/login.html              302
 
-# ── Super Admin redirects ─────────────────────────────────────
-# SA pages moved from /super-admin/ into /pages/ to share the same
-# Cloudflare Pages project and its /api/sa-auth function.
-/super-admin/sa-portal.html    /pages/sa-login.html      301
-/super-admin/sa-dashboard.html /pages/sa-dashboard.html  301
-/super-admin/                  /pages/sa-login.html      302
-/super-admin                   /pages/sa-login.html      302
+# ── Legacy super-admin redirects ──────────────────────────────
+/super-admin/sa-portal.html    /admin/login.html              301
+/super-admin/sa-dashboard.html /admin/dashboard.html          301
+/super-admin/                  /admin/login.html              302
+/super-admin                   /admin/login.html              302
+
+# ── Legacy /pages/ redirects (backward compatibility) ─────────
+/pages/login.html              /app/login.html                301
+/pages/dashboard.html          /app/dashboard.html            301
+/pages/employees.html          /app/employees.html            301
+/pages/attendance.html         /app/attendance.html           301
+/pages/leave.html              /app/leave.html                301
+/pages/payroll.html            /app/payroll.html              301
+/pages/performance.html        /app/performance.html          301
+/pages/recruitment.html        /app/recruitment.html          301
+/pages/tickets.html            /app/tickets.html              301
+/pages/documents.html          /app/documents.html            301
+/pages/projects.html           /app/projects.html             301
+/pages/messaging.html          /app/messaging.html            301
+/pages/timeline.html           /app/timeline.html             301
+/pages/engagement.html         /app/engagement.html           301
+/pages/analytics.html          /app/analytics.html            301
+/pages/ai-assistant.html       /app/ai-assistant.html         301
+/pages/knowledge.html          /app/knowledge.html            301
+/pages/integrations.html       /app/integrations.html         301
+/pages/settings.html           /app/settings.html             301
+/pages/sa-login.html           /admin/login.html              301
+/pages/sa-dashboard.html       /admin/dashboard.html          301
+
+# ── Root redirect ──────────────────────────────────────────────
+/login.html                    /app/login.html                301

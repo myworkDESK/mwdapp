@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Leave Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .data-table td { padding:12px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:var(--primary-soft); }
+
+    .balance-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:18px 22px; box-shadow:var(--shadow-card); }
+    .balance-card .leave-type { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+    .balance-card .balance-val { font-size:28px; font-weight:800; color:var(--text-main); }
+    .balance-card .balance-sub { font-size:12px; color:var(--text-muted); margin-top:4px; }
+    .balance-bar { height:6px; border-radius:3px; background:var(--border-light); margin-top:10px; }
+    .balance-bar-fill { height:100%; border-radius:3px; background:var(--primary); transition:width .8s cubic-bezier(.16,1,.3,1); }
+
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:#fff; border-radius:var(--radius-sm); width:520px; max-width:96vw; max-height:90vh; overflow-y:auto; padding:32px; border:1px solid var(--border-card); box-shadow:0 8px 28px rgba(0,0,0,.12); animation:scaleIn .22s ease; }
+    .modal-title { font-size:17px; font-weight:700; margin-bottom:20px; }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .filter-bar input,.filter-bar select { padding:9px 14px; border:1px solid var(--border-light); border-radius:8px; font-family:var(--font-primary); font-size:13px; color:var(--text-main); background:#fff; outline:none; }
+    .filter-bar input:focus,.filter-bar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+
+    .pagination { display:flex; align-items:center; gap:6px; margin-top:16px; justify-content:flex-end; }
+    .page-btn { width:32px; height:32px; border:1px solid var(--border-light); border-radius:7px; background:#fff; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:background .2s; }
+    .page-btn:hover { background:var(--primary-soft); color:var(--primary); border-color:var(--primary); }
+    .page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:#1F2933; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:999; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s,transform .3s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span>
+      </li>
+      <li class="active" role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+        <span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span>
+        <span class="msg-nav-badge">3</span>
+      </li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        <span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+        <span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h2>Leave Management</h2>
+        <input class="search-box" type="search" id="globalSearch" placeholder="Search leave requests…" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid #fff;"></span>
+        </button>
+        <div class="topbar-notif-wrap" id="notifWrap">
+          <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <button class="notif-mark-all" id="notifMarkAll">Mark all as read</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-footer">
+              <button class="notif-view-all" id="notifViewAll">See all notifications</button>
+            </div>
+          </div>
+        </div>
+        <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar">JD</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Leave balance cards -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;" id="balanceGrid"></div>
+
+      <!-- Grid: requests + summary -->
+      <div class="grid mb-20">
+
+        <!-- Leave requests table -->
+        <div class="card col-span-2">
+          <div class="card-header">
+            <span class="card-title">Leave Requests</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-soft btn-sm" id="exportLeaveBtn">⬇ Export</button>
+              <button class="btn btn-primary btn-sm" id="fileLeaveBtn">+ File Leave</button>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <input type="search" id="leaveSearch" placeholder="Search employee…" />
+            <select id="leaveType">
+              <option value="">All Types</option>
+              <option>Vacation Leave</option>
+              <option>Sick Leave</option>
+              <option>Emergency Leave</option>
+              <option>Maternity Leave</option>
+              <option>Paternity Leave</option>
+              <option>AWOL</option>
+            </select>
+            <select id="leaveStatus">
+              <option value="">All Statuses</option>
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Type</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                  <th>Filed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leaveTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="leavePagination"></div>
+        </div>
+
+        <!-- Leave summary -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Leave Summary (This Month)</span></div>
+          <div style="display:flex;flex-direction:column;gap:14px;" id="leaveSummary"></div>
+          <hr class="section-divider" />
+          <div class="card-header" style="margin-bottom:10px;"><span class="card-title">By Leave Type</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px;" id="leaveTypeChart"></div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- File Leave Modal -->
+<div class="modal-backdrop" id="leaveModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3 class="modal-title" id="leaveModalTitle">File Leave Request</h3>
+    <form id="leaveForm" novalidate>
+      <div class="input-group">
+        <label for="lEmployee">Employee *</label>
+        <select id="lEmployee" required><option value="">Select Employee…</option></select>
+      </div>
+      <div class="input-group">
+        <label for="lType">Leave Type *</label>
+        <select id="lType" required>
+          <option value="">Select…</option>
+          <option>Vacation Leave</option>
+          <option>Sick Leave</option>
+          <option>Emergency Leave</option>
+          <option>Maternity Leave</option>
+          <option>Paternity Leave</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="lFrom">From *</label>
+          <input type="date" id="lFrom" required />
+        </div>
+        <div class="input-group">
+          <label for="lTo">To *</label>
+          <input type="date" id="lTo" required />
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="lReason">Reason</label>
+        <textarea id="lReason" rows="3" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;outline:none;" placeholder="Optional reason…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-soft" id="cancelLeaveBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var PAGE_SIZE = 8;
+  var currentPage = 1;
+
+  var SEED_REQUESTS = [
+    { id:'LV-001', empId:'EMP-001', name:'Maria Santos',   type:'Vacation Leave',  from:'2025-03-12', to:'2025-03-14', days:3, status:'Approved', filed:'2025-03-01', reason:'Family vacation' },
+    { id:'LV-002', empId:'EMP-002', name:'Jose Reyes',     type:'Sick Leave',      from:'2025-03-10', to:'2025-03-11', days:2, status:'Approved', filed:'2025-03-09', reason:'Fever' },
+    { id:'LV-003', empId:'EMP-003', name:'Liza Cruz',      type:'Emergency Leave', from:'2025-03-08', to:'2025-03-08', days:1, status:'Pending',  filed:'2025-03-07', reason:'Family emergency' },
+    { id:'LV-004', empId:'EMP-004', name:'Ben Mendoza',    type:'Vacation Leave',  from:'2025-04-01', to:'2025-04-05', days:5, status:'Pending',  filed:'2025-03-14', reason:'Holy Week' },
+    { id:'LV-005', empId:'EMP-005', name:'Ana Garcia',     type:'Sick Leave',      from:'2025-03-05', to:'2025-03-05', days:1, status:'Approved', filed:'2025-03-04', reason:'Doctor appointment' },
+    { id:'LV-006', empId:'EMP-006', name:'Carlos Ramos',   type:'Vacation Leave',  from:'2025-03-20', to:'2025-03-21', days:2, status:'Rejected', filed:'2025-03-13', reason:'' },
+    { id:'LV-007', empId:'EMP-007', name:'Rosa Torres',    type:'Sick Leave',      from:'2025-02-20', to:'2025-02-22', days:3, status:'Approved', filed:'2025-02-19', reason:'Flu' },
+    { id:'LV-008', empId:'EMP-008', name:'Marco Villanueva',type:'Emergency Leave', from:'2025-02-15',to:'2025-02-17', days:3, status:'Approved', filed:'2025-02-14', reason:'Hospitalization' },
+  ];
+
+  var requests = JSON.parse(localStorage.getItem('workdesk_leave_requests')||'null') || SEED_REQUESTS;
+  function saveReqs() { localStorage.setItem('workdesk_leave_requests', JSON.stringify(requests)); }
+
+  var BALANCES = { 'Vacation Leave': { total:15, used:5 }, 'Sick Leave': { total:10, used:3 }, 'Emergency Leave': { total:5, used:1 } };
+
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show');},3000);
+  }
+  function initUserInfo() {
+    var name = localStorage.getItem('workdesk_display_name')||'HR Admin';
+    var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var topbarAvatar = document.getElementById('topbarAvatar');
+    if (topbarAvatar) { topbarAvatar.textContent = initials; }
+  }
+
+  // ── Balance cards ─────────────────────────────────────────────────────────
+  function renderBalances() {
+    var colors = { 'Vacation Leave':'var(--primary)', 'Sick Leave':'#2563EB', 'Emergency Leave':'var(--warning)' };
+    document.getElementById('balanceGrid').innerHTML = Object.entries(BALANCES).map(function(b){
+      var rem = b[1].total - b[1].used;
+      var pct = Math.round((b[1].used/b[1].total)*100);
+      return '<div class="balance-card">' +
+        '<div class="leave-type">'+b[0]+'</div>' +
+        '<div class="balance-val">'+rem+'<span style="font-size:14px;font-weight:500;color:var(--text-muted);">/'+b[1].total+'</span></div>' +
+        '<div class="balance-sub">'+b[1].used+' days used · '+rem+' remaining</div>' +
+        '<div class="balance-bar"><div class="balance-bar-fill" style="width:0%;background:'+colors[b[0]]+';" data-w="'+pct+'"></div></div>' +
+      '</div>';
+    }).join('');
+    setTimeout(function(){
+      document.querySelectorAll('.balance-bar-fill').forEach(function(el){ el.style.width=el.dataset.w+'%'; });
+    },60);
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function statusTag(s) {
+    var map = { Approved:'tag-green', Pending:'tag-yellow', Rejected:'tag-red' };
+    return '<span class="tag '+(map[s]||'tag-green')+'">'+s+'</span>';
+  }
+  function getFiltered() {
+    var q = (document.getElementById('leaveSearch').value||document.getElementById('globalSearch').value).toLowerCase();
+    var type = document.getElementById('leaveType').value;
+    var status = document.getElementById('leaveStatus').value;
+    return requests.filter(function(r){
+      return r.name.toLowerCase().includes(q) &&
+        (!type||r.type===type) &&
+        (!status||r.status===status);
+    }).sort(function(a,b){ return b.filed.localeCompare(a.filed); });
+  }
+  function renderTable() {
+    var filtered = getFiltered();
+    var start = (currentPage-1)*PAGE_SIZE;
+    var page = filtered.slice(start, start+PAGE_SIZE);
+    document.getElementById('leaveTableBody').innerHTML = page.map(function(r){
+      var approveBtn = r.status==='Pending'
+        ? '<button class="btn btn-soft btn-sm approve-btn" data-id="'+r.id+'" style="margin-right:4px;">✓ Approve</button>'
+          + '<button class="btn btn-danger btn-sm reject-btn" data-id="'+r.id+'">✗ Reject</button>'
+        : '<span style="color:var(--text-muted);font-size:12px;">'+r.status+'</span>';
+      return '<tr><td><strong>'+r.name+'</strong></td><td>'+r.type+'</td><td>'+r.from+'</td><td>'+r.to+'</td>' +
+        '<td style="font-weight:600;">'+r.days+'</td><td>'+statusTag(r.status)+'</td>' +
+        '<td style="color:var(--text-muted);">'+r.filed+'</td><td>'+approveBtn+'</td></tr>';
+    }).join('');
+    var total = Math.ceil(filtered.length/PAGE_SIZE);
+    var pag = document.getElementById('leavePagination');
+    var html = '';
+    for (var i=1;i<=total;i++) html+='<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>';
+    pag.innerHTML = html;
+    pag.querySelectorAll('.page-btn').forEach(function(btn){ btn.addEventListener('click',function(){ currentPage=parseInt(btn.dataset.page); renderTable(); }); });
+    // Approve/Reject buttons
+    document.querySelectorAll('.approve-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var r = requests.find(function(x){return x.id===btn.dataset.id;});
+        if (r) { r.status='Approved'; saveReqs(); renderTable(); renderSummary(); toast('Leave approved.'); }
+        fetch('/api/leave/approve',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
+      });
+    });
+    document.querySelectorAll('.reject-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var r = requests.find(function(x){return x.id===btn.dataset.id;});
+        if (r) { r.status='Rejected'; saveReqs(); renderTable(); renderSummary(); toast('Leave rejected.'); }
+        fetch('/api/leave/reject',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({id:btn.dataset.id})}).catch(function(){});
+      });
+    });
+  }
+
+  // ── Summary sidebar ───────────────────────────────────────────────────────
+  function renderSummary() {
+    var now = new Date(); var m = now.getMonth(); var y = now.getFullYear();
+    var monthly = requests.filter(function(r){
+      var d = new Date(r.filed); return d.getMonth()===m && d.getFullYear()===y;
+    });
+    var approved = monthly.filter(function(r){return r.status==='Approved';}).length;
+    var pending  = monthly.filter(function(r){return r.status==='Pending';}).length;
+    var rejected = monthly.filter(function(r){return r.status==='Rejected';}).length;
+    document.getElementById('leaveSummary').innerHTML =
+      '<div class="flex-between text-sm"><span>Total Filed</span><strong>'+monthly.length+'</strong></div>' +
+      '<div class="attendance-bar"><div class="attendance-bar-fill" style="width:'+Math.round((monthly.length/(requests.length||1))*100)+'%;"></div></div>' +
+      '<div class="flex-between text-sm"><span style="color:var(--success);">Approved</span><strong>'+approved+'</strong></div>' +
+      '<div class="flex-between text-sm"><span style="color:var(--warning);">Pending</span><strong>'+pending+'</strong></div>' +
+      '<div class="flex-between text-sm"><span style="color:var(--danger);">Rejected</span><strong>'+rejected+'</strong></div>';
+    // By type
+    var types = {};
+    requests.forEach(function(r){ types[r.type]=(types[r.type]||0)+1; });
+    var max = Math.max.apply(null, Object.values(types))||1;
+    document.getElementById('leaveTypeChart').innerHTML = Object.entries(types).sort(function(a,b){return b[1]-a[1];}).map(function(t){
+      var pct=Math.round((t[1]/max)*100);
+      return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;">' +
+        '<div style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);">'+t[0]+'</div>' +
+        '<div style="flex:2;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">' +
+          '<div style="height:100%;width:0%;background:var(--primary);border-radius:4px;transition:width .8s" data-w="'+pct+'"></div></div>' +
+        '<div style="width:24px;text-align:right;font-weight:600;">'+t[1]+'</div></div>';
+    }).join('');
+    setTimeout(function(){
+      document.querySelectorAll('#leaveTypeChart [data-w]').forEach(function(el){ el.style.width=el.dataset.w+'%'; });
+    },60);
+  }
+
+  // ── Populate employee dropdown ────────────────────────────────────────────
+  function populateEmployees() {
+    var employees = JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
+    var sel = document.getElementById('lEmployee');
+    sel.innerHTML = '<option value="">Select Employee…</option>';
+    employees.forEach(function(e){
+      sel.innerHTML += '<option value="'+e.id+'">'+e.first+' '+e.last+'</option>';
+    });
+  }
+
+  // ── File leave modal ──────────────────────────────────────────────────────
+  document.getElementById('fileLeaveBtn').addEventListener('click', function(){
+    populateEmployees();
+    document.getElementById('leaveForm').reset();
+    document.getElementById('leaveModal').classList.add('open');
+  });
+  document.getElementById('cancelLeaveBtn').addEventListener('click', function(){ document.getElementById('leaveModal').classList.remove('open'); });
+  document.getElementById('leaveModal').addEventListener('click', function(ev){ if(ev.target===this) this.classList.remove('open'); });
+
+  document.getElementById('leaveForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var empSel = document.getElementById('lEmployee');
+    var emp = empSel.options[empSel.selectedIndex];
+    var type = document.getElementById('lType').value;
+    var from = document.getElementById('lFrom').value;
+    var to   = document.getElementById('lTo').value;
+    var reason = document.getElementById('lReason').value.trim();
+    if (!emp.value||!type||!from||!to) { toast('Please fill in all required fields.'); return; }
+    var days = Math.max(1, Math.round((new Date(to)-new Date(from))/(864e5))+1);
+    WDConfirm.show({
+      title:       'File Leave Request',
+      message:     'Are you sure you want to file a ' + type + ' leave request for ' + emp.text + ' (' + days + ' day' + (days>1?'s':'') + ')?',
+      type:        'info',
+      confirmText: 'Yes, File Leave',
+      cancelText:  'No',
+      onConfirm: function () {
+        var newId = 'LV-'+ String(requests.length+1).padStart(3,'0');
+        requests.push({ id:newId, empId:emp.value, name:emp.text, type:type, from:from, to:to, days:days, status:'Pending', filed:new Date().toISOString().slice(0,10), reason:reason });
+        saveReqs();
+        document.getElementById('leaveModal').classList.remove('open');
+        renderTable(); renderSummary();
+        toast('Leave request filed successfully.');
+        fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({empId:emp.value,name:emp.text,type,from,to,days,reason})}).catch(function(){});
+      }
+    });
+  });
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  document.getElementById('exportLeaveBtn').addEventListener('click', function(){
+    var rows=[['ID','Employee','Type','From','To','Days','Status','Filed']];
+    requests.forEach(function(r){ rows.push([r.id,r.name,r.type,r.from,r.to,r.days,r.status,r.filed]); });
+    var csv=rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
+    var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='leave-report-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+    toast('Leave report exported.');
+  });
+
+  // ── Filter events ─────────────────────────────────────────────────────────
+  ['leaveSearch','globalSearch','leaveType','leaveStatus'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.addEventListener('input',function(){ currentPage=1; renderTable(); });
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function(){
+    initUserInfo();
+    renderBalances();
+    renderTable();
+    renderSummary();
+    fetch('/api/leave',{headers:{'Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}})
+      .then(function(r){return r.json();})
+      .then(function(data){ if(data&&Array.isArray(data.requests)&&data.requests.length){ requests=data.requests; saveReqs(); renderTable(); renderSummary(); } })
+      .catch(function(){});
+
+  });
+}());
+</script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+</body>
+</html>

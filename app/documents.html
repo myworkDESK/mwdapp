@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Documents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    @keyframes scaleIn { from { transform:scale(0.93); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+    .tab-bar { display:flex; border-bottom:2px solid var(--border-light); margin-bottom:24px; gap:4px; }
+    .tab-btn { padding:9px 18px; font-size:13px; font-weight:500; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; border-radius:6px 6px 0 0; transition:color .2s, border-color .2s; white-space:nowrap; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+    .tab-btn:hover:not(.active) { color:var(--text-main); background:var(--primary-soft); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-green { background:#ECFDF5; color:#059669; }
+    .badge-blue { background:#EFF6FF; color:#2563EB; }
+    .badge-yellow { background:var(--accent-soft); color:#8B6914; }
+    .badge-red { background:#FDECEA; color:var(--danger); }
+    .badge-purple { background:#F3F0FF; color:#7C3AED; }
+    .badge-gray { background:var(--bg-main); color:var(--text-muted); border:1px solid var(--border-light); }
+
+    .doc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+    .doc-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); padding:16px; box-shadow:var(--shadow-card); cursor:pointer; transition:box-shadow .2s, border-color .2s; display:flex; flex-direction:column; gap:8px; }
+    .doc-card:hover { box-shadow:none; border-color:var(--primary); }
+    .doc-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:4px; }
+    .doc-icon.pdf { background:#FDECEA; }
+    .doc-icon.word { background:#EFF6FF; }
+    .doc-icon.excel { background:#ECFDF5; }
+    .doc-icon.image { background:#F3F0FF; }
+    .doc-name { font-size:13px; font-weight:600; color:var(--text-main); line-height:1.4; }
+    .doc-meta { font-size:11px; color:var(--text-muted); }
+    .doc-tags { display:flex; flex-wrap:wrap; gap:4px; }
+    .doc-tag { padding:2px 7px; background:var(--bg-main); border:1px solid var(--border-light); border-radius:20px; font-size:10px; color:var(--text-muted); }
+    .doc-expiry { font-size:11px; font-weight:500; }
+    .doc-expiry.expiring { color:var(--warning); }
+    .doc-expiry.expired { color:var(--danger); }
+    .doc-actions { display:flex; gap:6px; margin-top:4px; flex-wrap:wrap; }
+
+    .doc-list-view .doc-grid { display:none; }
+    .doc-list-view .doc-table-wrap { display:block; }
+    .doc-table-wrap { display:none; }
+
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+    .filter-bar select, .filter-bar input[type=search] { padding:8px 12px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text-main); background:#fff; outline:none; }
+    .filter-bar select:focus, .filter-bar input[type=search]:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    .view-toggle { display:flex; border:1px solid var(--border-light); border-radius:8px; overflow:hidden; }
+    .view-toggle-btn { padding:7px 10px; background:#fff; border:none; cursor:pointer; color:var(--text-muted); transition:background .2s; }
+    .view-toggle-btn.active { background:var(--primary-soft); color:var(--primary); }
+
+    .policy-section { margin-bottom:20px; }
+    .policy-section-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--bg-main); border-radius:8px; cursor:pointer; margin-bottom:8px; border:1px solid var(--border-light); }
+    .policy-section-title { font-size:13px; font-weight:600; color:var(--text-main); }
+    .policy-item { display:flex; align-items:center; gap:14px; padding:10px 14px; border:1px solid var(--border-light); border-radius:8px; background:#fff; margin-bottom:6px; }
+    .policy-item:hover { border-color:var(--primary); background:var(--primary-soft); }
+
+    .audit-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .audit-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .audit-table td { padding:11px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .audit-table tr:last-child td { border-bottom:none; }
+    .audit-table tr:hover td { background:var(--primary-soft); }
+
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300; display:none; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:#fff; border-radius:var(--radius-lg); width:600px; max-width:96vw; max-height:92vh; overflow-y:auto; padding:32px; border:1px solid var(--border-card); box-shadow:0 8px 28px rgba(0,0,0,.12); animation:scaleIn .22s ease; }
+    .modal-wide { width:720px; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+    .modal-close { background:none; border:none; cursor:pointer; padding:6px; color:var(--text-muted); border-radius:8px; line-height:0; }
+    .modal-close:hover { background:var(--bg-main); }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:18px; border-top:1px solid var(--border-light); }
+
+    .modal-tab-bar { display:flex; border-bottom:1px solid var(--border-light); margin-bottom:16px; gap:2px; }
+    .modal-tab-btn { padding:7px 14px; font-size:12px; font-weight:500; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; transition:color .2s, border-color .2s; }
+    .modal-tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+    .modal-tab-panel { display:none; }
+    .modal-tab-panel.active { display:block; }
+
+    .version-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-light); font-size:13px; }
+    .version-item:last-child { border-bottom:none; }
+
+    .share-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-light); font-size:13px; }
+    .share-item:last-child { border-bottom:none; }
+
+    .sig-pad { width:100%; height:140px; border:2px dashed var(--border-light); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13px; background:#FAFAFA; cursor:crosshair; user-select:none; }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:#1F2933; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:999; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s, transform .3s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+
+    .tag-filter { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .tag-filter-btn { padding:4px 12px; border-radius:20px; border:1px solid var(--border-light); background:#fff; font-size:12px; cursor:pointer; color:var(--text-muted); transition:all .2s; }
+    .tag-filter-btn:hover, .tag-filter-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+    .form-group { margin-bottom:16px; }
+    .form-label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+    .form-control { width:100%; padding:10px 13px; border:1px solid var(--border-light); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text-main); background:#fff; outline:none; box-sizing:border-box; }
+    .form-control:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+
+    .detail-meta-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .detail-meta-table td { padding:8px 0; border-bottom:1px solid var(--border-light); }
+    .detail-meta-table td:first-child { color:var(--text-muted); font-weight:500; width:130px; }
+    .detail-meta-table tr:last-child td { border-bottom:none; }
+
+    .doc-detail-icon { width:64px; height:64px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; }
+
+    .audit-trail-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-light); font-size:13px; }
+    .audit-trail-item:last-child { border-bottom:none; }
+    .audit-trail-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); margin-top:5px; flex-shrink:0; }
+
+    .list-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .list-table th { text-align:left; padding:10px 12px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .list-table td { padding:11px 12px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .list-table tr:last-child td { border-bottom:none; }
+    .list-table tr:hover td { background:var(--primary-soft); cursor:pointer; }
+
+    .copy-link-row { display:flex; gap:8px; align-items:center; margin-top:12px; }
+    .copy-link-input { flex:1; padding:8px 12px; border:1px solid var(--border-light); border-radius:8px; font-size:12px; color:var(--text-muted); background:var(--bg-main); outline:none; }
+
+    .notif-dropdown { display:none; position:absolute; top:calc(100% + 8px); right:0; width:320px; background:#fff; border-radius:var(--radius-md); box-shadow:0 8px 32px rgba(0,0,0,.14); z-index:200; border:1px solid var(--border-light); animation:scaleIn .18s ease; }
+    .notif-dropdown.open { display:block; }
+    .topbar-notif-wrap { position:relative; }
+    .topbar-status-wrap { position:relative; }
+    .status-dropdown { display:none; position:absolute; top:calc(100% + 8px); right:0; min-width:140px; background:#fff; border-radius:var(--radius-md); box-shadow:0 8px 32px rgba(0,0,0,.14); z-index:200; border:1px solid var(--border-light); padding:6px; animation:scaleIn .18s ease; }
+    .status-dropdown.open { display:block; }
+
+    .upload-drop-zone { border:2px dashed var(--border-light); border-radius:var(--radius-sm); padding:32px; text-align:center; color:var(--text-muted); font-size:13px; cursor:pointer; transition:border-color .2s, background .2s; }
+    .upload-drop-zone:hover { border-color:var(--primary); background:var(--primary-soft); }
+    .upload-drop-zone input[type=file] { display:none; }
+
+    .policy-items-wrap { overflow:hidden; transition:max-height .3s ease; }
+    .policy-items-wrap.collapsed { max-height:0; }
+
+    .shared-tab-empty { text-align:center; padding:40px 20px; color:var(--text-muted); font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg><span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg><span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span></li>
+      <li class="active" role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg><span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span><span class="msg-nav-badge">3</span></li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg><span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg><span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN WRAPPER ══ -->
+  <div class="main-wrapper">
+
+    <!-- ══ TOPBAR ══ -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h2>Documents</h2>
+        <input class="search-box" type="search" id="globalSearch" placeholder="Search documents…" aria-label="Search documents" oninput="handleGlobalSearch(this.value)" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid #fff;" aria-hidden="true"></span>
+        </button>
+        <div class="topbar-notif-wrap" id="notifWrap">
+          <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+            <div class="notif-header"><span class="notif-title">Notifications</span><button class="notif-mark-all" id="notifMarkAll">Mark all as read</button></div>
+            <div class="notif-list"></div></div>
+              <div class="notif-item unread" role="menuitem"><div class="notif-icon"><svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--primary)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><div class="notif-content"><div class="notif-text"><strong>2 contracts</strong> expiring within 30 days</div><div class="notif-time">1 hr ago</div></div></div>
+              <div class="notif-item" role="menuitem"><div class="notif-icon"><svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--primary)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="notif-content"><div class="notif-text">NDA signed by <strong>Ana Reyes</strong></div><div class="notif-time">3 hr ago</div></div></div>
+            </div>
+            <div class="notif-footer"><button class="notif-view-all" id="notifViewAll">See all notifications</button></div>
+          </div>
+        </div>
+        <div class="topbar-status-wrap" id="statusWrap">
+          <button class="status-badge" id="statusBadgeBtn" aria-label="Set your status" aria-expanded="false" onclick="toggleStatus()">
+            <span class="status-dot online" id="statusDot"></span>
+            <span id="statusLabel">Online</span>
+          </button>
+          <div class="status-dropdown" id="statusDropdown" role="menu">
+            <div class="status-dropdown-item" data-status="online" role="menuitem" onclick="setStatus('online','Online')"><span class="status-dot online"></span> Online</div>
+            <div class="status-dropdown-item" data-status="away" role="menuitem" onclick="setStatus('away','Away')"><span class="status-dot away"></span> Away</div>
+            <div class="status-dropdown-item" data-status="busy" role="menuitem" onclick="setStatus('busy','Busy')"><span class="status-dot busy"></span> Busy</div>
+            <div class="status-dropdown-item" data-status="offline" role="menuitem" onclick="setStatus('offline','Offline')"><span class="status-dot offline"></span> Offline</div>
+          </div>
+        </div>
+        <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar" title="HR Admin">JD</div>
+      </div>
+    </header>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <main class="main-content">
+
+      <!-- Stat chips -->
+      <div class="grid-4 mb-20">
+        <div class="emp-stat-chip">
+          <div class="chip-icon" style="background:var(--primary-soft);color:var(--primary);">
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div><div class="chip-val">156</div><div class="chip-lbl">Total Documents</div></div>
+        </div>
+        <div class="emp-stat-chip">
+          <div class="chip-icon" style="background:#FDECEA;color:var(--danger);">
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div><div class="chip-val">8</div><div class="chip-lbl">Expiring Soon</div></div>
+        </div>
+        <div class="emp-stat-chip">
+          <div class="chip-icon" style="background:var(--accent-soft);color:#8B6914;">
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div><div class="chip-val">5</div><div class="chip-lbl">Pending Approval</div></div>
+        </div>
+        <div class="emp-stat-chip">
+          <div class="chip-icon" style="background:#ECFDF5;color:#059669;">
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div><div class="chip-val">23</div><div class="chip-lbl">Signed This Month</div></div>
+        </div>
+      </div>
+
+      <!-- Filter / Action bar -->
+      <div class="filter-bar">
+        <input type="search" id="docSearch" placeholder="Filter documents…" oninput="applyFilters()" style="min-width:200px;" />
+        <select id="filterType" onchange="applyFilters()">
+          <option value="">All Types</option>
+          <option value="pdf">PDF</option>
+          <option value="word">Word</option>
+          <option value="excel">Excel</option>
+          <option value="image">Image</option>
+        </select>
+        <select id="filterCategory" onchange="applyFilters()">
+          <option value="">All Categories</option>
+          <option value="Contracts">Contracts</option>
+          <option value="Policies">Policies</option>
+          <option value="Employee Docs">Employee Docs</option>
+          <option value="Compliance">Compliance</option>
+          <option value="Templates">Templates</option>
+        </select>
+        <select id="filterStatus" onchange="applyFilters()">
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Expiring">Expiring</option>
+          <option value="Expired">Expired</option>
+          <option value="Pending">Pending</option>
+          <option value="Archived">Archived</option>
+        </select>
+        <div class="view-toggle" style="margin-left:auto;">
+          <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view" aria-label="Grid view">
+            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          </button>
+          <button class="view-toggle-btn" id="listViewBtn" onclick="setView('list')" title="List view" aria-label="List view">
+            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          </button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openUploadModal()">
+          <svg width="15" height="15" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Upload Document
+        </button>
+        <button class="btn btn-soft btn-sm" onclick="openRequestModal()">Request Document</button>
+      </div>
+
+      <!-- Tag filter -->
+      <div class="tag-filter" id="tagFilterRow">
+        <button class="tag-filter-btn active" onclick="filterByTag(this,'')">All</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'contract')">contract</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'policy')">policy</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'template')">template</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'compliance')">compliance</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'hr')">hr</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'legal')">legal</button>
+        <button class="tag-filter-btn" onclick="filterByTag(this,'finance')">finance</button>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('all',this)">All Documents</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('mine',this)">My Documents</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('shared',this)">Shared with Me</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('policy',this)">Policy Library</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('audit',this)">Audit Log</button>
+      </div>
+
+      <!-- ── TAB: All Documents ── -->
+      <div class="tab-panel active" id="tab-all">
+        <div id="allDocsContainer" class="doc-grid"></div>
+        <div id="allDocsTable" class="doc-table-wrap">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Owner</th><th>Category</th><th>Size</th><th>Version</th><th>Expiry</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allDocsTableBody"></tbody>
+          </table>
+        </div>
+        <p id="allDocsEmpty" style="display:none;color:var(--text-muted);font-size:13px;text-align:center;padding:32px 0;">No documents match your filters.</p>
+      </div>
+
+      <!-- ── TAB: My Documents ── -->
+      <div class="tab-panel" id="tab-mine">
+        <div id="myDocsContainer" class="doc-grid"></div>
+        <div id="myDocsTable" class="doc-table-wrap">
+          <table class="list-table">
+            <thead><tr><th>Name</th><th>Owner</th><th>Category</th><th>Size</th><th>Version</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="myDocsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── TAB: Shared with Me ── -->
+      <div class="tab-panel" id="tab-shared">
+        <div id="sharedDocsContainer" class="doc-grid"></div>
+        <div id="sharedDocsTable" class="doc-table-wrap">
+          <table class="list-table">
+            <thead><tr><th>Name</th><th>Shared By</th><th>Category</th><th>Size</th><th>Permission</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="sharedDocsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── TAB: Policy Library ── -->
+      <div class="tab-panel" id="tab-policy">
+        <div id="policyLibraryContent"></div>
+      </div>
+
+      <!-- ── TAB: Audit Log ── -->
+      <div class="tab-panel" id="tab-audit">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Document Audit Log</span>
+            <button class="btn btn-soft btn-sm" onclick="showToast('Audit log exported','success')">Export CSV</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th><th>User</th><th>Action</th><th>Document</th><th>IP Address</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- end .main-wrapper -->
+</div><!-- end .app-container -->
+
+<!-- ══ MODAL: Document Detail ══ -->
+<div class="modal-backdrop" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+  <div class="modal modal-wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="doc-detail-icon" id="detailDocIcon"></div>
+        <div>
+          <div class="modal-title" id="detailModalTitle" style="margin-bottom:2px;"></div>
+          <div style="font-size:12px;color:var(--text-muted);" id="detailDocMeta"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detailModal')" aria-label="Close">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <!-- Inner tabs -->
+    <div class="modal-tab-bar">
+      <button class="modal-tab-btn active" onclick="switchModalTab('dtDetails',this)">Details</button>
+      <button class="modal-tab-btn" onclick="switchModalTab('dtVersions',this)">Version History</button>
+      <button class="modal-tab-btn" onclick="switchModalTab('dtSharing',this)">Sharing</button>
+      <button class="modal-tab-btn" onclick="switchModalTab('dtAudit',this)">Audit Trail</button>
+    </div>
+    <!-- Details -->
+    <div class="modal-tab-panel active" id="dtDetails">
+      <table class="detail-meta-table" id="detailMetaTable"></table>
+      <div style="margin-top:14px;font-size:13px;color:var(--text-muted);" id="detailDescription"></div>
+    </div>
+    <!-- Version History -->
+    <div class="modal-tab-panel" id="dtVersions">
+      <div id="versionHistoryList"></div>
+    </div>
+    <!-- Sharing -->
+    <div class="modal-tab-panel" id="dtSharing">
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Shared With</div>
+      <div id="shareList"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-light);">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Add Person</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="form-control" id="shareEmailInput" placeholder="Name or email…" style="flex:1;min-width:160px;" />
+          <select class="form-control" id="sharePermSelect" style="width:110px;">
+            <option value="View">View</option>
+            <option value="Edit">Edit</option>
+            <option value="Sign">Sign</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addShare()">Share</button>
+        </div>
+        <div class="copy-link-row">
+          <input class="copy-link-input" id="shareLinkInput" value="https://workdesk.app/docs/share/abc123xyz" readonly />
+          <button class="btn btn-soft btn-sm" onclick="copyShareLink()">Copy Link</button>
+        </div>
+      </div>
+    </div>
+    <!-- Audit Trail -->
+    <div class="modal-tab-panel" id="dtAudit">
+      <div id="docAuditTrail"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft btn-sm" onclick="showToast('Document downloaded','success')">
+        <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Download
+      </button>
+      <button class="btn btn-soft btn-sm" id="detailApproveBtn" onclick="approveDoc()" style="display:none;">Approve</button>
+      <button class="btn btn-accent btn-sm" onclick="openSignModal()">Request Signature</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteDoc()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Upload Document ══ -->
+<div class="modal-backdrop" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="uploadModalTitle">Upload Document</span>
+      <button class="modal-close" onclick="closeModal('uploadModal')" aria-label="Close">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Name *</label>
+      <input class="form-control" id="uploadName" placeholder="e.g. Employment Contract - John Doe.pdf" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Category *</label>
+        <select class="form-control" id="uploadCategory">
+          <option value="">Select category</option>
+          <option>Contracts</option>
+          <option>Policies</option>
+          <option>Employee Docs</option>
+          <option>Compliance</option>
+          <option>Templates</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department / Owner</label>
+        <input class="form-control" id="uploadOwner" placeholder="e.g. HR Admin" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" id="uploadDesc" rows="2" placeholder="Brief description of this document…"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Tags (comma-separated)</label>
+        <input class="form-control" id="uploadTags" placeholder="e.g. contract, hr, 2025" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expiry Date (optional)</label>
+        <input class="form-control" type="date" id="uploadExpiry" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">File</label>
+      <div class="upload-drop-zone" onclick="document.getElementById('uploadFileInput').click()">
+        <input type="file" id="uploadFileInput" accept=".pdf,.doc,.docx,.xlsx,.png,.jpg" onchange="handleFileSelect(this)" />
+        <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--primary);margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <div id="uploadFileLabel" style="font-weight:500;">Click to browse or drag & drop</div>
+        <div style="font-size:11px;margin-top:4px;">PDF, DOC, DOCX, XLSX, PNG, JPG</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Access Level</label>
+        <select class="form-control" id="uploadAccess">
+          <option>Public to all</option>
+          <option>Department only</option>
+          <option>Restricted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Version Notes</label>
+        <input class="form-control" id="uploadVersionNotes" placeholder="e.g. Updated clause 3.2" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('uploadModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitUpload()">Upload Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Document Request ══ -->
+<div class="modal-backdrop" id="requestModal" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="requestModalTitle">Document Request</span>
+      <button class="modal-close" onclick="closeModal('requestModal')" aria-label="Close">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Request Type *</label>
+      <select class="form-control" id="reqType">
+        <option>New Document</option>
+        <option>Document Review</option>
+        <option>Policy Update</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Name *</label>
+      <input class="form-control" id="reqDocName" placeholder="Name of the document needed" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason / Description *</label>
+      <textarea class="form-control" id="reqReason" rows="3" placeholder="Explain why this document is needed…"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-control" id="reqPriority">
+          <option>Normal</option>
+          <option>High</option>
+          <option>Urgent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Required By</label>
+        <input class="form-control" type="date" id="reqDate" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('requestModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Digital Signature ══ -->
+<div class="modal-backdrop" id="signModal" role="dialog" aria-modal="true" aria-labelledby="signModalTitle">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="signModalTitle">Sign Document</span>
+      <button class="modal-close" onclick="closeModal('signModal')" aria-label="Close">
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div style="background:var(--primary-soft);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:13px;">
+      <strong id="signDocName"></strong>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Draw Your Signature</div>
+    <div class="sig-pad" id="sigPad" aria-label="Signature pad">Draw your signature here</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-soft btn-sm" onclick="clearSig()">Clear</button>
+    </div>
+    <div style="margin-top:14px;display:flex;align-items:flex-start;gap:8px;font-size:13px;">
+      <input type="checkbox" id="sigAgreeCheck" style="margin-top:2px;accent-color:var(--primary);" />
+      <label for="sigAgreeCheck" style="cursor:pointer;">I agree this is my legal digital signature and I consent to electronically sign this document.</label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('signModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="signDocument()">Sign Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+<script>
+/* ── Document Data ── */
+const documents = [
+  { id:1, name:"Employment Contract - Ana Reyes.pdf", type:"pdf", category:"Contracts", owner:"HR Admin", size:"245 KB", version:"v2.1", uploaded:"2025-01-10", expiry:"2025-12-31", status:"Active", tags:["contract","employment"], signed:true },
+  { id:2, name:"Company Policy Handbook 2025.pdf", type:"pdf", category:"Policies", owner:"HR Admin", size:"1.2 MB", version:"v5.0", uploaded:"2025-01-01", expiry:"2025-06-30", status:"Expiring", tags:["policy","handbook"], signed:false },
+  { id:3, name:"NDA Template.docx", type:"word", category:"Templates", owner:"Legal", size:"89 KB", version:"v1.3", uploaded:"2024-11-15", expiry:null, status:"Active", tags:["nda","template","legal"], signed:false },
+  { id:4, name:"Q1 Payroll Report 2025.xlsx", type:"excel", category:"Compliance", owner:"Finance", size:"512 KB", version:"v1.0", uploaded:"2025-01-31", expiry:null, status:"Pending", tags:["payroll","finance"], signed:false },
+  { id:5, name:"Employee Benefits Guide.pdf", type:"pdf", category:"Policies", owner:"HR Admin", size:"890 KB", version:"v3.2", uploaded:"2024-12-01", expiry:"2025-03-15", status:"Expiring", tags:["benefits","policy"], signed:false },
+  { id:6, name:"Mark Santos - Contract.pdf", type:"pdf", category:"Contracts", owner:"HR Admin", size:"198 KB", version:"v1.0", uploaded:"2025-01-20", expiry:"2026-01-20", status:"Active", tags:["contract","employment"], signed:true },
+  { id:7, name:"IT Security Policy.pdf", type:"pdf", category:"Policies", owner:"IT Dept", size:"320 KB", version:"v2.0", uploaded:"2024-10-01", expiry:"2025-12-31", status:"Active", tags:["security","it","policy"], signed:false },
+  { id:8, name:"Leave Policy 2025.pdf", type:"pdf", category:"Policies", owner:"HR Admin", size:"156 KB", version:"v4.1", uploaded:"2025-01-01", expiry:"2025-12-31", status:"Active", tags:["leave","policy","hr"], signed:false },
+  { id:9, name:"Onboarding Checklist Template.docx", type:"word", category:"Templates", owner:"HR Admin", size:"67 KB", version:"v2.0", uploaded:"2024-09-15", expiry:null, status:"Active", tags:["onboarding","template"], signed:false },
+  { id:10, name:"DOLE Compliance Report Q4.pdf", type:"pdf", category:"Compliance", owner:"HR Admin", size:"445 KB", version:"v1.0", uploaded:"2025-01-15", expiry:"2025-02-28", status:"Expiring", tags:["dole","compliance"], signed:false },
+  { id:11, name:"Lisa Chen - ID Documents.pdf", type:"pdf", category:"Employee Docs", owner:"Lisa Chen", size:"1.8 MB", version:"v1.0", uploaded:"2025-01-10", expiry:"2027-05-12", status:"Active", tags:["id","employee"], signed:false },
+  { id:12, name:"Code of Conduct.pdf", type:"pdf", category:"Policies", owner:"HR Admin", size:"234 KB", version:"v3.0", uploaded:"2024-08-01", expiry:"2025-12-31", status:"Active", tags:["conduct","policy"], signed:false }
+];
+
+const sharedDocs = [
+  { id:3, name:"NDA Template.docx", type:"word", category:"Templates", sharedBy:"Legal Dept", size:"89 KB", permission:"View", expiry:null, status:"Active", tags:["nda","template","legal"] },
+  { id:4, name:"Q1 Payroll Report 2025.xlsx", type:"excel", category:"Compliance", sharedBy:"Finance", size:"512 KB", permission:"View", expiry:null, status:"Pending", tags:["payroll","finance"] },
+  { id:7, name:"IT Security Policy.pdf", type:"pdf", category:"Policies", sharedBy:"IT Dept", size:"320 KB", permission:"Sign", expiry:"2025-12-31", status:"Active", tags:["security","it"] },
+  { id:11, name:"Lisa Chen - ID Documents.pdf", type:"pdf", category:"Employee Docs", sharedBy:"Lisa Chen", size:"1.8 MB", permission:"View", expiry:"2027-05-12", status:"Active", tags:["id","employee"] }
+];
+
+const auditLog = [
+  { ts:"2025-02-05 09:14", user:"HR Admin", action:"Uploaded", doc:"Employment Contract - Ana Reyes.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-05 09:22", user:"Ana Reyes", action:"Viewed", doc:"Employment Contract - Ana Reyes.pdf", ip:"192.168.1.24", status:"Success" },
+  { ts:"2025-02-05 10:05", user:"Ana Reyes", action:"Signed", doc:"Employment Contract - Ana Reyes.pdf", ip:"192.168.1.24", status:"Success" },
+  { ts:"2025-02-04 14:30", user:"HR Admin", action:"Shared", doc:"NDA Template.docx", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-04 15:12", user:"Legal Dept", action:"Downloaded", doc:"NDA Template.docx", ip:"10.0.0.5", status:"Success" },
+  { ts:"2025-02-04 16:00", user:"Finance", action:"Uploaded", doc:"Q1 Payroll Report 2025.xlsx", ip:"10.0.0.8", status:"Success" },
+  { ts:"2025-02-04 16:45", user:"HR Admin", action:"Approved", doc:"Q1 Payroll Report 2025.xlsx", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-03 11:20", user:"HR Admin", action:"Uploaded", doc:"Leave Policy 2025.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-03 11:35", user:"Mark Santos", action:"Viewed", doc:"Leave Policy 2025.pdf", ip:"192.168.1.30", status:"Success" },
+  { ts:"2025-02-03 13:00", user:"HR Admin", action:"Uploaded", doc:"Mark Santos - Contract.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-03 13:45", user:"Mark Santos", action:"Signed", doc:"Mark Santos - Contract.pdf", ip:"192.168.1.30", status:"Success" },
+  { ts:"2025-02-02 09:00", user:"IT Dept", action:"Uploaded", doc:"IT Security Policy.pdf", ip:"10.0.0.2", status:"Success" },
+  { ts:"2025-02-02 10:30", user:"HR Admin", action:"Shared", doc:"IT Security Policy.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-02 14:00", user:"HR Admin", action:"Uploaded", doc:"DOLE Compliance Report Q4.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-02-02 14:20", user:"Compliance Team", action:"Viewed", doc:"DOLE Compliance Report Q4.pdf", ip:"10.0.0.9", status:"Success" },
+  { ts:"2025-02-01 09:15", user:"Lisa Chen", action:"Uploaded", doc:"Lisa Chen - ID Documents.pdf", ip:"192.168.1.55", status:"Success" },
+  { ts:"2025-02-01 11:00", user:"HR Admin", action:"Viewed", doc:"Lisa Chen - ID Documents.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-01-31 16:00", user:"HR Admin", action:"Rejected", doc:"Q1 Payroll Report 2025.xlsx", ip:"192.168.1.10", status:"Rejected" },
+  { ts:"2025-01-30 10:45", user:"Legal Dept", action:"Uploaded", doc:"NDA Template.docx", ip:"10.0.0.5", status:"Success" },
+  { ts:"2025-01-29 08:55", user:"HR Admin", action:"Downloaded", doc:"Code of Conduct.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-01-28 15:30", user:"HR Admin", action:"Uploaded", doc:"Employee Benefits Guide.pdf", ip:"192.168.1.10", status:"Success" },
+  { ts:"2025-01-27 11:10", user:"HR Admin", action:"Shared", doc:"Company Policy Handbook 2025.pdf", ip:"192.168.1.10", status:"Success" }
+];
+
+const policyLibrary = [
+  {
+    section:"HR Policies",
+    icon:"👥",
+    items:[
+      { name:"Leave Policy 2025", version:"v4.1", updated:"2025-01-01", type:"pdf" },
+      { name:"Employee Benefits Guide", version:"v3.2", updated:"2024-12-01", type:"pdf" },
+      { name:"Code of Conduct", version:"v3.0", updated:"2024-08-01", type:"pdf" },
+      { name:"Company Policy Handbook 2025", version:"v5.0", updated:"2025-01-01", type:"pdf" }
+    ]
+  },
+  {
+    section:"IT & Security",
+    icon:"🔒",
+    items:[
+      { name:"IT Security Policy", version:"v2.0", updated:"2024-10-01", type:"pdf" },
+      { name:"Data Privacy Policy", version:"v1.5", updated:"2024-09-15", type:"pdf" },
+      { name:"Acceptable Use Policy", version:"v2.1", updated:"2024-07-01", type:"pdf" }
+    ]
+  },
+  {
+    section:"Compliance",
+    icon:"✅",
+    items:[
+      { name:"DOLE Compliance Report Q4", version:"v1.0", updated:"2025-01-15", type:"pdf" },
+      { name:"Safety & Health Policy", version:"v2.0", updated:"2024-11-01", type:"pdf" },
+      { name:"Anti-Harassment Policy", version:"v3.1", updated:"2024-06-01", type:"pdf" }
+    ]
+  },
+  {
+    section:"Templates",
+    icon:"📋",
+    items:[
+      { name:"NDA Template", version:"v1.3", updated:"2024-11-15", type:"word" },
+      { name:"Onboarding Checklist Template", version:"v2.0", updated:"2024-09-15", type:"word" },
+      { name:"Offer Letter Template", version:"v1.4", updated:"2024-08-20", type:"word" },
+      { name:"Employment Contract Template", version:"v2.2", updated:"2025-01-05", type:"word" }
+    ]
+  }
+];
+
+/* ── State ── */
+let currentView = 'grid';
+let activeTag = '';
+let currentDocId = null;
+
+/* ── Helpers ── */
+function fileIcon(type) {
+  const icons = { pdf:'🔴', word:'🔵', excel:'🟢', image:'🟣' };
+  return icons[type] || '📄';
+}
+function fileIconClass(type) {
+  return type || 'pdf';
+}
+function statusBadge(status) {
+  const map = { Active:'badge-green', Expiring:'badge-yellow', Expired:'badge-red', Pending:'badge-yellow', Archived:'badge-gray' };
+  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+}
+function expiryClass(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date(); const exp = new Date(dateStr);
+  const diffDays = (exp - now) / (1000*60*60*24);
+  if (diffDays < 0) return 'expired';
+  if (diffDays <= 30) return 'expiring';
+  return '';
+}
+function expiryLabel(dateStr) {
+  if (!dateStr) return '<span class="doc-expiry" style="color:var(--text-muted);">No expiry</span>';
+  const cls = expiryClass(dateStr);
+  const label = cls === 'expired' ? `Expired ${dateStr}` : cls === 'expiring' ? `⚠ Expires ${dateStr}` : `Expires ${dateStr}`;
+  return `<span class="doc-expiry ${cls}">${label}</span>`;
+}
+function actionBadge(action) {
+  const map = {
+    Uploaded:'badge-blue', Viewed:'badge-gray', Signed:'badge-green',
+    Shared:'badge-purple', Downloaded:'badge-gray', Approved:'badge-green',
+    Rejected:'badge-red'
+  };
+  return `<span class="badge ${map[action]||'badge-gray'}" style="font-size:10px;">${action}</span>`;
+}
+function auditStatus(s) {
+  return s === 'Success'
+    ? '<span style="color:var(--success);font-size:12px;font-weight:600;">✓ Success</span>'
+    : '<span style="color:var(--danger);font-size:12px;font-weight:600;">✗ Rejected</span>';
+}
+
+/* ── Card rendering ── */
+function buildCard(doc, extraActions) {
+  const tags = doc.tags.map(t => `<span class="doc-tag">${t}</span>`).join('');
+  const actions = extraActions || `
+    <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openDetail(${doc.id})">View</button>
+    <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();showToast('Share dialog opened','info')">Share</button>
+    ${!doc.signed ? `<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openSignModalFor(${doc.id})">Sign</button>` : ''}
+  `;
+  return `
+    <div class="doc-card" onclick="openDetail(${doc.id})" role="button" tabindex="0" aria-label="Open ${doc.name}">
+      <div class="doc-icon ${fileIconClass(doc.type)}">${fileIcon(doc.type)}</div>
+      <div class="doc-name">${doc.name}</div>
+      <div class="doc-meta">${doc.owner} · ${doc.uploaded}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="badge badge-blue" style="font-size:10px;">${doc.version}</span>
+        ${statusBadge(doc.status)}
+        ${doc.signed ? '<span class="badge badge-green" style="font-size:10px;">✓ Signed</span>' : ''}
+      </div>
+      <div class="doc-tags">${tags}</div>
+      ${expiryLabel(doc.expiry)}
+      <div class="doc-actions">${actions}</div>
+    </div>`;
+}
+
+function buildTableRow(doc, isShared) {
+  const owner = isShared ? (doc.sharedBy || doc.owner) : doc.owner;
+  const ownerLabel = isShared ? `${owner} <span class="badge badge-blue" style="font-size:10px;">${doc.permission}</span>` : owner;
+  return `
+    <tr onclick="openDetail(${doc.id})">
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">${fileIcon(doc.type)}</span>
+        <span style="font-weight:500;">${doc.name}</span>
+      </div></td>
+      <td>${ownerLabel}</td>
+      <td>${doc.category}</td>
+      <td>${doc.size}</td>
+      <td><span class="badge badge-blue" style="font-size:10px;">${doc.version}</span></td>
+      <td>${doc.expiry ? `<span class="doc-expiry ${expiryClass(doc.expiry)}">${doc.expiry}</span>` : '—'}</td>
+      <td>${statusBadge(doc.status)}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-soft btn-sm" onclick="openDetail(${doc.id})">View</button>
+        <button class="btn btn-soft btn-sm" onclick="showToast('Downloaded','success')" style="margin-left:4px;">
+          <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </button>
+      </td>
+    </tr>`;
+}
+
+/* ── Filtering ── */
+function getFilteredDocs(pool) {
+  const q = (document.getElementById('docSearch').value || '').toLowerCase();
+  const type = document.getElementById('filterType').value;
+  const cat = document.getElementById('filterCategory').value;
+  const stat = document.getElementById('filterStatus').value;
+  return pool.filter(d => {
+    if (q && !d.name.toLowerCase().includes(q) && !d.tags.join(' ').includes(q)) return false;
+    if (type && d.type !== type) return false;
+    if (cat && d.category !== cat) return false;
+    if (stat && d.status !== stat) return false;
+    if (activeTag && !d.tags.includes(activeTag)) return false;
+    return true;
+  });
+}
+
+function applyFilters() { renderAll(); }
+
+function filterByTag(btn, tag) {
+  document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeTag = tag;
+  applyFilters();
+}
+
+function handleGlobalSearch(val) {
+  document.getElementById('docSearch').value = val;
+  applyFilters();
+}
+
+/* ── Render all ── */
+function renderAll() {
+  renderAllDocs();
+  renderMyDocs();
+  renderSharedDocs();
+}
+
+function renderAllDocs() {
+  const filtered = getFilteredDocs(documents);
+  const container = document.getElementById('allDocsContainer');
+  const tbody = document.getElementById('allDocsTableBody');
+  const empty = document.getElementById('allDocsEmpty');
+  if (!filtered.length) {
+    container.innerHTML = ''; tbody.innerHTML = '';
+    empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  container.innerHTML = filtered.map(d => buildCard(d)).join('');
+  tbody.innerHTML = filtered.map(d => buildTableRow(d, false)).join('');
+}
+
+function renderMyDocs() {
+  const myDocs = documents.filter(d => d.owner === 'HR Admin');
+  const filtered = getFilteredDocs(myDocs);
+  document.getElementById('myDocsContainer').innerHTML = filtered.map(d => buildCard(d)).join('');
+  document.getElementById('myDocsTableBody').innerHTML = filtered.map(d => buildTableRow(d, false)).join('');
+}
+
+function renderSharedDocs() {
+  const container = document.getElementById('sharedDocsContainer');
+  const tbody = document.getElementById('sharedDocsTableBody');
+  const filtered = getFilteredDocs(sharedDocs);
+  const sharedActions = (doc) => `
+    <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();openDetail(${doc.id})">View</button>
+    <button class="btn btn-soft btn-sm" onclick="event.stopPropagation();showToast('Downloaded','success')">Download</button>
+    ${doc.permission === 'Sign' ? `<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openSignModalFor(${doc.id})">Sign</button>` : ''}
+  `;
+  container.innerHTML = filtered.map(d => buildCard(d, sharedActions(d))).join('');
+  tbody.innerHTML = filtered.map(d => buildTableRow(d, true)).join('');
+}
+
+/* ── View toggle ── */
+function setView(v) {
+  currentView = v;
+  document.getElementById('gridViewBtn').classList.toggle('active', v === 'grid');
+  document.getElementById('listViewBtn').classList.toggle('active', v === 'list');
+  const panels = ['tab-all','tab-mine','tab-shared'];
+  panels.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.toggle('doc-list-view', v === 'list');
+  });
+}
+
+/* ── Tab switching ── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+/* ── Modal helpers ── */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+/* ── Modal inner tabs ── */
+function switchModalTab(panelId, btn) {
+  const modal = btn.closest('.modal');
+  modal.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
+  modal.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+/* ── Document Detail Modal ── */
+function openDetail(id) {
+  const doc = [...documents, ...sharedDocs].find(d => d.id === id);
+  if (!doc) return;
+  currentDocId = id;
+
+  const iconEl = document.getElementById('detailDocIcon');
+  iconEl.textContent = fileIcon(doc.type);
+  iconEl.className = `doc-detail-icon doc-icon ${fileIconClass(doc.type)}`;
+
+  document.getElementById('detailModalTitle').textContent = doc.name;
+  document.getElementById('detailDocMeta').innerHTML = `${doc.owner} &bull; Uploaded ${doc.uploaded} &bull; ${doc.size}`;
+  document.getElementById('detailApproveBtn').style.display = doc.status === 'Pending' ? 'inline-flex' : 'none';
+
+  document.getElementById('detailMetaTable').innerHTML = `
+    <tr><td>Category</td><td>${doc.category}</td></tr>
+    <tr><td>File Size</td><td>${doc.size}</td></tr>
+    <tr><td>Version</td><td><span class="badge badge-blue">${doc.version}</span></td></tr>
+    <tr><td>Expiry</td><td>${doc.expiry || '—'}</td></tr>
+    <tr><td>Status</td><td>${statusBadge(doc.status)}</td></tr>
+    <tr><td>Tags</td><td>${doc.tags.map(t=>`<span class="doc-tag">${t}</span>`).join(' ')}</td></tr>
+    <tr><td>Signed</td><td>${doc.signed ? '<span style="color:var(--success);font-weight:600;">Yes ✓</span>' : 'No'}</td></tr>
+  `;
+  document.getElementById('detailDescription').textContent = `This document is managed by ${doc.owner} and is classified under the ${doc.category} category. It contains official records relevant to WorkDesk's HRIS operations. Ensure proper access controls are maintained for compliance.`;
+
+  document.getElementById('versionHistoryList').innerHTML = `
+    <div class="version-item"><div><strong>${doc.version}</strong> <span style="font-size:11px;color:var(--text-muted);">Current</span><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Uploaded by ${doc.owner} on ${doc.uploaded}</div><div style="font-size:12px;color:var(--text-muted);">Updated formatting and revised clauses</div></div><button class="btn btn-soft btn-sm">Restore</button></div>
+    <div class="version-item"><div><strong>v${parseFloat(doc.version.slice(1))-0.1>0?(parseFloat(doc.version.slice(1))-0.1).toFixed(1):1}</strong><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Uploaded by ${doc.owner} on 2024-11-10</div><div style="font-size:12px;color:var(--text-muted);">Initial upload and compliance review</div></div><button class="btn btn-soft btn-sm">Restore</button></div>
+    <div class="version-item"><div><strong>v1.0</strong><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Uploaded by ${doc.owner} on 2024-08-05</div><div style="font-size:12px;color:var(--text-muted);">Original document created</div></div><button class="btn btn-soft btn-sm">Restore</button></div>
+  `;
+
+  document.getElementById('shareList').innerHTML = `
+    <div class="share-item"><div><strong>HR Admin</strong> <span style="font-size:11px;color:var(--text-muted);">(Owner)</span></div><span class="badge badge-green" style="font-size:10px;">Owner</span></div>
+    <div class="share-item"><div><strong>Ana Reyes</strong><div style="font-size:11px;color:var(--text-muted);">ana.reyes@workdesk.app</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-blue" style="font-size:10px;">View</span><button class="btn btn-soft btn-sm" style="font-size:10px;" onclick="showToast('Access removed','info')">Remove</button></div></div>
+    <div class="share-item"><div><strong>Legal Dept</strong><div style="font-size:11px;color:var(--text-muted);">legal@workdesk.app</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-yellow" style="font-size:10px;">Sign</span><button class="btn btn-soft btn-sm" style="font-size:10px;" onclick="showToast('Access removed','info')">Remove</button></div></div>
+  `;
+
+  document.getElementById('docAuditTrail').innerHTML = `
+    <div class="audit-trail-item"><div class="audit-trail-dot"></div><div><strong>HR Admin</strong> uploaded this document<div style="font-size:11px;color:var(--text-muted);">2025-01-10 09:14 &bull; 192.168.1.10</div></div></div>
+    <div class="audit-trail-item"><div class="audit-trail-dot"></div><div><strong>HR Admin</strong> shared with Legal Dept (View)<div style="font-size:11px;color:var(--text-muted);">2025-01-10 10:00 &bull; 192.168.1.10</div></div></div>
+    <div class="audit-trail-item"><div class="audit-trail-dot"></div><div><strong>Ana Reyes</strong> viewed the document<div style="font-size:11px;color:var(--text-muted);">2025-01-12 11:20 &bull; 192.168.1.24</div></div></div>
+    <div class="audit-trail-item"><div class="audit-trail-dot"></div><div><strong>Ana Reyes</strong> signed the document<div style="font-size:11px;color:var(--text-muted);">2025-01-15 14:35 &bull; 192.168.1.24</div></div></div>
+    <div class="audit-trail-item"><div class="audit-trail-dot" style="background:var(--success);"></div><div><strong>HR Admin</strong> approved and archived<div style="font-size:11px;color:var(--text-muted);">2025-01-20 09:00 &bull; 192.168.1.10</div></div></div>
+  `;
+
+  /* reset modal tabs */
+  const modal = document.getElementById('detailModal');
+  modal.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
+  modal.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+  modal.querySelector('.modal-tab-btn').classList.add('active');
+  document.getElementById('dtDetails').classList.add('active');
+
+  openModal('detailModal');
+}
+
+function addShare() {
+  const name = document.getElementById('shareEmailInput').value.trim();
+  const perm = document.getElementById('sharePermSelect').value;
+  if (!name) { showToast('Please enter a name or email','error'); return; }
+  const list = document.getElementById('shareList');
+  const item = document.createElement('div');
+  item.className = 'share-item';
+  item.innerHTML = `<div><strong>${name}</strong></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-blue" style="font-size:10px;">${perm}</span><button class="btn btn-soft btn-sm" style="font-size:10px;" onclick="this.closest('.share-item').remove();showToast('Access removed','info')">Remove</button></div>`;
+  list.appendChild(item);
+  document.getElementById('shareEmailInput').value = '';
+  showToast(`Shared with ${name} (${perm})`, 'success');
+}
+
+function copyShareLink() {
+  const link = document.getElementById('shareLinkInput').value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).catch(() => {});
+  }
+  showToast('Link copied to clipboard', 'success');
+}
+
+/* ── Upload Modal ── */
+function openUploadModal() { openModal('uploadModal'); }
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('uploadFileLabel').textContent = input.files[0].name;
+  }
+}
+function submitUpload() {
+  const name = document.getElementById('uploadName').value.trim();
+  if (!name) { showToast('Please enter a document name','error'); return; }
+  WDConfirm.show({
+    title:       'Upload Document',
+    message:     'Are you sure you want to upload "' + name + '"?',
+    type:        'info',
+    confirmText: 'Yes, Upload',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('uploadModal');
+      showToast('Document uploaded successfully', 'success');
+    }
+  });
+}
+
+/* ── Request Modal ── */
+function openRequestModal() { openModal('requestModal'); }
+function submitRequest() {
+  const name = document.getElementById('reqDocName').value.trim();
+  if (!name) { showToast('Please enter a document name','error'); return; }
+  WDConfirm.show({
+    title:       'Request Document',
+    message:     'Are you sure you want to submit a request for "' + name + '"?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('requestModal');
+      showToast('Request submitted successfully', 'success');
+    }
+  });
+}
+
+/* ── Delete Document ── */
+function confirmDeleteDoc() {
+  WDConfirm.show({
+    title:       'Delete Document',
+    message:     'Are you sure you want to permanently delete this document? This action cannot be undone.',
+    type:        'danger',
+    confirmText: 'Yes, Delete',
+    cancelText:  'No',
+    onConfirm: function () {
+      showToast('Document deleted', 'error');
+      closeModal('detailModal');
+    }
+  });
+}
+
+/* ── Sign Modal ── */
+function openSignModal() {
+  const doc = documents.find(d => d.id === currentDocId) || sharedDocs.find(d => d.id === currentDocId);
+  document.getElementById('signDocName').textContent = doc ? doc.name : 'Document';
+  document.getElementById('sigAgreeCheck').checked = false;
+  openModal('signModal');
+}
+function openSignModalFor(id) {
+  currentDocId = id;
+  openSignModal();
+}
+function clearSig() {
+  const pad = document.getElementById('sigPad');
+  pad.textContent = 'Draw your signature here';
+  pad.style.fontStyle = 'normal';
+}
+function signDocument() {
+  if (!document.getElementById('sigAgreeCheck').checked) {
+    showToast('Please agree to the digital signature consent', 'error'); return;
+  }
+  WDConfirm.show({
+    title:       'Sign Document',
+    message:     'Are you sure you want to digitally sign this document? This action is legally binding.',
+    type:        'warn',
+    confirmText: 'Yes, Sign',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('signModal');
+      showToast('Document signed successfully', 'success');
+    }
+  });
+}
+
+/* ── Approve ── */
+function approveDoc() {
+  WDConfirm.show({
+    title:       'Approve Document',
+    message:     'Are you sure you want to approve this document?',
+    type:        'info',
+    confirmText: 'Yes, Approve',
+    cancelText:  'No',
+    onConfirm: function () {
+      closeModal('detailModal');
+      showToast('Document approved', 'success');
+    }
+  });
+}
+
+/* ── Policy Library ── */
+function renderPolicyLibrary() {
+  const container = document.getElementById('policyLibraryContent');
+  container.innerHTML = policyLibrary.map((section, si) => `
+    <div class="policy-section">
+      <div class="policy-section-header" onclick="togglePolicySection(${si})" aria-expanded="true">
+        <span class="policy-section-title">${section.icon} ${section.section} <span style="font-weight:400;color:var(--text-muted);">(${section.items.length})</span></span>
+        <svg id="policy-chevron-${si}" width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="transition:transform .3s;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="policy-items-wrap" id="policy-wrap-${si}">
+        ${section.items.map(item => `
+          <div class="policy-item">
+            <span style="font-size:20px;">${fileIcon(item.type)}</span>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;color:var(--text-main);">${item.name}</div>
+              <div style="font-size:11px;color:var(--text-muted);">Last updated: ${item.updated}</div>
+            </div>
+            <span class="badge badge-blue" style="font-size:10px;">${item.version}</span>
+            <button class="btn btn-soft btn-sm" onclick="showToast('Downloading ${item.name}…','info')">
+              <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Download
+            </button>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function togglePolicySection(si) {
+  const wrap = document.getElementById(`policy-wrap-${si}`);
+  const chevron = document.getElementById(`policy-chevron-${si}`);
+  wrap.classList.toggle('collapsed');
+  chevron.style.transform = wrap.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+}
+
+/* ── Audit Log ── */
+function renderAuditLog() {
+  document.getElementById('auditTableBody').innerHTML = auditLog.map(entry => `
+    <tr>
+      <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">${entry.ts}</td>
+      <td style="font-weight:500;">${entry.user}</td>
+      <td>${actionBadge(entry.action)}</td>
+      <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.doc}</td>
+      <td style="font-size:12px;color:var(--text-muted);">${entry.ip}</td>
+      <td>${auditStatus(entry.status)}</td>
+    </tr>`).join('');
+}
+
+/* ── Status dropdown ── */
+function toggleStatus() {
+  const dd = document.getElementById('statusDropdown');
+  const btn = document.getElementById('statusBadgeBtn');
+  const isOpen = dd.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+  if (isOpen) {
+    document.getElementById('notifDropdown').classList.remove('open');
+    document.getElementById('notifBtn').setAttribute('aria-expanded','false');
+  }
+}
+function setStatus(status, label) {
+  document.getElementById('statusDot').className = `status-dot ${status}`;
+  document.getElementById('statusLabel').textContent = label;
+  document.getElementById('statusDropdown').classList.remove('open');
+  document.getElementById('statusBadgeBtn').setAttribute('aria-expanded','false');
+}
+
+/* ── Close status dropdown on outside click ── */
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#statusWrap')) {
+    document.getElementById('statusDropdown').classList.remove('open');
+    document.getElementById('statusBadgeBtn').setAttribute('aria-expanded','false');
+  }
+});
+
+/* ── Toast ── */
+let toastTimer;
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = type === 'error' ? 'var(--danger)' : type === 'success' ? '#059669' : '#1F2933';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ── Init ── */
+renderAllDocs();
+renderMyDocs();
+renderSharedDocs();
+renderPolicyLibrary();
+renderAuditLog();
+</script>
+</body>
+</html>

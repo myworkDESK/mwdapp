@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Ticketing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    /* ── Tables ── */
+    .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .data-table td { padding:11px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:var(--primary-soft); cursor:pointer; }
+
+    /* ── Badges ── */
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .badge-critical { background:#fde8e7; color:#c0392b; }
+    .badge-high     { background:#fef3e2; color:#c0600a; }
+    .badge-medium   { background:#fffbe6; color:#92640a; }
+    .badge-low      { background:#e9f9f4; color:#1a7a58; }
+    .badge-open     { background:#e8f4fd; color:#1a6fa0; }
+    .badge-inprogress { background:#fef3e2; color:#c0600a; }
+    .badge-pending  { background:#f3e8ff; color:#7c3aed; }
+    .badge-resolved { background:#e9f9f4; color:#1a7a58; }
+    .badge-closed   { background:#f0f2f5; color:#6B7A8D; }
+    .badge-hr       { background:#e8f4fd; color:#1a6fa0; }
+    .badge-payroll  { background:#fef3e2; color:#c0600a; }
+    .badge-it       { background:#f3e8ff; color:#7c3aed; }
+    .badge-admin    { background:#e9f9f4; color:#1a7a58; }
+    .badge-grievance{ background:#fde8e7; color:#c0392b; }
+
+    /* ── Filter bar ── */
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .filter-bar input, .filter-bar select { padding:9px 14px; border:1px solid var(--border-light); border-radius:8px; font-family:var(--font-primary); font-size:13px; color:var(--text-main); background:#fff; outline:none; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    .filter-bar input { flex:1; min-width:180px; }
+
+    /* ── Tabs ── */
+    .tab-bar { display:flex; gap:4px; border-bottom:2px solid var(--border-light); margin-bottom:20px; }
+    .tab-btn { padding:9px 18px; font-size:13px; font-weight:500; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; border-radius:6px 6px 0 0; transition:color .2s, border-color .2s; white-space:nowrap; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+    .tab-btn:hover:not(.active) { color:var(--text-main); background:var(--primary-soft); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── SLA indicator ── */
+    .sla-ok   { color:var(--success); font-weight:600; font-size:12px; }
+    .sla-warn { color:var(--warning); font-weight:600; font-size:12px; }
+    .sla-over { color:var(--danger);  font-weight:600; font-size:12px; }
+    .sla-dot  { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:4px; }
+    .sla-dot-ok   { background:var(--success); }
+    .sla-dot-warn { background:var(--warning); }
+    .sla-dot-over { background:var(--danger); }
+
+    /* ── Modals ── */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300; display:none; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:#fff; border-radius:var(--radius-sm); width:560px; max-width:96vw; max-height:92vh; overflow-y:auto; padding:32px; border:1px solid var(--border-card); box-shadow:0 8px 28px rgba(0,0,0,.12); animation:scaleIn .22s ease; }
+    @keyframes scaleIn { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+    .modal-title { font-size:17px; font-weight:700; color:var(--text-main); }
+    .modal-close { background:none; border:none; cursor:pointer; padding:4px; color:var(--text-muted); border-radius:6px; }
+    .modal-close:hover { background:var(--bg-main); }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; padding-top:18px; border-top:1px solid var(--border-light); }
+
+    /* ── Ticket detail panel ── */
+    .detail-panel { position:fixed; top:0; right:0; width:540px; max-width:98vw; height:100vh; background:#fff; box-shadow:-8px 0 40px rgba(0,0,0,.12); z-index:250; transform:translateX(100%); transition:transform .3s cubic-bezier(.16,1,.3,1); display:flex; flex-direction:column; }
+    .detail-panel.open { transform:translateX(0); }
+    .detail-header { padding:22px 24px; border-bottom:1px solid var(--border-light); display:flex; align-items:flex-start; gap:12px; }
+    .detail-body { flex:1; overflow-y:auto; padding:22px 24px; }
+    .detail-footer { padding:16px 24px; border-top:1px solid var(--border-light); }
+    .detail-close-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); padding:4px; border-radius:6px; margin-left:auto; flex-shrink:0; }
+    .detail-close-btn:hover { background:var(--bg-main); }
+
+    /* ── Comments / notes ── */
+    .comment-thread { display:flex; flex-direction:column; gap:12px; }
+    .comment-item { display:flex; gap:10px; }
+    .comment-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .comment-bubble { flex:1; background:var(--bg-main); border-radius:10px; padding:10px 13px; }
+    .comment-meta { font-size:11px; color:var(--text-muted); margin-bottom:4px; }
+    .comment-text { font-size:13px; color:var(--text-main); }
+    .note-item .comment-bubble { background:#fffbe6; border:1px solid #f4c86a55; }
+
+    /* ── Timeline ── */
+    .ticket-timeline { display:flex; flex-direction:column; gap:0; }
+    .tl-item { display:flex; gap:12px; padding-bottom:14px; position:relative; }
+    .tl-item:not(:last-child)::before { content:''; position:absolute; left:11px; top:24px; bottom:0; width:2px; background:var(--border-light); }
+    .tl-dot { width:24px; height:24px; border-radius:50%; background:var(--primary-soft); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary); font-size:10px; }
+    .tl-content { flex:1; padding-top:2px; }
+    .tl-action { font-size:13px; color:var(--text-main); font-weight:500; }
+    .tl-time { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+    /* ── Form helpers ── */
+    .form-group { margin-bottom:16px; }
+    .form-label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+    .form-control { width:100%; padding:10px 13px; border:1px solid var(--border-light); border-radius:8px; font-family:var(--font-primary); font-size:13px; color:var(--text-main); background:#fff; outline:none; box-sizing:border-box; }
+    .form-control:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    textarea.form-control { resize:vertical; min-height:90px; }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    /* ── Buttons ── */
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:background .2s, opacity .2s; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-primary:hover { opacity:.9; }
+    .btn-outline { background:#fff; border:1px solid var(--border-light); color:var(--text-main); }
+    .btn-outline:hover { background:var(--bg-main); }
+    .btn-danger { background:var(--danger); color:#fff; }
+    .btn-danger:hover { opacity:.9; }
+    .btn-sm { padding:6px 13px; font-size:12px; }
+    .btn-icon { width:34px; height:34px; padding:0; justify-content:center; }
+
+    /* ── Stat cards ── */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:16px; margin-bottom:24px; }
+    .stat-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); padding:18px 20px; box-shadow:var(--shadow-card); display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
+    .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    .stat-value { font-size:26px; font-weight:800; color:var(--text-main); line-height:1; }
+    .stat-sub { font-size:11px; color:var(--text-muted); margin-top:5px; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    .stat-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; flex-shrink:0; }
+
+    /* ── Section cards ── */
+    .section-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); box-shadow:var(--shadow-card); overflow:hidden; }
+    .section-card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border-light); }
+    .section-card-title { font-size:14px; font-weight:700; color:var(--text-main); }
+    .section-card-body { padding:0; }
+
+    /* ── Tags ── */
+    .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:500; background:var(--bg-main); border:1px solid var(--border-light); color:var(--text-muted); }
+    .tag-remove { cursor:pointer; color:var(--text-muted); font-size:13px; line-height:1; }
+    .tag-remove:hover { color:var(--danger); }
+    .tags-input { display:flex; flex-wrap:wrap; gap:6px; padding:7px 10px; border:1px solid var(--border-light); border-radius:8px; background:#fff; min-height:40px; cursor:text; }
+    .tags-input:focus-within { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    .tags-input input { border:none; outline:none; font-size:13px; font-family:var(--font-primary); min-width:80px; flex:1; padding:0; }
+
+    /* ── Attachment preview ── */
+    .attachment-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--bg-main); border-radius:8px; border:1px solid var(--border-light); font-size:12px; color:var(--text-main); }
+    .attachment-icon { color:var(--primary); flex-shrink:0; }
+
+    /* ── Toast ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:#1F2933; color:#fff; padding:12px 18px 12px 14px; border-radius:10px; font-size:13px; font-weight:500; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s, transform .3s; display:flex; align-items:center; gap:10px; min-width:260px; max-width:360px; box-shadow:0 4px 20px rgba(0,0,0,.2); }
+    .toast.show { opacity:1; transform:translateY(0); pointer-events:auto; }
+    .toast-icon { font-size:15px; }
+    .toast-success { border-left:4px solid var(--success); }
+    .toast-error   { border-left:4px solid var(--danger); }
+    .toast-info    { border-left:4px solid var(--primary); }
+    .toast-warn    { border-left:4px solid var(--warning); }
+
+    /* ── Overlay dim ── */
+    .panel-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:240; display:none; }
+    .panel-overlay.open { display:block; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align:center; padding:48px 20px; color:var(--text-muted); }
+    .empty-state svg { width:48px; height:48px; margin:0 auto 14px; opacity:.4; display:block; }
+    .empty-state p { font-size:13px; }
+
+    /* ── Detail sections ── */
+    .detail-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin:18px 0 10px; }
+    .detail-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .detail-meta-item label { font-size:11px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; }
+    .detail-meta-item span { font-size:13px; color:var(--text-main); }
+    .reply-input-area { display:flex; gap:10px; align-items:flex-end; margin-top:14px; }
+    .reply-input-area textarea { flex:1; }
+    .note-toggle { display:flex; gap:6px; margin-bottom:10px; }
+    .note-toggle-btn { padding:5px 13px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--border-light); background:#fff; color:var(--text-muted); }
+    .note-toggle-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+
+    /* ── Template selector ── */
+    .template-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .template-card { border:1px solid var(--border-light); border-radius:10px; padding:12px 14px; cursor:pointer; transition:border-color .2s, background .2s; }
+    .template-card:hover { border-color:var(--primary); background:var(--primary-soft); }
+    .template-card h4 { font-size:13px; font-weight:600; color:var(--text-main); margin:0 0 4px; }
+    .template-card p { font-size:11px; color:var(--text-muted); margin:0; }
+
+    /* ── Grievance section ── */
+    .grievance-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); padding:18px 20px; margin-bottom:12px; display:flex; gap:14px; align-items:flex-start; }
+    .grievance-status-bar { width:4px; border-radius:4px; flex-shrink:0; min-height:60px; }
+    .grievance-body h4 { font-size:14px; font-weight:600; color:var(--text-main); margin:0 0 4px; }
+    .grievance-body p { font-size:12px; color:var(--text-muted); margin:0 0 8px; }
+
+    /* ── Progress bar ── */
+    .progress-bar { height:5px; border-radius:3px; background:var(--border-light); overflow:hidden; }
+    .progress-fill { height:100%; border-radius:3px; background:var(--primary); transition:width .8s cubic-bezier(.16,1,.3,1); }
+
+    /* ── Responsive ── */
+    @media (max-width:700px) {
+      .input-row { grid-template-columns:1fr; }
+      .stat-grid { grid-template-columns:1fr 1fr; }
+      .detail-panel { width:100%; }
+      .template-list { grid-template-columns:1fr; }
+      .detail-meta-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li class="active" role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+        <span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span>
+        <span class="msg-nav-badge">3</span>
+      </li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        <span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+        <span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <button class="topbar-menu-btn" id="menuToggle" aria-label="Toggle menu">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <h1 class="topbar-title">Ticketing</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span class="topbar-badge">3</span>
+        </button>
+        <div class="topbar-avatar" aria-label="User menu">JD</div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <div class="page-content">
+
+      <!-- Stat cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f4fd;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1a6fa0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+          </div>
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-value" id="statTotal">48</div>
+          <div class="stat-sub">↑ 6 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f4fd;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1a6fa0"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="stat-label">Open</div>
+          <div class="stat-value" id="statOpen">14</div>
+          <div class="stat-sub">Awaiting response</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef3e2;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#c0600a"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="statInProgress">9</div>
+          <div class="stat-sub">Being actioned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e9f9f4;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1a7a58"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="stat-label">Resolved</div>
+          <div class="stat-value" id="statResolved">21</div>
+          <div class="stat-sub">↑ 4 vs last week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f3e8ff;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#7c3aed"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="stat-label">Avg SLA</div>
+          <div class="stat-value" id="statSLA">6.2h</div>
+          <div class="stat-sub">Target: 8h</div>
+        </div>
+      </div>
+
+      <!-- Tab bar + New Ticket button -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; margin-bottom:0;">
+        <div class="tab-bar" style="margin-bottom:0; border-bottom:none;">
+          <button class="tab-btn active" onclick="switchTab('all', this)">All Tickets</button>
+          <button class="tab-btn" onclick="switchTab('mine', this)">My Tickets</button>
+          <button class="tab-btn" onclick="switchTab('assigned', this)">Assigned to Me</button>
+          <button class="tab-btn" onclick="switchTab('grievances', this)">Grievances</button>
+        </div>
+        <div style="display:flex; gap:8px; padding-bottom:2px;">
+          <button class="btn btn-outline btn-sm" onclick="openTemplateModal()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Templates
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openNewTicketModal()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Ticket
+          </button>
+        </div>
+      </div>
+
+      <div style="border-bottom:2px solid var(--border-light); margin-bottom:20px;"></div>
+
+      <!-- ALL TICKETS tab -->
+      <div id="tab-all" class="tab-panel active">
+        <div class="filter-bar">
+          <input type="text" id="searchInput" placeholder="Search tickets…" oninput="filterTickets()" />
+          <select id="filterCategory" onchange="filterTickets()">
+            <option value="">All Categories</option>
+            <option value="HR">HR</option>
+            <option value="Payroll">Payroll</option>
+            <option value="IT">IT</option>
+            <option value="Admin">Admin</option>
+          </select>
+          <select id="filterStatus" onchange="filterTickets()">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending">Pending</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+          <select id="filterPriority" onchange="filterTickets()">
+            <option value="">All Priorities</option>
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="section-card">
+          <div class="section-card-body">
+            <table class="data-table" id="ticketTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Assignee</th>
+                  <th>SLA</th>
+                  <th>Created</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="ticketTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY TICKETS tab -->
+      <div id="tab-mine" class="tab-panel">
+        <div class="section-card">
+          <div class="section-card-body">
+            <table class="data-table">
+              <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>SLA</th><th>Created</th></tr></thead>
+              <tbody id="myTicketsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSIGNED TO ME tab -->
+      <div id="tab-assigned" class="tab-panel">
+        <div class="section-card">
+          <div class="section-card-body">
+            <table class="data-table">
+              <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Requester</th><th>SLA</th></tr></thead>
+              <tbody id="assignedBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRIEVANCES tab -->
+      <div id="tab-grievances" class="tab-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h3 style="font-size:15px; font-weight:700; margin:0 0 4px;">Dispute &amp; Grievance Management</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin:0;">Track and resolve employee disputes and formal grievances.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openNewTicketModal('Grievance')">+ New Grievance</button>
+        </div>
+        <div id="grievanceList"></div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-container -->
+
+<!-- ===== PANEL OVERLAY ===== -->
+<div class="panel-overlay" id="panelOverlay" onclick="closeDetailPanel()"></div>
+
+<!-- ===== TICKET DETAIL PANEL ===== -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div style="flex:1; min-width:0;">
+      <div id="detailId" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;"></div>
+      <h2 id="detailTitle" style="font-size:16px; font-weight:700; color:var(--text-main); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></h2>
+      <div id="detailBadges" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;"></div>
+    </div>
+    <button class="detail-close-btn" onclick="closeDetailPanel()">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-footer">
+    <button class="btn btn-danger btn-sm" id="detailEscalateBtn" onclick="escalateTicket()">Escalate</button>
+    <button class="btn btn-outline btn-sm" id="detailCloseBtn" onclick="closeTicket()">Close Ticket</button>
+    <button class="btn btn-primary btn-sm" id="detailResolveBtn" onclick="resolveTicket()">Mark Resolved</button>
+  </div>
+</div>
+
+<!-- ===== NEW TICKET MODAL ===== -->
+<div class="modal-backdrop" id="newTicketModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Create New Ticket</h2>
+      <button class="modal-close" onclick="closeNewTicketModal()">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ticket Title *</label>
+      <input type="text" id="ntTitle" class="form-control" placeholder="Brief description of the issue" />
+    </div>
+    <div class="input-row">
+      <div class="form-group">
+        <label class="form-label">Category *</label>
+        <select id="ntCategory" class="form-control">
+          <option value="">Select category</option>
+          <option value="HR">HR</option>
+          <option value="Payroll">Payroll</option>
+          <option value="IT">IT</option>
+          <option value="Admin">Admin</option>
+          <option value="Grievance">Grievance</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority *</label>
+        <select id="ntPriority" class="form-control">
+          <option value="Low">Low</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="High">High</option>
+          <option value="Critical">Critical</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assign To</label>
+      <select id="ntAssignee" class="form-control">
+        <option value="Unassigned">Unassigned</option>
+        <option value="Amara Mensah">Amara Mensah</option>
+        <option value="Kofi Asante">Kofi Asante</option>
+        <option value="Nadia Boateng">Nadia Boateng</option>
+        <option value="Yaw Darko">Yaw Darko</option>
+        <option value="Efua Quaye">Efua Quaye</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <textarea id="ntDescription" class="form-control" placeholder="Describe the issue in detail…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tags</label>
+      <div class="tags-input" id="tagsContainer" onclick="document.getElementById('tagInput').focus()">
+        <input type="text" id="tagInput" placeholder="Add tag + Enter" onkeydown="handleTagInput(event)" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Attachment</label>
+      <input type="file" id="ntFile" class="form-control" multiple />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeNewTicketModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTicket()">Submit Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEMPLATE MODAL ===== -->
+<div class="modal-backdrop" id="templateModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Ticket Templates</h2>
+      <button class="modal-close" onclick="closeTemplateModal()">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:18px;">Select a template to pre-fill ticket details.</p>
+    <div class="template-list">
+      <div class="template-card" onclick="applyTemplate('payslip')">
+        <h4>Payslip Request</h4>
+        <p>Request a copy of monthly payslip or tax certificate.</p>
+      </div>
+      <div class="template-card" onclick="applyTemplate('it-access')">
+        <h4>IT Access Request</h4>
+        <p>Request system or application access credentials.</p>
+      </div>
+      <div class="template-card" onclick="applyTemplate('leave-issue')">
+        <h4>Leave Balance Dispute</h4>
+        <p>Dispute or query about leave balances.</p>
+      </div>
+      <div class="template-card" onclick="applyTemplate('onboarding')">
+        <h4>Onboarding Setup</h4>
+        <p>New employee equipment and account setup request.</p>
+      </div>
+      <div class="template-card" onclick="applyTemplate('grievance')">
+        <h4>Formal Grievance</h4>
+        <p>Submit a formal workplace grievance or complaint.</p>
+      </div>
+      <div class="template-card" onclick="applyTemplate('policy')">
+        <h4>Policy Clarification</h4>
+        <p>Query about HR policies or procedures.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeTemplateModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+<script>
+// ─── State ───────────────────────────────────────────────────────────
+let tickets = [
+  { id:'TKT-001', title:'Payslip for March not received', category:'Payroll', priority:'High', status:'Open', assignee:'Amara Mensah', created:'2025-06-01', slaHours:8, elapsedHours:6, requester:'James Darko', tags:['payslip','urgent'], description:'I have not received my March payslip via email. Please resend.', comments:[{author:'Amara Mensah',time:'1h ago',text:'Looking into this now.',isNote:false}], timeline:[{action:'Ticket created',time:'Jun 1, 09:00'},{action:'Assigned to Amara Mensah',time:'Jun 1, 09:15'}] },
+  { id:'TKT-002', title:'VPN access not working for remote team', category:'IT', priority:'Critical', status:'In Progress', assignee:'Kofi Asante', created:'2025-06-02', slaHours:4, elapsedHours:3, requester:'Nadia Boateng', tags:['vpn','access'], description:'Several remote employees cannot connect to VPN since yesterday.', comments:[{author:'Kofi Asante',time:'2h ago',text:'Investigating firewall rules.',isNote:false},{author:'Kofi Asante',time:'1h ago',text:'Escalated to network team.',isNote:true}], timeline:[{action:'Ticket created',time:'Jun 2, 08:00'},{action:'Assigned to Kofi Asante',time:'Jun 2, 08:10'},{action:'Status changed to In Progress',time:'Jun 2, 09:00'}] },
+  { id:'TKT-003', title:'Leave balance showing incorrectly', category:'HR', priority:'Medium', status:'Pending', assignee:'Nadia Boateng', created:'2025-06-03', slaHours:24, elapsedHours:5, requester:'Yaw Darko', tags:['leave','balance'], description:'Annual leave balance is showing 5 days less than it should be.', comments:[], timeline:[{action:'Ticket created',time:'Jun 3, 10:30'}] },
+  { id:'TKT-004', title:'Office Wi-Fi password reset needed', category:'IT', priority:'Low', status:'Resolved', assignee:'Kofi Asante', created:'2025-05-28', slaHours:8, elapsedHours:2, requester:'Efua Quaye', tags:['wifi'], description:'The office Wi-Fi password needs to be reset for all meeting rooms.', comments:[{author:'Kofi Asante',time:'3 days ago',text:'Reset completed. New password distributed.',isNote:false}], timeline:[{action:'Ticket created',time:'May 28, 14:00'},{action:'Resolved by Kofi Asante',time:'May 28, 16:00'}] },
+  { id:'TKT-005', title:'Formal grievance — workplace harassment', category:'Grievance', priority:'Critical', status:'Open', assignee:'Amara Mensah', created:'2025-06-04', slaHours:4, elapsedHours:5, requester:'Anonymous', tags:['grievance','urgent'], description:'Formal complaint regarding repeated inappropriate comments from a supervisor.', comments:[{author:'Amara Mensah',time:'30m ago',text:'Acknowledged. Confidential investigation initiated.',isNote:true}], timeline:[{action:'Grievance submitted',time:'Jun 4, 08:00'},{action:'Assigned to HR Lead',time:'Jun 4, 08:05'}] },
+  { id:'TKT-006', title:'Salary increment not reflected in June payroll', category:'Payroll', priority:'High', status:'In Progress', assignee:'Yaw Darko', created:'2025-06-05', slaHours:8, elapsedHours:4, requester:'James Darko', tags:['salary','payroll'], description:'Approved salary increment effective June 1 is not showing in the payslip.', comments:[], timeline:[{action:'Ticket created',time:'Jun 5, 09:00'},{action:'Assigned to Yaw Darko',time:'Jun 5, 09:20'}] },
+  { id:'TKT-007', title:'New laptop setup request for onboarding', category:'Admin', priority:'Medium', status:'Pending', assignee:'Efua Quaye', created:'2025-06-05', slaHours:48, elapsedHours:10, requester:'Amara Mensah', tags:['onboarding','equipment'], description:'New hire starting June 10 needs laptop and accessories configured.', comments:[], timeline:[{action:'Ticket created',time:'Jun 5, 11:00'}] },
+  { id:'TKT-008', title:'Policy query: remote work allowance', category:'HR', priority:'Low', status:'Closed', assignee:'Nadia Boateng', created:'2025-05-30', slaHours:24, elapsedHours:6, requester:'Kofi Asante', tags:['policy'], description:'What is the maximum number of remote work days per month per the new policy?', comments:[{author:'Nadia Boateng',time:'5 days ago',text:'As per the updated policy, you may work remotely up to 10 days per month.',isNote:false}], timeline:[{action:'Ticket created',time:'May 30, 10:00'},{action:'Resolved',time:'May 30, 16:00'},{action:'Closed',time:'May 31, 09:00'}] },
+];
+
+let currentTags = [];
+let activeTicketId = null;
+let currentTab = 'all';
+
+// ─── Rendering ────────────────────────────────────────────────────────
+function priorityBadge(p) {
+  const map = { Critical:'badge-critical', High:'badge-high', Medium:'badge-medium', Low:'badge-low' };
+  return `<span class="badge ${map[p]||'badge-low'}">${p}</span>`;
+}
+function statusBadge(s) {
+  const map = { Open:'badge-open', 'In Progress':'badge-inprogress', Pending:'badge-pending', Resolved:'badge-resolved', Closed:'badge-closed' };
+  return `<span class="badge ${map[s]||'badge-open'}">${s}</span>`;
+}
+function categoryBadge(c) {
+  const map = { HR:'badge-hr', Payroll:'badge-payroll', IT:'badge-it', Admin:'badge-admin', Grievance:'badge-grievance' };
+  return `<span class="badge ${map[c]||'badge-hr'}">${c}</span>`;
+}
+function slaIndicator(t) {
+  const pct = t.elapsedHours / t.slaHours;
+  const rem = Math.max(0, t.slaHours - t.elapsedHours);
+  if (t.status === 'Resolved' || t.status === 'Closed') return `<span class="sla-ok"><span class="sla-dot sla-dot-ok"></span>SLA Met</span>`;
+  if (pct >= 1) return `<span class="sla-over"><span class="sla-dot sla-dot-over"></span>Overdue</span>`;
+  if (pct >= 0.8) return `<span class="sla-warn"><span class="sla-dot sla-dot-warn"></span>${rem}h left</span>`;
+  return `<span class="sla-ok"><span class="sla-dot sla-dot-ok"></span>${rem}h left</span>`;
+}
+
+function renderTicketRow(t) {
+  return `<tr onclick="openDetailPanel('${t.id}')">
+    <td><span style="font-size:11px;font-weight:600;color:var(--text-muted);">${t.id}</span></td>
+    <td><span style="font-weight:500;color:var(--text-main);">${t.title}</span>
+      ${t.tags.map(tag=>`<span class="tag" style="margin-left:4px;">${tag}</span>`).join('')}
+    </td>
+    <td>${categoryBadge(t.category)}</td>
+    <td>${priorityBadge(t.priority)}</td>
+    <td>${statusBadge(t.status)}</td>
+    <td><span style="font-size:13px;color:var(--text-muted);">${t.assignee}</span></td>
+    <td>${slaIndicator(t)}</td>
+    <td><span style="font-size:12px;color:var(--text-muted);">${t.created}</span></td>
+    <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openDetailPanel('${t.id}')" title="View">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    </button></td>
+  </tr>`;
+}
+
+function filterTickets() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('filterCategory').value;
+  const stat = document.getElementById('filterStatus').value;
+  const pri = document.getElementById('filterPriority').value;
+  const filtered = tickets.filter(t =>
+    (!search || t.title.toLowerCase().includes(search) || t.id.toLowerCase().includes(search)) &&
+    (!cat || t.category === cat) &&
+    (!stat || t.status === stat) &&
+    (!pri || t.priority === pri)
+  );
+  document.getElementById('ticketTableBody').innerHTML = filtered.length
+    ? filtered.map(renderTicketRow).join('')
+    : `<tr><td colspan="9"><div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>No tickets match your filters.</p></div></td></tr>`;
+}
+
+function renderMyTickets() {
+  const mine = tickets.filter(t => t.requester === 'James Darko');
+  document.getElementById('myTicketsBody').innerHTML = mine.length
+    ? mine.map(t => `<tr onclick="openDetailPanel('${t.id}')">
+        <td><span style="font-size:11px;font-weight:600;color:var(--text-muted);">${t.id}</span></td>
+        <td style="font-weight:500;">${t.title}</td>
+        <td>${categoryBadge(t.category)}</td>
+        <td>${priorityBadge(t.priority)}</td>
+        <td>${statusBadge(t.status)}</td>
+        <td>${slaIndicator(t)}</td>
+        <td style="font-size:12px;color:var(--text-muted);">${t.created}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="7"><div class="empty-state"><p>No tickets submitted by you.</p></div></td></tr>`;
+}
+
+function renderAssignedTickets() {
+  const assigned = tickets.filter(t => t.assignee === 'Amara Mensah');
+  document.getElementById('assignedBody').innerHTML = assigned.length
+    ? assigned.map(t => `<tr onclick="openDetailPanel('${t.id}')">
+        <td><span style="font-size:11px;font-weight:600;color:var(--text-muted);">${t.id}</span></td>
+        <td style="font-weight:500;">${t.title}</td>
+        <td>${categoryBadge(t.category)}</td>
+        <td>${priorityBadge(t.priority)}</td>
+        <td>${statusBadge(t.status)}</td>
+        <td style="font-size:13px;color:var(--text-muted);">${t.requester}</td>
+        <td>${slaIndicator(t)}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="7"><div class="empty-state"><p>No tickets assigned to you.</p></div></td></tr>`;
+}
+
+function renderGrievances() {
+  const gList = tickets.filter(t => t.category === 'Grievance');
+  const colors = { Open:'#E5534B', 'In Progress':'#F59E0B', Pending:'#7c3aed', Resolved:'#10B981', Closed:'#6B7A8D' };
+  document.getElementById('grievanceList').innerHTML = gList.length
+    ? gList.map(t => `
+      <div class="grievance-card" onclick="openDetailPanel('${t.id}')" style="cursor:pointer;">
+        <div class="grievance-status-bar" style="background:${colors[t.status]||'#6B7A8D'};"></div>
+        <div class="grievance-body" style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+            <h4>${t.title}</h4>
+            <div style="display:flex;gap:6px;">${priorityBadge(t.priority)} ${statusBadge(t.status)}</div>
+          </div>
+          <p>${t.description}</p>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <span style="font-size:11px;color:var(--text-muted);">🗂 ${t.id}</span>
+            <span style="font-size:11px;color:var(--text-muted);">👤 Assigned: ${t.assignee}</span>
+            <span style="font-size:11px;color:var(--text-muted);">📅 ${t.created}</span>
+            <span style="font-size:11px;">${slaIndicator(t)}</span>
+          </div>
+        </div>
+      </div>`).join('')
+    : `<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p>No grievances on record.</p></div>`;
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'mine') renderMyTickets();
+  if (tab === 'assigned') renderAssignedTickets();
+  if (tab === 'grievances') renderGrievances();
+}
+
+// ─── Detail panel ─────────────────────────────────────────────────────
+function openDetailPanel(id) {
+  const t = tickets.find(tk => tk.id === id);
+  if (!t) return;
+  activeTicketId = id;
+  document.getElementById('detailId').textContent = t.id;
+  document.getElementById('detailTitle').textContent = t.title;
+  document.getElementById('detailBadges').innerHTML = `${categoryBadge(t.category)} ${priorityBadge(t.priority)} ${statusBadge(t.status)} ${slaIndicator(t)}`;
+  document.getElementById('detailBody').innerHTML = buildDetailBody(t);
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function buildDetailBody(t) {
+  const commentsHtml = t.comments.map(c => `
+    <div class="comment-item ${c.isNote ? 'note-item' : ''}">
+      <div class="comment-avatar">${c.author.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>
+      <div class="comment-bubble">
+        <div class="comment-meta">${c.author} · ${c.time} ${c.isNote ? '<span class="badge badge-medium" style="font-size:10px;">Internal Note</span>' : ''}</div>
+        <div class="comment-text">${c.text}</div>
+      </div>
+    </div>`).join('');
+
+  const timelineHtml = t.timeline.map(item => `
+    <div class="tl-item">
+      <div class="tl-dot"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+      <div class="tl-content">
+        <div class="tl-action">${item.action}</div>
+        <div class="tl-time">${item.time}</div>
+      </div>
+    </div>`).join('');
+
+  const attachmentsHtml = `
+    <div class="attachment-item"><svg class="attachment-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>evidence_screenshot.png <span style="color:var(--text-muted);font-size:11px;margin-left:auto;">84 KB</span></div>`;
+
+  return `
+    <div class="detail-meta-grid">
+      <div class="detail-meta-item"><label>Requester</label><span>${t.requester}</span></div>
+      <div class="detail-meta-item"><label>Assignee</label><span>
+        <select style="border:1px solid var(--border-light);border-radius:6px;padding:4px 8px;font-size:12px;font-family:var(--font-primary);color:var(--text-main);background:#fff;cursor:pointer;" onchange="reassignTicket(this.value)">
+          ${['Unassigned','Amara Mensah','Kofi Asante','Nadia Boateng','Yaw Darko','Efua Quaye'].map(a=>`<option ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
+        </select>
+      </span></div>
+      <div class="detail-meta-item"><label>Category</label><span>${t.category}</span></div>
+      <div class="detail-meta-item"><label>Created</label><span>${t.created}</span></div>
+      <div class="detail-meta-item"><label>SLA Limit</label><span>${t.slaHours}h</span></div>
+      <div class="detail-meta-item"><label>Elapsed</label><span>${t.elapsedHours}h</span></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="detail-section-title">Description</div>
+      <p style="font-size:13px;color:var(--text-main);line-height:1.6;">${t.description}</p>
+    </div>
+    <div>
+      <div class="detail-section-title">Tags</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${t.tags.map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
+    </div>
+    <div>
+      <div class="detail-section-title">Attachments</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">${attachmentsHtml}</div>
+    </div>
+    <div>
+      <div class="detail-section-title">Activity &amp; Comments</div>
+      <div class="note-toggle">
+        <button class="note-toggle-btn active" id="showCommentsBtn" onclick="toggleNoteView('comments')">Comments</button>
+        <button class="note-toggle-btn" id="showNotesBtn" onclick="toggleNoteView('notes')">Internal Notes</button>
+      </div>
+      <div class="comment-thread" id="commentThread">${commentsHtml || '<p style="font-size:13px;color:var(--text-muted);">No comments yet.</p>'}</div>
+      <div class="reply-input-area" style="margin-top:12px;">
+        <textarea class="form-control" id="replyText" placeholder="Write a reply…" style="min-height:60px;"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="submitReply(false)">Reply</button>
+      </div>
+      <div style="text-align:right;margin-top:6px;">
+        <button class="btn btn-outline btn-sm" onclick="submitReply(true)">+ Internal Note</button>
+      </div>
+    </div>
+    <div>
+      <div class="detail-section-title">Ticket Timeline</div>
+      <div class="ticket-timeline">${timelineHtml}</div>
+    </div>`;
+}
+
+function toggleNoteView(view) {
+  const t = tickets.find(tk => tk.id === activeTicketId);
+  if (!t) return;
+  document.getElementById('showCommentsBtn').classList.toggle('active', view === 'comments');
+  document.getElementById('showNotesBtn').classList.toggle('active', view === 'notes');
+  const filtered = view === 'notes' ? t.comments.filter(c=>c.isNote) : t.comments.filter(c=>!c.isNote);
+  document.getElementById('commentThread').innerHTML = filtered.length
+    ? filtered.map(c => `<div class="comment-item ${c.isNote?'note-item':''}"><div class="comment-avatar">${c.author.split(' ').map(n=>n[0]).join('').substring(0,2)}</div><div class="comment-bubble"><div class="comment-meta">${c.author} · ${c.time}</div><div class="comment-text">${c.text}</div></div></div>`).join('')
+    : `<p style="font-size:13px;color:var(--text-muted);">No ${view === 'notes' ? 'internal notes' : 'comments'} yet.</p>`;
+}
+
+function submitReply(isNote) {
+  const text = document.getElementById('replyText').value.trim();
+  if (!text) { showToast('Please enter a message.', 'warn'); return; }
+  WDConfirm.show({
+    title:       isNote ? 'Add Internal Note' : 'Post Reply',
+    message:     isNote ? 'Are you sure you want to add this internal note?' : 'Are you sure you want to post this reply?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      const t = tickets.find(tk => tk.id === activeTicketId);
+      t.comments.push({ author:'James Darko', time:'Just now', text, isNote });
+      t.timeline.push({ action: isNote ? 'Internal note added' : 'Comment added by James Darko', time: 'Just now' });
+      document.getElementById('replyText').value = '';
+      openDetailPanel(activeTicketId);
+      showToast(isNote ? 'Internal note added.' : 'Reply posted successfully.', 'success');
+    }
+  });
+}
+
+function reassignTicket(assignee) {
+  const t = tickets.find(tk => tk.id === activeTicketId);
+  if (!t) return;
+  t.assignee = assignee;
+  t.timeline.push({ action: `Reassigned to ${assignee}`, time: 'Just now' });
+  filterTickets();
+  showToast(`Ticket reassigned to ${assignee}.`, 'info');
+}
+
+function escalateTicket() {
+  const t = tickets.find(tk => tk.id === activeTicketId);
+  if (!t) return;
+  if (t.priority === 'Critical') { showToast('Ticket is already Critical priority.', 'warn'); return; }
+  const levels = ['Low','Medium','High','Critical'];
+  const nextPriority = levels[Math.min(levels.indexOf(t.priority)+1, 3)];
+  WDConfirm.show({
+    title:       'Escalate Ticket',
+    message:     'Are you sure you want to escalate this ticket to ' + nextPriority + ' priority?',
+    type:        'warn',
+    confirmText: 'Yes, Escalate',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.priority = nextPriority;
+      t.timeline.push({ action: `Escalated — priority set to ${t.priority}`, time: 'Just now' });
+      openDetailPanel(activeTicketId);
+      filterTickets();
+      showToast(`Ticket escalated to ${t.priority}.`, 'warn');
+    }
+  });
+}
+
+function resolveTicket() {
+  const t = tickets.find(tk => tk.id === activeTicketId);
+  if (!t) return;
+  WDConfirm.show({
+    title:       'Resolve Ticket',
+    message:     'Are you sure you want to mark this ticket as Resolved?',
+    type:        'info',
+    confirmText: 'Yes, Resolve',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.status = 'Resolved';
+      t.timeline.push({ action: 'Resolved by James Darko', time: 'Just now' });
+      openDetailPanel(activeTicketId);
+      filterTickets();
+      showToast('Ticket marked as Resolved.', 'success');
+    }
+  });
+}
+
+function closeTicket() {
+  const t = tickets.find(tk => tk.id === activeTicketId);
+  if (!t) return;
+  WDConfirm.show({
+    title:       'Close Ticket',
+    message:     'Are you sure you want to close this ticket?',
+    type:        'warn',
+    confirmText: 'Yes, Close',
+    cancelText:  'No',
+    onConfirm: function () {
+      t.status = 'Closed';
+      t.timeline.push({ action: 'Ticket closed', time: 'Just now' });
+      closeDetailPanel();
+      filterTickets();
+      showToast('Ticket closed.', 'info');
+    }
+  });
+}
+
+function closeDetailPanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('open');
+  activeTicketId = null;
+}
+
+// ─── New Ticket Modal ─────────────────────────────────────────────────
+function openNewTicketModal(preCategory) {
+  currentTags = [];
+  document.getElementById('ntTitle').value = '';
+  document.getElementById('ntCategory').value = preCategory || '';
+  document.getElementById('ntPriority').value = 'Medium';
+  document.getElementById('ntAssignee').value = 'Unassigned';
+  document.getElementById('ntDescription').value = '';
+  document.getElementById('tagsContainer').querySelectorAll('.tag').forEach(t=>t.remove());
+  document.getElementById('tagInput').value = '';
+  document.getElementById('newTicketModal').classList.add('open');
+}
+function closeNewTicketModal() { document.getElementById('newTicketModal').classList.remove('open'); }
+
+function submitTicket() {
+  const title = document.getElementById('ntTitle').value.trim();
+  const category = document.getElementById('ntCategory').value;
+  const priority = document.getElementById('ntPriority').value;
+  const assignee = document.getElementById('ntAssignee').value;
+  const description = document.getElementById('ntDescription').value.trim();
+  if (!title || !category || !description) { showToast('Please fill in all required fields.', 'error'); return; }
+  WDConfirm.show({
+    title:       'Submit Ticket',
+    message:     'Are you sure you want to submit this ticket?',
+    type:        'info',
+    confirmText: 'Yes, Submit',
+    cancelText:  'No',
+    onConfirm: function () {
+      const id = 'TKT-' + String(tickets.length + 1).padStart(3,'0');
+      const now = new Date().toISOString().split('T')[0];
+      const slaMap = { Critical:4, High:8, Medium:24, Low:48 };
+      tickets.unshift({ id, title, category, priority, status:'Open', assignee, created:now, slaHours:slaMap[priority], elapsedHours:0, requester:'James Darko', tags:[...currentTags], description, comments:[], timeline:[{action:'Ticket created by James Darko',time:'Just now'}] });
+      filterTickets();
+      closeNewTicketModal();
+      showToast(`Ticket ${id} submitted successfully!`, 'success');
+      updateStats();
+      // Push notification for new ticket
+      if (window.WDNotifications) {
+        const safeTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        window.WDNotifications.push('ticket', 'New ticket <strong>' + id + '</strong>: ' + safeTitle, 'tickets.html');
+      }
+    }
+  });
+}
+
+// ─── Tags ─────────────────────────────────────────────────────────────
+function handleTagInput(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/,'');
+    if (val && !currentTags.includes(val)) {
+      currentTags.push(val);
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.innerHTML = `${val}<span class="tag-remove" onclick="removeTag('${val}',this)">×</span>`;
+      document.getElementById('tagsContainer').insertBefore(tag, document.getElementById('tagInput'));
+    }
+    e.target.value = '';
+  }
+}
+function removeTag(val, el) {
+  currentTags = currentTags.filter(t => t !== val);
+  el.closest('.tag').remove();
+}
+
+// ─── Templates ────────────────────────────────────────────────────────
+const templates = {
+  'payslip':    { title:'Payslip not received', category:'Payroll', priority:'High', description:'I have not received my payslip for the current month. Please resend to my registered email address.', tags:['payslip'] },
+  'it-access':  { title:'System access request', category:'IT', priority:'Medium', description:'I require access to [system/application]. Please create credentials and configure appropriate permissions.', tags:['access','it'] },
+  'leave-issue':{ title:'Leave balance dispute', category:'HR', priority:'Medium', description:'My leave balance appears incorrect. Expected balance: [X days]. Current showing: [Y days]. Please investigate.', tags:['leave','balance'] },
+  'onboarding': { title:'New employee onboarding setup', category:'Admin', priority:'Medium', description:'New hire starting on [date] requires laptop, access cards, system accounts, and orientation materials.', tags:['onboarding'] },
+  'grievance':  { title:'Formal workplace grievance', category:'Grievance', priority:'Critical', description:'I am submitting a formal grievance regarding [describe issue]. This has been ongoing since [date].', tags:['grievance'] },
+  'policy':     { title:'HR policy clarification', category:'HR', priority:'Low', description:'I require clarification on the following HR policy: [policy name/section]. Specifically: [your question].', tags:['policy'] },
+};
+
+function openTemplateModal() { document.getElementById('templateModal').classList.add('open'); }
+function closeTemplateModal() { document.getElementById('templateModal').classList.remove('open'); }
+
+function applyTemplate(key) {
+  const tpl = templates[key];
+  closeTemplateModal();
+  openNewTicketModal();
+  document.getElementById('ntTitle').value = tpl.title;
+  document.getElementById('ntCategory').value = tpl.category;
+  document.getElementById('ntPriority').value = tpl.priority;
+  document.getElementById('ntDescription').value = tpl.description;
+  currentTags = [...tpl.tags];
+  const container = document.getElementById('tagsContainer');
+  container.querySelectorAll('.tag').forEach(t=>t.remove());
+  tpl.tags.forEach(val => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${val}<span class="tag-remove" onclick="removeTag('${val}',this)">×</span>`;
+    container.insertBefore(tag, document.getElementById('tagInput'));
+  });
+  showToast('Template applied.', 'info');
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent = tickets.length;
+  document.getElementById('statOpen').textContent = tickets.filter(t=>t.status==='Open').length;
+  document.getElementById('statInProgress').textContent = tickets.filter(t=>t.status==='In Progress').length;
+  document.getElementById('statResolved').textContent = tickets.filter(t=>t.status==='Resolved').length;
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────
+function showToast(message, type = 'info') {
+  const icons = { success:'✅', error:'❌', warn:'⚠️', info:'ℹ️' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type === 'warn' ? 'warn' : type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+// ─── Sidebar toggle ───────────────────────────────────────────────────
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────
+filterTickets();
+updateStats();
+
+// Show a welcome notification after load
+setTimeout(() => showToast('2 tickets breaching SLA soon.', 'warn'), 1200);
+</script>
+<script src="/assets/js/notifications.js"></script>
+</body>
+</html>

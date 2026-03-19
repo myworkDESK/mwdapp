@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Payroll</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:1px solid var(--border-light); background:var(--bg-main); }
+    .data-table td { padding:12px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:var(--primary-soft); }
+
+    .payroll-hero {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; border-radius: var(--radius-lg); padding: 28px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: var(--shadow-card); margin-bottom: 24px;
+    }
+    .payroll-hero h2 { font-size:26px; font-weight:800; margin-bottom:6px; }
+    .payroll-hero p { font-size:13px; opacity:.8; }
+
+    .run-btn {
+      padding:14px 30px; background:#fff; color:var(--primary); border:none;
+      border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;
+      font-family:inherit; transition:opacity .2s, transform .1s; flex-shrink:0;
+    }
+    .run-btn:hover { opacity:.88; }
+    .run-btn:active { transform:scale(.97); }
+    .run-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    .payroll-chips { display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+    .payroll-chip { flex:1; min-width:140px; background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:16px 20px; box-shadow:var(--shadow-card); }
+    .payroll-chip .chip-val { font-size:22px; font-weight:800; color:var(--text-main); }
+    .payroll-chip .chip-lbl { font-size:11px; color:var(--text-muted); font-weight:500; margin-top:4px; }
+
+    .bar-chart { display:flex; align-items:flex-end; gap:6px; height:120px; padding:0 2px; }
+    .bar-group { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .bar-group .bar { width:100%; border-radius:5px 5px 0 0; background:var(--primary-soft); transition:background .2s; }
+    .bar-group .bar:hover { background:var(--primary); }
+    .bar-group .bar-label { font-size:10px; color:var(--text-muted); }
+
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .filter-bar input,.filter-bar select { padding:9px 14px; border:1px solid var(--border-light); border-radius:8px; font-family:var(--font-primary); font-size:13px; color:var(--text-main); background:#fff; outline:none; }
+    .filter-bar input:focus,.filter-bar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; display:none; align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:#fff; border-radius:var(--radius-sm); width:560px; max-width:96vw; max-height:90vh; overflow-y:auto; padding:32px; border:1px solid var(--border-card); box-shadow:0 8px 28px rgba(0,0,0,.12); animation:scaleIn .22s ease; }
+    .modal-title { font-size:17px; font-weight:700; margin-bottom:20px; }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+    .payslip-table { width:100%; font-size:13px; border-collapse:collapse; }
+    .payslip-table td { padding:7px 0; }
+    .payslip-table .sep { border-top:1px solid var(--border-light); font-weight:700; }
+
+    .pagination { display:flex; align-items:center; gap:6px; margin-top:16px; justify-content:flex-end; }
+    .page-btn { width:32px; height:32px; border:1px solid var(--border-light); border-radius:7px; background:#fff; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:background .2s; }
+    .page-btn:hover { background:var(--primary-soft); color:var(--primary); border-color:var(--primary); }
+    .page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:#1F2933; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:999; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s,transform .3s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+
+    /* ── Pay Tabs ── */
+    .pay-tabs { display:flex; gap:4px; border-bottom:2px solid var(--border-light); margin-bottom:20px; flex-wrap:wrap; }
+    .pay-tab { padding:10px 18px; border:none; background:none; font-family:var(--font-primary); font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .2s,border-color .2s; display:inline-flex; align-items:center; gap:6px; }
+    .pay-tab:hover { color:var(--primary); }
+    .pay-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .pay-tab-panel { display:none; }
+    .pay-tab-panel.active { display:block; }
+    .req-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:9px; font-size:10px; font-weight:700; }
+
+    /* ── Role info bar ── */
+    .role-info-bar { display:flex; align-items:center; gap:10px; padding:10px 16px; background:var(--primary-soft); border:1px solid rgba(58,143,123,.2); border-radius:var(--radius-sm); margin-bottom:16px; font-size:12px; color:var(--text-main); flex-wrap:wrap; }
+    .role-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; background:var(--primary); color:#fff; }
+    .role-demo-select { margin-left:auto; padding:4px 10px; border:1px solid var(--border-light); border-radius:6px; font-size:11px; font-family:var(--font-primary); }
+
+    /* ── Salary edit form ── */
+    .salary-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; }
+    .form-group label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+    .form-group input, .form-group textarea, .form-group select { padding:9px 12px; border:1px solid var(--border-light); border-radius:var(--radius-md); font-family:var(--font-primary); font-size:13px; color:var(--text-main); outline:none; transition:border-color .2s; }
+    .form-group input:focus, .form-group textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    .form-group textarea { resize:vertical; min-height:72px; }
+    .change-notice { background:#FEF3C7; border-left:3px solid var(--warning); border-radius:var(--radius-sm); padding:10px 14px; font-size:12px; color:#92400E; margin-top:8px; }
+    .change-notice strong { display:block; margin-bottom:2px; font-size:12px; }
+
+    /* ── Request status labels ── */
+    .req-status-pending { color:#D97706; font-weight:600; font-size:11px; }
+    .req-status-approved { color:var(--success); font-weight:600; font-size:11px; }
+    .req-status-rejected { color:var(--danger); font-weight:600; font-size:11px; }
+
+    /* ── Audit history ── */
+    .audit-entry { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-light); font-size:12px; }
+    .audit-entry:last-child { border-bottom:none; }
+    .audit-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:4px; }
+    .audit-dot.green { background:var(--success); }
+    .audit-dot.red { background:var(--danger); }
+    .audit-dot.yellow { background:var(--warning); }
+    .audit-meta { color:var(--text-muted); font-size:11px; margin-top:2px; }
+
+    /* ── Print styles ── */
+    @media print {
+      .sidebar, .topbar, .payroll-hero, .payroll-chips, .grid, .filter-bar,
+      .pagination, .modal-footer, .pay-tabs, .role-info-bar, #runPayrollBtn { display:none !important; }
+      .modal-backdrop { position:static !important; background:none !important; display:block !important; }
+      .modal { box-shadow:none; border:none; padding:0; max-height:none; width:100%; animation:none; }
+      body { background:#fff; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span>
+      </li>
+      <li class="active" role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+        <span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span>
+        <span class="msg-nav-badge">3</span>
+      </li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        <span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span>
+      </li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+        <span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span>
+      </li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk">
+        <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h2>Payroll</h2>
+        <input class="search-box" type="search" id="globalSearch" placeholder="Search employee, payroll…" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid #fff;"></span>
+        </button>
+        <div class="topbar-notif-wrap" id="notifWrap">
+          <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <button class="notif-mark-all" id="notifMarkAll">Mark all as read</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-footer">
+              <button class="notif-view-all" id="notifViewAll">See all notifications</button>
+            </div>
+          </div>
+        </div>
+        <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar">JD</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Role info bar -->
+      <div class="role-info-bar" id="roleInfoBar"></div>
+
+      <!-- Payroll run hero -->
+      <div class="payroll-hero">
+        <div>
+          <h2 id="payrollPeriodLabel">Payroll: March 2025</h2>
+          <p id="payrollStatusLabel">Status: <strong>Draft</strong> · 248 employees · Estimated <span id="heroEstimate">₱2,480,000</span></p>
+          <p style="margin-top:8px;font-size:12px;opacity:.6;">Next cutoff: March 31, 2025</p>
+        </div>
+        <button class="run-btn" id="runPayrollBtn">▶ Run Payroll</button>
+      </div>
+
+      <!-- KPI chips -->
+      <div class="payroll-chips">
+        <div class="payroll-chip">
+          <div class="chip-val" id="chipGross">₱2,480,000</div>
+          <div class="chip-lbl">Gross Payroll</div>
+        </div>
+        <div class="payroll-chip">
+          <div class="chip-val" id="chipDeductions">₱310,000</div>
+          <div class="chip-lbl">Total Deductions</div>
+        </div>
+        <div class="payroll-chip">
+          <div class="chip-val" id="chipNet">₱2,170,000</div>
+          <div class="chip-lbl">Net Pay</div>
+        </div>
+        <div class="payroll-chip">
+          <div class="chip-val" id="chipEmployees">248</div>
+          <div class="chip-lbl">Employees Paid</div>
+        </div>
+        <div class="payroll-chip">
+          <div class="chip-val" style="color:var(--success);" id="chipStatus">Draft</div>
+          <div class="chip-lbl">Run Status</div>
+        </div>
+      </div>
+
+      <!-- Chart + deduction grid -->
+      <div class="grid mb-20">
+        <div class="card col-span-2">
+          <div class="card-header">
+            <span class="card-title">Monthly Payroll Cost</span>
+            <button class="btn btn-soft btn-sm" id="exportPayrollBtn">⬇ Export Report</button>
+          </div>
+          <div class="bar-chart" id="payrollChart" aria-label="Monthly payroll bar chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Deduction Breakdown</span></div>
+          <div id="deductionChart" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Tabbed payroll section -->
+      <div class="card">
+        <div class="card-header" style="border-bottom:none;padding-bottom:0;">
+          <span class="card-title">Payroll Management</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-soft btn-sm" id="exportLedgerBtn">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <!-- Tab navigation -->
+        <div class="pay-tabs" style="padding:0 24px;">
+          <button class="pay-tab active" data-tab="ledger">Payroll Ledger</button>
+          <button class="pay-tab" data-tab="requests">
+            Salary Edit Requests
+            <span class="req-badge" id="reqCountBadge" style="display:none;">0</span>
+          </button>
+          <button class="pay-tab" data-tab="history">Audit History</button>
+        </div>
+
+        <!-- ── Tab: Payroll Ledger ── -->
+        <div class="pay-tab-panel active" id="tab-ledger" style="padding:0 24px 24px;">
+          <div class="filter-bar">
+            <input type="search" id="paySearch" placeholder="Search employee…" />
+            <select id="payPeriod">
+              <option>March 2025</option>
+              <option>February 2025</option>
+              <option>January 2025</option>
+              <option>December 2024</option>
+            </select>
+            <select id="payDept">
+              <option value="">All Departments</option>
+              <option>Engineering</option>
+              <option>HR</option>
+              <option>Finance</option>
+              <option>Operations</option>
+              <option>Marketing</option>
+              <option>Sales</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Basic Pay</th>
+                  <th>Overtime</th>
+                  <th>Allowances</th>
+                  <th>Deductions</th>
+                  <th>Net Pay</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="payTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="payPagination"></div>
+        </div>
+
+        <!-- ── Tab: Salary Edit Requests ── -->
+        <div class="pay-tab-panel" id="tab-requests" style="padding:0 24px 24px;">
+          <div class="notice" style="background:#FEF3C7;border-left:4px solid var(--warning);margin-bottom:16px;">
+            <div class="notice-title">⚠️ Approval Workflow</div>
+            Finance Assistants and Finance Supervisors may submit salary edit requests. HR Managers must approve or reject each request before the change takes effect. All actions are logged in the audit history.
+          </div>
+          <div id="requestsBody"></div>
+        </div>
+
+        <!-- ── Tab: Audit History ── -->
+        <div class="pay-tab-panel" id="tab-history" style="padding:0 24px 24px;">
+          <div class="notice info mb-16">
+            <div class="notice-title">🔒 Immutable Audit Trail</div>
+            All payroll modifications, approvals, and rejections are permanently logged here. This record is visible to HR Managers and Admins.
+          </div>
+          <div id="auditBody"></div>
+        </div>
+
+      </div><!-- end card -->
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== Payslip Modal ===== -->
+<div class="modal-backdrop" id="payslipModal" role="dialog" aria-modal="true" aria-labelledby="payslipTitle">
+  <div class="modal">
+    <h3 class="modal-title" id="payslipTitle">Payslip</h3>
+    <div id="payslipBody"></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-soft" id="closePayslipBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="printPayslipBtn">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Salary Edit Modal ===== -->
+<div class="modal-backdrop" id="salaryEditModal" role="dialog" aria-modal="true" aria-labelledby="salaryEditTitle">
+  <div class="modal">
+    <h3 class="modal-title" id="salaryEditTitle">Edit Salary — <span id="editEmpName" style="color:var(--primary);font-weight:800;"></span></h3>
+    <div class="change-notice">
+      <strong>⚠️ Transparency Notice</strong>
+      All salary modifications are permanently logged in the audit history. Requests from Finance roles require HR Manager approval before taking effect.
+    </div>
+    <div style="margin-top:16px;">
+      <div class="salary-form-grid">
+        <div class="form-group">
+          <label for="editBasic">Basic Pay</label>
+          <input type="number" id="editBasic" min="0" step="100" placeholder="e.g. 35000" />
+        </div>
+        <div class="form-group">
+          <label for="editOT">Overtime Pay</label>
+          <input type="number" id="editOT" min="0" step="100" placeholder="e.g. 1500" />
+        </div>
+        <div class="form-group">
+          <label for="editAllow">Allowances</label>
+          <input type="number" id="editAllow" min="0" step="100" placeholder="e.g. 5000" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="editNote">Reason / Note <span style="color:var(--danger);">*</span></label>
+        <textarea id="editNote" placeholder="Provide a clear reason for this salary change (required)…"></textarea>
+      </div>
+      <div id="editApprovalNotice" style="margin-top:10px;font-size:12px;color:var(--text-muted);"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-soft" id="closeSalaryEditBtn">Cancel</button>
+      <button type="button" class="btn btn-primary" id="submitSalaryEditBtn">Submit Change</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Approval Modal ===== -->
+<div class="modal-backdrop" id="approvalModal" role="dialog" aria-modal="true" aria-labelledby="approvalTitle">
+  <div class="modal" style="width:500px;">
+    <h3 class="modal-title" id="approvalTitle">Review Salary Edit Request</h3>
+    <div id="approvalSummary"></div>
+    <div class="form-group">
+      <label id="approvalNoteLabel" for="approvalNote">Note (optional):</label>
+      <textarea id="approvalNote" placeholder="Add a note…" style="min-height:60px;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-soft" id="closeApprovalBtn">Cancel</button>
+      <button type="button" class="btn" id="confirmApprovalBtn" style="color:#fff;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var PAGE_SIZE = 10;
+  var currentPage = 1;
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── Finance Settings ─────────────────────────────────────────────────────
+  var DEFAULT_FINANCE = {
+    currency:'PHP', currencySymbol:'₱',
+    taxRate:10, vatRate:12, country:'PH',
+    deductions:[
+      {name:'SSS',rate:4.5,fixed:false},
+      {name:'PhilHealth',rate:1.5,fixed:false},
+      {name:'Pag-IBIG',rate:0,fixed:true,fixedAmt:100}
+    ]
+  };
+  function getFinanceSettings(){
+    try{ return JSON.parse(localStorage.getItem('workdesk_finance_settings')||'null')||DEFAULT_FINANCE; }
+    catch(e){ return DEFAULT_FINANCE; }
+  }
+  var finSettings = getFinanceSettings();
+  var currencySymbol = (finSettings.currencySymbol||'₱');
+
+  function fmt(n){ return currencySymbol+Number(n).toLocaleString(); }
+
+  // ── Role / Permissions ────────────────────────────────────────────────────
+  function getUserRole(){ return localStorage.getItem('workdesk_role')||'Manager'; }
+  function canEditSalary(){
+    var r=getUserRole();
+    return ['FinanceAssistant','FinanceSupervisor','HRManager','Admin'].indexOf(r)>-1;
+  }
+  function needsApproval(){
+    var r=getUserRole();
+    return ['FinanceAssistant','FinanceSupervisor'].indexOf(r)>-1;
+  }
+  function canApproveSalary(){
+    var r=getUserRole();
+    return ['HRManager','Admin'].indexOf(r)>-1;
+  }
+  function getRoleLabel(r){
+    var labels={Entry:'Entry Level',Supervisor:'Supervisor',FinanceAssistant:'Finance Assistant',
+      FinanceSupervisor:'Finance Supervisor',HR:'HR Staff',HRManager:'HR Manager',Admin:'Admin',Manager:'Manager'};
+    return labels[r]||r;
+  }
+
+  // ── Reusable deduction calculator ────────────────────────────────────────
+  function calcDeductions(basic,ot,allow,fs){
+    var ded0=fs.deductions[0]||{name:'SSS',rate:4.5,fixed:false};
+    var ded1=fs.deductions[1]||{name:'PhilHealth',rate:1.5,fixed:false};
+    var ded2=fs.deductions[2]||{name:'Pag-IBIG',rate:0,fixed:true,fixedAmt:100};
+    var sss=Math.round(basic*(ded0.fixed?(ded0.fixedAmt||0):ded0.rate)/100);
+    var philhealth=Math.round(basic*(ded1.fixed?(ded1.fixedAmt||0):ded1.rate)/100);
+    var pagibig=ded2.fixed?(ded2.fixedAmt||0):Math.round(basic*ded2.rate/100);
+    var taxable=basic+ot+allow-sss-philhealth-pagibig;
+    var tax=Math.round(taxable*(fs.taxRate||10)/100);
+    var total=sss+philhealth+pagibig+tax;
+    return{sss:sss,philhealth:philhealth,pagibig:pagibig,tax:tax,total:total,net:basic+ot+allow-total};
+  }
+
+  // ── Seed Data ─────────────────────────────────────────────────────────────
+  var SEED_PAYROLL=(function(){
+    var employees=JSON.parse(localStorage.getItem('workdesk_employees')||'[]');
+    if(!employees.length) employees=[
+      {id:'EMP-001',first:'Maria',last:'Santos',dept:'HR'},
+      {id:'EMP-002',first:'Jose',last:'Reyes',dept:'Engineering'},
+      {id:'EMP-003',first:'Liza',last:'Cruz',dept:'Finance'},
+      {id:'EMP-004',first:'Ben',last:'Mendoza',dept:'Operations'},
+      {id:'EMP-005',first:'Ana',last:'Garcia',dept:'Marketing'},
+      {id:'EMP-006',first:'Carlos',last:'Ramos',dept:'Sales'},
+      {id:'EMP-007',first:'Rosa',last:'Torres',dept:'Engineering'},
+      {id:'EMP-008',first:'Marco',last:'Villanueva',dept:'HR'},
+    ];
+    var baseSalaries={Engineering:45000,HR:35000,Finance:38000,Operations:30000,Marketing:32000,Sales:28000};
+    var fs=getFinanceSettings();
+    return employees.map(function(e){
+      var base=baseSalaries[e.dept]||30000;
+      var ot=Math.floor(Math.random()*3000);
+      var allow=5000;
+      var d=calcDeductions(base,ot,allow,fs);
+      return{id:e.id,name:e.first+' '+e.last,dept:e.dept,
+             basic:base,ot:ot,allow:allow,sss:d.sss,philhealth:d.philhealth,pagibig:d.pagibig,tax:d.tax,
+             deductions:d.total,net:d.net,status:'Draft',period:'March 2025'};
+    });
+  })();
+
+  var ledger=JSON.parse(localStorage.getItem('workdesk_payroll_ledger')||'null')||SEED_PAYROLL;
+  function saveLedger(){ localStorage.setItem('workdesk_payroll_ledger',JSON.stringify(ledger)); }
+
+  var salaryRequests=JSON.parse(localStorage.getItem('workdesk_salary_requests')||'[]');
+  function saveRequests(){ localStorage.setItem('workdesk_salary_requests',JSON.stringify(salaryRequests)); }
+
+  var auditLog=JSON.parse(localStorage.getItem('workdesk_payroll_audit')||'[]');
+  function saveAudit(){ localStorage.setItem('workdesk_payroll_audit',JSON.stringify(auditLog)); }
+  function addAuditEntry(action,details,type){
+    var actor=localStorage.getItem('workdesk_display_name')||getRoleLabel(getUserRole());
+    auditLog.unshift({ts:new Date().toISOString(),actor:actor,role:getUserRole(),action:action,details:details,type:type||'info'});
+    if(auditLog.length>200) auditLog=auditLog.slice(0,200);
+    saveAudit();
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function toast(msg){
+    var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show');},3000);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function escHtml(s){
+    if(!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(iso){
+    if(!iso) return '—';
+    try{var d=new Date(iso);return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+    catch(e){return iso;}
+  }
+
+  // ── User Info & Role Bar ──────────────────────────────────────────────────
+  function initUserInfo(){
+    var name=localStorage.getItem('workdesk_display_name')||'HR Admin';
+    var initials=name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var av=document.getElementById('topbarAvatar'); if(av) av.textContent=initials;
+    renderRoleBar();
+  }
+  function renderRoleBar(){
+    var role=getUserRole();
+    var canEdit=canEditSalary(); var canApprove=canApproveSalary();
+    var bar=document.getElementById('roleInfoBar'); if(!bar) return;
+    var roleOptions=['Entry','Supervisor','FinanceAssistant','FinanceSupervisor','HR','HRManager','Admin'].map(function(r){
+      return '<option value="'+r+'"'+(r===role?' selected':'')+'>'+getRoleLabel(r)+'</option>';
+    }).join('');
+    bar.innerHTML=
+      '<span style="font-size:11px;color:var(--text-muted);">Demo Role:</span>'+
+      '<span class="role-badge">'+getRoleLabel(role)+'</span>'+
+      (canEdit?'<span style="color:var(--success);font-size:11px;">✓ Can edit salaries</span>':'<span style="color:var(--text-muted);font-size:11px;">View only</span>')+
+      (canApprove?'<span style="color:var(--primary);font-size:11px;margin-left:4px;">✓ Can approve salary changes</span>':'')+
+      '<select class="role-demo-select" id="roleDemoSelect" title="Switch role for demo">'+roleOptions+'</select>';
+    document.getElementById('roleDemoSelect').addEventListener('change',function(){
+      localStorage.setItem('workdesk_role',this.value);
+      renderRoleBar(); renderTable(); renderRequests();
+    });
+  }
+
+  // ── KPIs ─────────────────────────────────────────────────────────────────
+  function updateKPIs(){
+    var tg=ledger.reduce(function(s,r){return s+r.basic+r.ot+r.allow;},0);
+    var td=ledger.reduce(function(s,r){return s+r.deductions;},0);
+    var tn=ledger.reduce(function(s,r){return s+r.net;},0);
+    var allR=ledger.every(function(r){return r.status==='Released';});
+    document.getElementById('chipGross').textContent=fmt(tg);
+    document.getElementById('chipDeductions').textContent=fmt(td);
+    document.getElementById('chipNet').textContent=fmt(tn);
+    document.getElementById('chipEmployees').textContent=ledger.length;
+    document.getElementById('chipStatus').textContent=allR?'Released':ledger.some(function(r){return r.status==='Processing';})?'Processing':'Draft';
+    var heroEst=document.getElementById('heroEstimate'); if(heroEst) heroEst.textContent=fmt(tg);
+  }
+
+  // ── Charts ────────────────────────────────────────────────────────────────
+  function renderPayrollChart(){
+    var now=new Date(); var data=[];
+    for(var i=5;i>=0;i--){
+      var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      data.push({label:MONTHS[d.getMonth()],val:2000000+Math.floor(Math.random()*600000)});
+    }
+    var max=Math.max.apply(null,data.map(function(d){return d.val;}))||1;
+    document.getElementById('payrollChart').innerHTML=data.map(function(d){
+      return '<div class="bar-group"><div class="bar" style="height:'+Math.round((d.val/max)*100)+'px;"></div><div class="bar-label">'+d.label+'</div></div>';
+    }).join('');
+  }
+  function renderDeductionChart(){
+    var fs=getFinanceSettings();
+    var totals={'W/Tax':0};
+    // Use ledger sss/philhealth/pagibig mapped to configured deduction names
+    var d0=(fs.deductions[0]||{name:'SSS'}).name;
+    var d1=(fs.deductions[1]||{name:'PhilHealth'}).name;
+    var d2=(fs.deductions[2]||{name:'Pag-IBIG'}).name;
+    totals[d0]=0;totals[d1]=0;totals[d2]=0;
+    ledger.forEach(function(r){
+      totals[d0]=(totals[d0]||0)+(r.sss||0);
+      totals[d1]=(totals[d1]||0)+(r.philhealth||0);
+      totals[d2]=(totals[d2]||0)+(r.pagibig||0);
+      totals['W/Tax']+=(r.tax||0);
+    });
+    var max=Math.max.apply(null,Object.keys(totals).map(function(k){return totals[k];}))||1;
+    document.getElementById('deductionChart').innerHTML=Object.keys(totals).map(function(k){
+      var pct=Math.round((totals[k]/max)*100);
+      return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;">'+
+        '<div style="flex:1;color:var(--text-muted);">'+escHtml(k)+'</div>'+
+        '<div style="flex:2;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">'+
+          '<div style="height:100%;width:0%;background:var(--danger);border-radius:4px;transition:width .8s" data-w="'+pct+'"></div></div>'+
+        '<div style="width:70px;text-align:right;font-size:11px;font-weight:600;">'+fmt(totals[k])+'</div></div>';
+    }).join('');
+    setTimeout(function(){document.querySelectorAll('#deductionChart [data-w]').forEach(function(el){el.style.width=el.dataset.w+'%';});},60);
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function statusTag(s){
+    var map={Released:'tag-green',Processing:'tag-yellow',Draft:'tag-blue'};
+    return '<span class="tag '+(map[s]||'tag-blue')+'">'+s+'</span>';
+  }
+  function getFiltered(){
+    var q=((document.getElementById('paySearch').value||'')+(document.getElementById('globalSearch').value||'')).toLowerCase().trim();
+    var dept=document.getElementById('payDept').value;
+    return ledger.filter(function(r){
+      return(r.name.toLowerCase().indexOf(q)>-1||r.id.toLowerCase().indexOf(q)>-1)&&(!dept||r.dept===dept);
+    });
+  }
+  function hasPendingRequest(empId){
+    return salaryRequests.some(function(r){return r.empId===empId&&r.status==='Pending';});
+  }
+  function renderTable(){
+    var canEdit=canEditSalary();
+    var filtered=getFiltered();
+    var start=(currentPage-1)*PAGE_SIZE;
+    var page=filtered.slice(start,start+PAGE_SIZE);
+    document.getElementById('payTableBody').innerHTML=page.map(function(r){
+      var pendingBadge=hasPendingRequest(r.id)?'<span class="req-badge" title="Pending salary edit request" style="margin-left:4px;">!</span>':'';
+      var editBtn=canEdit?'<button class="btn btn-soft btn-sm edit-salary-btn" data-id="'+r.id+'" style="margin-right:4px;">✎ Edit</button>':'';
+      return '<tr>'+
+        '<td><strong>'+escHtml(r.name)+'</strong>'+pendingBadge+'<br><span style="font-size:11px;color:var(--text-muted);">'+r.id+'</span></td>'+
+        '<td>'+r.dept+'</td><td>'+fmt(r.basic)+'</td><td>'+fmt(r.ot)+'</td><td>'+fmt(r.allow)+'</td>'+
+        '<td style="color:var(--danger);">'+fmt(r.deductions)+'</td>'+
+        '<td style="font-weight:700;color:var(--primary);">'+fmt(r.net)+'</td>'+
+        '<td>'+statusTag(r.status)+'</td>'+
+        '<td style="white-space:nowrap;">'+editBtn+'<button class="btn btn-soft btn-sm payslip-btn" data-id="'+r.id+'">Payslip</button></td></tr>';
+    }).join('');
+    var total=Math.ceil(filtered.length/PAGE_SIZE);
+    var pag=document.getElementById('payPagination'); var html='';
+    for(var i=1;i<=total;i++) html+='<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>';
+    pag.innerHTML=html;
+    pag.querySelectorAll('.page-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){currentPage=parseInt(btn.dataset.page);renderTable();});
+    });
+    document.querySelectorAll('.payslip-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){openPayslip(btn.dataset.id);});
+    });
+    document.querySelectorAll('.edit-salary-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){openSalaryEdit(btn.dataset.id);});
+    });
+  }
+
+  // ── Requests Tab ─────────────────────────────────────────────────────────
+  function renderRequests(){
+    var canApprove=canApproveSalary();
+    var pending=salaryRequests.filter(function(r){return r.status==='Pending';});
+    var processed=salaryRequests.filter(function(r){return r.status!=='Pending';});
+    var badge=document.getElementById('reqCountBadge');
+    if(badge){badge.textContent=pending.length;badge.style.display=pending.length>0?'inline-flex':'none';}
+    var html='';
+    if(salaryRequests.length===0){
+      html='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">No salary edit requests submitted yet.</div>';
+    } else {
+      if(pending.length>0){
+        html+='<div style="font-weight:700;font-size:13px;margin-bottom:12px;color:#D97706;">⏳ Pending Approval ('+pending.length+')</div>';
+        html+='<div style="overflow-x:auto;margin-bottom:24px;"><table class="data-table"><thead><tr>'+
+          '<th>Employee</th><th>Changes</th><th>Note / Reason</th><th>Requested By</th><th>Date</th><th>Status</th>'+
+          (canApprove?'<th>Actions</th>':'')+'</tr></thead><tbody>';
+        pending.forEach(function(req){
+          html+='<tr>'+
+            '<td><strong>'+escHtml(req.empName)+'</strong><br><span style="font-size:11px;color:var(--text-muted);">'+req.empId+'</span></td>'+
+            '<td style="font-size:12px;">'+escHtml(req.changesSummary)+'</td>'+
+            '<td style="max-width:180px;font-size:12px;">'+escHtml(req.note)+'</td>'+
+            '<td>'+escHtml(req.requestedBy)+'<br><span style="font-size:10px;color:var(--text-muted);">'+getRoleLabel(req.requestedRole)+'</span></td>'+
+            '<td style="font-size:11px;">'+fmtDate(req.requestedAt)+'</td>'+
+            '<td><span class="req-status-pending">Pending</span></td>'+
+            (canApprove?'<td style="white-space:nowrap;"><button class="btn btn-sm" style="background:var(--success);color:#fff;margin-right:4px;" data-approve="'+req.id+'">✓ Approve</button><button class="btn btn-sm btn-soft" data-reject="'+req.id+'">✗ Reject</button></td>':'<td style="font-size:11px;color:var(--text-muted);">Awaiting HR</td>')+
+          '</tr>';
+        });
+        html+='</tbody></table></div>';
+      }
+      if(processed.length>0){
+        html+='<div style="font-weight:700;font-size:13px;margin-bottom:12px;color:var(--text-muted);">📋 Processed Requests ('+processed.length+')</div>';
+        html+='<div style="overflow-x:auto;"><table class="data-table"><thead><tr>'+
+          '<th>Employee</th><th>Changes</th><th>Note</th><th>Requested By</th><th>Status</th><th>Processed By</th></tr></thead><tbody>';
+        processed.forEach(function(req){
+          var cls=req.status==='Approved'?'req-status-approved':'req-status-rejected';
+          html+='<tr>'+
+            '<td><strong>'+escHtml(req.empName)+'</strong><br><span style="font-size:11px;color:var(--text-muted);">'+req.empId+'</span></td>'+
+            '<td style="font-size:12px;">'+escHtml(req.changesSummary)+'</td>'+
+            '<td style="font-size:12px;">'+escHtml(req.note)+'</td>'+
+            '<td>'+escHtml(req.requestedBy)+'</td>'+
+            '<td><span class="'+cls+'">'+req.status+'</span></td>'+
+            '<td style="font-size:11px;">'+escHtml(req.approvedBy||'—')+(req.rejectionNote?'<br><em style="color:var(--danger);">'+escHtml(req.rejectionNote)+'</em>':'')+'</td>'+
+          '</tr>';
+        });
+        html+='</tbody></table></div>';
+      }
+    }
+    document.getElementById('requestsBody').innerHTML=html;
+    document.querySelectorAll('[data-approve]').forEach(function(btn){
+      btn.addEventListener('click',function(){openApproval(btn.dataset.approve,true);});
+    });
+    document.querySelectorAll('[data-reject]').forEach(function(btn){
+      btn.addEventListener('click',function(){openApproval(btn.dataset.reject,false);});
+    });
+  }
+
+  // ── Audit History ─────────────────────────────────────────────────────────
+  function renderAudit(){
+    var container=document.getElementById('auditBody');
+    if(auditLog.length===0){
+      container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">No audit entries yet.</div>';
+      return;
+    }
+    container.innerHTML=auditLog.map(function(e){
+      var dotCls={success:'green',danger:'red',warning:'yellow'}[e.type]||'';
+      return '<div class="audit-entry">'+
+        '<div class="audit-dot '+dotCls+'"></div>'+
+        '<div><div style="font-weight:600;color:var(--text-main);">'+escHtml(e.action)+'</div>'+
+        '<div style="font-size:12px;margin-top:2px;color:var(--text-main);">'+escHtml(e.details)+'</div>'+
+        '<div class="audit-meta">'+escHtml(e.actor)+' · '+getRoleLabel(e.role)+' · '+fmtDate(e.ts)+'</div></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ── Payslip Modal ──────────────────────────────────────────────────────────
+  function openPayslip(id){
+    var r=ledger.find(function(x){return x.id===id;}); if(!r) return;
+    var orgName=localStorage.getItem('workdesk_org_name')||'WorkDesk Organization';
+    var orgIndustry=localStorage.getItem('workdesk_org_industry')||'HR Management System';
+    document.getElementById('payslipTitle').textContent='Payslip — '+r.name+' ('+r.period+')';
+    document.getElementById('payslipBody').innerHTML=
+      '<div style="text-align:center;margin-bottom:18px;">'+
+        '<div style="font-size:22px;font-weight:800;color:var(--primary);">'+escHtml(orgName)+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">'+escHtml(orgIndustry)+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted);">Official Employee Payslip</div>'+
+      '</div>'+
+      '<hr class="section-divider" />'+
+      '<table class="payslip-table"><tbody>'+
+      '<tr><td>Employee</td><td style="text-align:right;font-weight:700;">'+escHtml(r.name)+'</td></tr>'+
+      '<tr><td>Employee ID</td><td style="text-align:right;">'+r.id+'</td></tr>'+
+      '<tr><td>Department</td><td style="text-align:right;">'+r.dept+'</td></tr>'+
+      '<tr><td>Pay Period</td><td style="text-align:right;">'+r.period+'</td></tr>'+
+      '<tr class="sep"><td colspan="2" style="padding-top:12px;color:var(--primary);">EARNINGS</td></tr>'+
+      '<tr><td>Basic Pay</td><td style="text-align:right;">'+fmt(r.basic)+'</td></tr>'+
+      '<tr><td>Overtime Pay</td><td style="text-align:right;">'+fmt(r.ot)+'</td></tr>'+
+      '<tr><td>Allowances</td><td style="text-align:right;">'+fmt(r.allow)+'</td></tr>'+
+      '<tr style="font-weight:700;border-top:1px solid var(--border-light);"><td>Gross Pay</td><td style="text-align:right;">'+fmt(r.basic+r.ot+r.allow)+'</td></tr>'+
+      '<tr class="sep"><td colspan="2" style="padding-top:12px;color:var(--danger);">DEDUCTIONS</td></tr>'+
+      '<tr><td>'+escHtml((getFinanceSettings().deductions[0]||{name:'SSS'}).name)+'</td><td style="text-align:right;">'+fmt(r.sss)+'</td></tr>'+
+      '<tr><td>'+escHtml((getFinanceSettings().deductions[1]||{name:'PhilHealth'}).name)+'</td><td style="text-align:right;">'+fmt(r.philhealth)+'</td></tr>'+
+      '<tr><td>'+escHtml((getFinanceSettings().deductions[2]||{name:'Pag-IBIG'}).name)+'</td><td style="text-align:right;">'+fmt(r.pagibig)+'</td></tr>'+
+      '<tr><td>Withholding Tax ('+(getFinanceSettings().taxRate||10)+'%)</td><td style="text-align:right;">'+fmt(r.tax)+'</td></tr>'+
+      '<tr style="font-weight:700;border-top:1px solid var(--border-light);"><td>Total Deductions</td><td style="text-align:right;color:var(--danger);">'+fmt(r.deductions)+'</td></tr>'+
+      '<tr style="font-size:16px;font-weight:800;border-top:2px solid var(--primary);color:var(--primary);"><td>NET PAY</td><td style="text-align:right;">'+fmt(r.net)+'</td></tr>'+
+      '</tbody></table>'+
+      '<div style="margin-top:20px;padding:12px 14px;background:var(--bg-main);border-radius:var(--radius-sm);font-size:11px;color:var(--text-muted);text-align:center;border:1px solid var(--border-light);">'+
+        '🔒 <strong>Digitally Generated</strong> — This payslip is system-generated by WorkDesk and does not require a physical signature.<br>'+
+        'For inquiries or disputes, please contact <strong>'+escHtml(orgName)+'</strong>.'+
+      '</div>';
+    document.getElementById('payslipModal').classList.add('open');
+  }
+  document.getElementById('closePayslipBtn').addEventListener('click',function(){document.getElementById('payslipModal').classList.remove('open');});
+  document.getElementById('payslipModal').addEventListener('click',function(ev){if(ev.target===this)this.classList.remove('open');});
+  document.getElementById('printPayslipBtn').addEventListener('click',function(){window.print();});
+
+  // ── Salary Edit Modal ─────────────────────────────────────────────────────
+  var editTarget=null;
+  function openSalaryEdit(empId){
+    var r=ledger.find(function(x){return x.id===empId;}); if(!r) return;
+    if(hasPendingRequest(empId)){toast('This employee already has a pending salary edit request.');return;}
+    editTarget=r;
+    document.getElementById('editEmpName').textContent=r.name+' — '+r.dept;
+    document.getElementById('editBasic').value=r.basic;
+    document.getElementById('editOT').value=r.ot;
+    document.getElementById('editAllow').value=r.allow;
+    document.getElementById('editNote').value='';
+    var noticeEl=document.getElementById('editApprovalNotice');
+    if(needsApproval()){
+      noticeEl.innerHTML='<div style="padding:8px 12px;background:#FEF3C7;border-radius:6px;font-size:12px;color:#92400E;">'+
+        '⏳ As a <strong>'+getRoleLabel(getUserRole())+'</strong>, your change will be submitted for HR Manager approval before it takes effect.</div>';
+    } else {
+      noticeEl.innerHTML='<div style="padding:8px 12px;background:#F0FDF4;border-radius:6px;font-size:12px;color:#065F46;">'+
+        '✓ As a <strong>'+getRoleLabel(getUserRole())+'</strong>, you can apply this change directly. It will be logged in the audit history.</div>';
+    }
+    document.getElementById('salaryEditModal').classList.add('open');
+  }
+  document.getElementById('closeSalaryEditBtn').addEventListener('click',function(){
+    document.getElementById('salaryEditModal').classList.remove('open');editTarget=null;
+  });
+  document.getElementById('salaryEditModal').addEventListener('click',function(ev){
+    if(ev.target===this){this.classList.remove('open');editTarget=null;}
+  });
+  document.getElementById('submitSalaryEditBtn').addEventListener('click',function(){
+    if(!editTarget) return;
+    var newBasic=parseFloat(document.getElementById('editBasic').value)||0;
+    var newOT=parseFloat(document.getElementById('editOT').value)||0;
+    var newAllow=parseFloat(document.getElementById('editAllow').value)||0;
+    var note=document.getElementById('editNote').value.trim();
+    if(!note){toast('Please provide a note/reason for this salary modification.');return;}
+    if(newBasic<=0){toast('Basic pay must be greater than zero.');return;}
+    var changes=[];
+    if(newBasic!==editTarget.basic) changes.push('Basic Pay: '+fmt(editTarget.basic)+' → '+fmt(newBasic));
+    if(newOT!==editTarget.ot)       changes.push('Overtime: '+fmt(editTarget.ot)+' → '+fmt(newOT));
+    if(newAllow!==editTarget.allow) changes.push('Allowances: '+fmt(editTarget.allow)+' → '+fmt(newAllow));
+    if(changes.length===0){toast('No changes detected.');return;}
+    var changesSummary=changes.join('; ');
+    var requiresApproval=needsApproval();
+    var msgDetails=requiresApproval
+      ?'This modification requires HR Manager approval before it takes effect. Your request will be submitted for review and logged in the audit trail.'
+      :'You have authority to apply this change directly. It will be permanently logged in the audit history.';
+    WDConfirm.show({
+      title:'Confirm Salary Modification',
+      message:'Changes: '+changesSummary+'\n\n'+msgDetails+'\n\nAll modifications are permanently logged. Do you still want to continue?',
+      type:'warn',
+      confirmText:'Yes, Continue',
+      cancelText:'No, Go Back',
+      onConfirm:function(){
+        var actor=localStorage.getItem('workdesk_display_name')||getRoleLabel(getUserRole());
+        if(requiresApproval){
+          salaryRequests.unshift({
+            id:'REQ-'+Date.now(),
+            empId:editTarget.id,empName:editTarget.name,
+            oldBasic:editTarget.basic,oldOT:editTarget.ot,oldAllow:editTarget.allow,
+            newBasic:newBasic,newOT:newOT,newAllow:newAllow,
+            field:'Compensation Package',oldVal:editTarget.basic,newVal:newBasic,
+            note:note,changesSummary:changesSummary,
+            requestedBy:actor,requestedRole:getUserRole(),
+            requestedAt:new Date().toISOString(),
+            status:'Pending',approvedBy:null,approvedAt:null,rejectionNote:null
+          });
+          saveRequests();
+          addAuditEntry('Salary Edit Request Submitted',
+            'Employee: '+editTarget.name+' ('+editTarget.id+'). Changes: '+changesSummary+'. Note: '+note,'warning');
+          document.getElementById('salaryEditModal').classList.remove('open');editTarget=null;
+          renderTable();renderRequests();renderAudit();
+          toast('Salary edit request submitted. Awaiting HR Manager approval.');
+          switchTab('requests');
+        } else {
+          var capturedTarget=editTarget;
+          document.getElementById('salaryEditModal').classList.remove('open');editTarget=null;
+          applySalaryChange(capturedTarget.id,newBasic,newOT,newAllow,note);
+        }
+      }
+    });
+  });
+
+  function applySalaryChange(empId,newBasic,newOT,newAllow,note){
+    var r=ledger.find(function(x){return x.id===empId;}); if(!r) return;
+    var changes=[];
+    if(newBasic!==r.basic) changes.push('Basic Pay: '+fmt(r.basic)+' → '+fmt(newBasic));
+    if(newOT!==r.ot)       changes.push('Overtime: '+fmt(r.ot)+' → '+fmt(newOT));
+    if(newAllow!==r.allow) changes.push('Allowances: '+fmt(r.allow)+' → '+fmt(newAllow));
+    var actor=localStorage.getItem('workdesk_display_name')||getRoleLabel(getUserRole());
+    var fs=getFinanceSettings();
+    r.basic=newBasic;r.ot=newOT;r.allow=newAllow;
+    var d=calcDeductions(newBasic,newOT,newAllow,fs);
+    r.sss=d.sss;r.philhealth=d.philhealth;r.pagibig=d.pagibig;r.tax=d.tax;
+    r.deductions=d.total;r.net=d.net;
+    saveLedger();
+    addAuditEntry('Salary Updated','Employee: '+r.name+' ('+r.id+'). '+changes.join('; ')+'. Note: '+note+'. Applied by: '+actor,'success');
+    renderTable();renderDeductionChart();updateKPIs();renderAudit();
+    toast('Salary updated for '+r.name+'.');
+  }
+
+  // ── Approval Modal ────────────────────────────────────────────────────────
+  var approvalTarget=null; var approvalIsApprove=false;
+  function openApproval(reqId,isApprove){
+    var req=salaryRequests.find(function(r){return r.id===reqId;}); if(!req) return;
+    approvalTarget=req;approvalIsApprove=isApprove;
+    document.getElementById('approvalTitle').textContent=(isApprove?'Approve':'Reject')+' Salary Edit Request';
+    document.getElementById('approvalSummary').innerHTML=
+      '<div style="margin-bottom:12px;padding:12px;background:var(--bg-main);border-radius:var(--radius-sm);font-size:13px;">'+
+      '<strong>Employee:</strong> '+escHtml(req.empName)+' ('+req.empId+')<br>'+
+      '<strong>Changes:</strong> '+escHtml(req.changesSummary)+'<br>'+
+      '<strong>Note:</strong> '+escHtml(req.note)+'<br>'+
+      '<strong>Requested by:</strong> '+escHtml(req.requestedBy)+' ('+getRoleLabel(req.requestedRole)+')<br>'+
+      '<strong>Date:</strong> '+fmtDate(req.requestedAt)+
+      '</div>';
+    document.getElementById('approvalNoteLabel').textContent=isApprove?'Approval note (optional):':'Rejection reason (required):';
+    document.getElementById('approvalNote').value='';
+    var btn=document.getElementById('confirmApprovalBtn');
+    btn.textContent=isApprove?'✓ Approve':'✗ Reject';
+    btn.style.background=isApprove?'var(--success)':'var(--danger)';
+    document.getElementById('approvalModal').classList.add('open');
+  }
+  document.getElementById('closeApprovalBtn').addEventListener('click',function(){
+    document.getElementById('approvalModal').classList.remove('open');approvalTarget=null;
+  });
+  document.getElementById('approvalModal').addEventListener('click',function(ev){
+    if(ev.target===this){this.classList.remove('open');approvalTarget=null;}
+  });
+  document.getElementById('confirmApprovalBtn').addEventListener('click',function(){
+    if(!approvalTarget) return;
+    var note=document.getElementById('approvalNote').value.trim();
+    if(!approvalIsApprove&&!note){toast('Please provide a rejection reason.');return;}
+    var actor=localStorage.getItem('workdesk_display_name')||getRoleLabel(getUserRole());
+    approvalTarget.status=approvalIsApprove?'Approved':'Rejected';
+    approvalTarget.approvedBy=actor;
+    approvalTarget.approvedAt=new Date().toISOString();
+    if(!approvalIsApprove) approvalTarget.rejectionNote=note;
+    saveRequests();
+    if(approvalIsApprove){
+      applySalaryChange(approvalTarget.empId,approvalTarget.newBasic,approvalTarget.newOT,approvalTarget.newAllow,'Approved by HR: '+(note||'No additional note'));
+      addAuditEntry('Salary Edit Request Approved','Request '+approvalTarget.id+' for '+approvalTarget.empName+' approved by '+actor+'. '+approvalTarget.changesSummary,'success');
+    } else {
+      addAuditEntry('Salary Edit Request Rejected','Request '+approvalTarget.id+' for '+approvalTarget.empName+' rejected by '+actor+'. Reason: '+note,'danger');
+    }
+    document.getElementById('approvalModal').classList.remove('open');approvalTarget=null;
+    renderRequests();renderAudit();
+    toast(approvalIsApprove?'Request approved and salary updated.':'Request rejected.');
+  });
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  function switchTab(tabId){
+    document.querySelectorAll('.pay-tab').forEach(function(btn){btn.classList.toggle('active',btn.dataset.tab===tabId);});
+    document.querySelectorAll('.pay-tab-panel').forEach(function(panel){panel.classList.toggle('active',panel.id==='tab-'+tabId);});
+    if(tabId==='requests') renderRequests();
+    if(tabId==='history') renderAudit();
+  }
+  document.querySelectorAll('.pay-tab').forEach(function(btn){
+    btn.addEventListener('click',function(){switchTab(btn.dataset.tab);});
+  });
+
+  // ── Run Payroll ────────────────────────────────────────────────────────────
+  document.getElementById('runPayrollBtn').addEventListener('click',function(){
+    var btn=this;var count=ledger.length;
+    WDConfirm.show({
+      title:'Run Payroll',
+      message:'Run payroll for March 2025? This will process all '+count+' employee payslips.',
+      type:'warn',confirmText:'Yes, Run Payroll',cancelText:'No',
+      onConfirm:function(){
+        btn.disabled=true;btn.textContent='Processing…';
+        document.getElementById('chipStatus').textContent='Processing';
+        ledger.forEach(function(r){r.status='Processing';});
+        fetch('/api/payroll/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')},body:JSON.stringify({period:'March 2025',count:count})}).catch(function(){});
+        setTimeout(function(){
+          ledger.forEach(function(r){r.status='Released';});
+          saveLedger();renderTable();updateKPIs();
+          btn.textContent='✓ Released';document.getElementById('chipStatus').textContent='Released';
+          addAuditEntry('Payroll Run & Released','March 2025 payroll released for '+count+' employees.','success');
+          renderAudit();
+          toast('Payroll for March 2025 has been released. '+count+' payslips generated.');
+        },2000);
+      }
+    });
+  });
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  function exportCSV(data,filename){
+    var rows=[['ID','Name','Department','Basic','Overtime','Allowances','Deductions','Net Pay','Status']];
+    data.forEach(function(r){rows.push([r.id,r.name,r.dept,r.basic,r.ot,r.allow,r.deductions,r.net,r.status]);});
+    var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+    var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=filename;a.click();
+    toast('Report exported.');
+  }
+  document.getElementById('exportPayrollBtn').addEventListener('click',function(){exportCSV(ledger,'payroll-report-'+new Date().toISOString().slice(0,10)+'.csv');});
+  document.getElementById('exportLedgerBtn').addEventListener('click',function(){exportCSV(getFiltered(),'payroll-ledger-'+new Date().toISOString().slice(0,10)+'.csv');});
+
+  // ── Filters ───────────────────────────────────────────────────────────────
+  ['paySearch','globalSearch','payPeriod','payDept'].forEach(function(id){
+    var el=document.getElementById(id);if(el) el.addEventListener('input',function(){currentPage=1;renderTable();});
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded',function(){
+    initUserInfo();updateKPIs();renderPayrollChart();renderDeductionChart();renderTable();renderRequests();
+    fetch('/api/payroll',{headers:{'Authorization':'Bearer '+(localStorage.getItem('workdesk_token')||'')}})
+      .then(function(r){return r.json();})
+      .then(function(data){if(data&&Array.isArray(data.ledger)&&data.ledger.length){ledger=data.ledger;saveLedger();updateKPIs();renderTable();}})
+      .catch(function(){});
+  });
+}());
+</script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+</body>
+</html>

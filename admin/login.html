@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>myWORKDESK | Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary:      #5A8F7B;
+      --primary-dark: #497263;
+      --primary-rgb:  90, 143, 123;
+      --accent:       #F4C86A;
+      --accent-dark:  #E6B84E;
+      --danger:       #E74C3C;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #E8E4DE 0%, #CEC9C1 100%);
+      -webkit-font-smoothing: antialiased;
+      padding: 24px 16px;
+    }
+
+    /* ======= OUTER CARD ======= */
+    .login-card {
+      width: 940px;
+      max-width: 100%;
+      min-height: 600px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ======= LEFT: FORM PANEL ======= */
+    .form-panel {
+      flex: 0 0 42%;
+      display: flex;
+      flex-direction: column;
+      padding: 44px 48px 36px;
+      background: #fff;
+    }
+
+    /* ── Logo pill ─────── */
+    .logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1.5px solid #D8D8D8;
+      border-radius: 50px;
+      padding: 7px 18px 7px 10px;
+      align-self: flex-start;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    .logo-pill img {
+      height: 26px;
+      width: auto;
+    }
+
+    .logo-pill span {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a2e28;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Heading ─────── */
+    .form-heading {
+      font-size: 30px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.18;
+      margin-bottom: 8px;
+    }
+
+    .form-sub {
+      font-size: 13.5px;
+      color: #9CA3AF;
+      margin-bottom: 30px;
+      line-height: 1.4;
+    }
+
+    /* ── Field groups ─────── */
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6B7280;
+      margin-bottom: 7px;
+    }
+
+    .field-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-input {
+      width: 100%;
+      height: 50px;
+      padding: 0 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      background: #FAFAFA;
+      font-family: inherit;
+      font-size: 14px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field-input::placeholder { color: #C4C4C4; }
+
+    .field-input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+    }
+
+    .field-input.is-invalid { border-color: var(--danger); }
+
+    /* ── Password eye toggle ─────── */
+    .field-input.pwd-input { padding-right: 44px; }
+
+    .pwd-eye {
+      position: absolute;
+      right: 13px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9CA3AF;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .pwd-eye:hover { color: var(--primary-dark); }
+
+    /* ── Field error ─────── */
+    .field-error {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 5px;
+      display: none;
+      padding-left: 2px;
+    }
+
+    /* ── Submit button ─────── */
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #1a2e28;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 8px 22px rgba(230, 184, 78, 0.40);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.68; cursor: not-allowed; transform: none; }
+
+    .h-spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(26, 46, 40, 0.28);
+      border-top-color: #1a2e28;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-submit.loading .h-spinner { display: block; }
+
+    /* ── Bottom note ─────── */
+    .bottom-note {
+      margin-top: auto;
+      font-size: 11.5px;
+      color: #D1D5DB;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ======= RIGHT: IMAGE PANEL ======= */
+    .image-panel {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 0 20px 20px 0;
+    }
+
+    .panel-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Calendar strip (lower area of image) ─────── */
+    .float-card-cal {
+      position: absolute;
+      bottom: 36px;
+      right: 20px;
+      transform: none;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.30);
+    }
+
+    .fc-cal-days {
+      display: flex;
+      gap: 6px;
+    }
+
+    .fc-cal-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 28px;
+    }
+
+    .fc-cal-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .fc-cal-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .fc-cal-day.today .fc-cal-num {
+      background: var(--accent);
+      color: #1a2e28;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    /* ======= TOAST ======= */
+    .login-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--primary);
+      color: #fff;
+      padding: 11px 22px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s;
+      opacity: 0;
+      white-space: nowrap;
+    }
+
+    .login-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .login-toast.error { background: #c0392b; }
+
+    /* ======= RESPONSIVE ======= */
+    @media (max-width: 720px) {
+      body { padding: 0; align-items: stretch; }
+
+      .login-card {
+        flex-direction: column;
+        border-radius: 0;
+        min-height: 100vh;
+        box-shadow: none;
+      }
+
+      .form-panel {
+        flex: none;
+        padding: 40px 28px 32px;
+        order: 1;
+      }
+
+      .image-panel {
+        flex: none;
+        height: 220px;
+        border-radius: 0;
+        order: 0;
+      }
+
+      .float-card-cal { display: none; }
+    }
+
+    @media (max-width: 900px) and (min-width: 721px) {
+      .form-panel { padding: 36px 36px 28px; }
+      .float-card-cal { display: none; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ── OUTER CARD ─────── -->
+  <div class="login-card">
+
+    <!-- ── LEFT: form panel ─────── -->
+    <div class="form-panel">
+
+      <!-- Logo pill -->
+      <a class="logo-pill" href="/" aria-label="myWORKDESK home">
+        <img src="/assets/workdesk-logo.svg" alt="myWORKDESK" />
+        <span>myWORKDESK</span>
+      </a>
+
+      <!-- Heading -->
+      <h1 class="form-heading">Admin Sign In</h1>
+      <p class="form-sub">Authorized personnel only. All access attempts are logged.</p>
+
+      <!-- Form -->
+      <form id="saLoginForm" novalidate>
+
+        <!-- Username -->
+        <div class="field-group">
+          <label class="field-label" for="saUsername">Username</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="saUsername"
+              name="username"
+              class="field-input"
+              placeholder="Super admin username"
+              autocomplete="off"
+              required
+            />
+          </div>
+          <span class="field-error" id="saUsernameError">Required</span>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label" for="saPassword">Password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="saPassword"
+              name="password"
+              class="field-input pwd-input"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="pwd-eye" id="eyeTogglePwd" aria-label="Toggle password visibility">
+              <svg id="eyeIconPwd" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="saPasswordError">Required</span>
+        </div>
+
+        <!-- Secret Key -->
+        <div class="field-group">
+          <label class="field-label" for="saSecretKey">Security Key</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="saSecretKey"
+              name="secretKey"
+              class="field-input pwd-input"
+              placeholder="••••••••••••"
+              autocomplete="off"
+              required
+            />
+            <button type="button" class="pwd-eye" id="eyeToggleKey" aria-label="Toggle security key visibility">
+              <svg id="eyeIconKey" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="saSecretKeyError">Required</span>
+        </div>
+
+        <!-- Sign In button -->
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <span class="btn-label">Sign In</span>
+          <span class="h-spinner" aria-hidden="true"></span>
+        </button>
+
+      </form>
+
+      <!-- Bottom note -->
+      <div class="bottom-note">This portal is not linked from any public page.<br>Unauthorized access attempts will be reported.</div>
+
+    </div>
+
+    <!-- ── RIGHT: image panel ─────── -->
+    <div class="image-panel">
+      <img class="panel-photo" src="/assets/login-cover-happy.png" alt="Workspace" />
+
+      <!-- Calendar strip -->
+      <div class="float-card-cal" aria-hidden="true">
+        <div class="fc-cal-days" id="calDays"></div>
+      </div>
+    </div>
+
+  </div><!-- /.login-card -->
+
+  <!-- Toast notification -->
+  <div class="login-toast" id="loginToast" role="alert" aria-live="assertive"></div>
+
+  <script>
+    // ── Build 7-day calendar strip centred on today ───────────────────────────
+    (function () {
+      var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      var today = new Date();
+      var todayNum = today.getDate();
+      var container = document.getElementById('calDays');
+      for (var i = -3; i <= 3; i++) {
+        var d = new Date(today);
+        d.setDate(todayNum + i);
+        var isToday = i === 0;
+        var div = document.createElement('div');
+        div.className = 'fc-cal-day' + (isToday ? ' today' : '');
+        div.innerHTML =
+          '<span class="fc-cal-label">' + days[d.getDay()] + '</span>' +
+          '<span class="fc-cal-num">' + d.getDate() + '</span>';
+        container.appendChild(div);
+      }
+    }());
+
+    /* ── Toast helper ──────────────────────────────────────────────────── */
+    function showToast(msg, isError, duration) {
+      var toast = document.getElementById('loginToast');
+      toast.textContent = msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('show');
+      setTimeout(function () { toast.classList.remove('show'); }, duration || 3500);
+    }
+
+    /* ── Field error helpers ───────────────────────────────────────────── */
+    function setFieldError(inputId, errorId, message) {
+      var input = document.getElementById(inputId);
+      var err   = document.getElementById(errorId);
+      if (!input || !err) return;
+      if (message) {
+        input.classList.add('is-invalid');
+        err.textContent   = message;
+        err.style.display = 'block';
+      } else {
+        input.classList.remove('is-invalid');
+        err.style.display = 'none';
+      }
+    }
+
+    function clearFieldErrors() {
+      setFieldError('saUsername',  'saUsernameError',  null);
+      setFieldError('saPassword',  'saPasswordError',  null);
+      setFieldError('saSecretKey', 'saSecretKeyError', null);
+    }
+
+    ['saUsername', 'saPassword', 'saSecretKey'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', function () { setFieldError(id, id + 'Error', null); });
+    });
+
+    /* ── Eye toggle helper ─────────────────────────────────────────────── */
+    function makeEyeToggle(btnId, inputId, iconId) {
+      var btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var input = document.getElementById(inputId);
+        var icon  = document.getElementById(iconId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+        } else {
+          input.type = 'password';
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+      });
+    }
+
+    makeEyeToggle('eyeTogglePwd', 'saPassword',  'eyeIconPwd');
+    makeEyeToggle('eyeToggleKey', 'saSecretKey', 'eyeIconKey');
+
+    /* ── Rate limiting (client-side guard) ─────────────────────────────── */
+    var failCount  = 0;
+    var lockedUntil = 0;
+
+    /* ── Form submission ───────────────────────────────────────────────── */
+    document.getElementById('saLoginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      clearFieldErrors();
+
+      if (Date.now() < lockedUntil) {
+        var secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+        showToast('Too many failed attempts. Try again in ' + secs + 's.', true);
+        return;
+      }
+
+      var btn       = document.getElementById('loginBtn');
+      var username  = document.getElementById('saUsername').value.trim();
+      var password  = document.getElementById('saPassword').value;
+      var secretKey = document.getElementById('saSecretKey').value;
+      var valid     = true;
+
+      if (!username)  { setFieldError('saUsername',  'saUsernameError',  'Required'); valid = false; }
+      if (!password)  { setFieldError('saPassword',  'saPasswordError',  'Required'); valid = false; }
+      if (!secretKey) { setFieldError('saSecretKey', 'saSecretKeyError', 'Required'); valid = false; }
+      if (!valid) return;
+
+      var btnLabel = btn.querySelector('.btn-label');
+      if (btnLabel) btnLabel.textContent = 'Authenticating\u2026';
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      fetch('/api/sa-auth', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ username: username, password: password, securityKey: secretKey })
+      })
+      .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
+      .then(function (result) {
+        if (result.data && result.data.ok) {
+          failCount = 0;
+          localStorage.setItem('sa_token', result.data.token);
+          localStorage.setItem('sa_session', JSON.stringify({
+            token:       result.data.token,
+            username:    result.data.username,
+            role:        'super_admin',
+            permissions: ['*'],
+            issuedAt:    Date.now()
+          }));
+          window.location.replace('/admin/dashboard.html');
+        } else {
+          if (result.status === 503) {
+            showToast('Super admin access is not configured. Re-add SA_USERNAME, SA_SECURITY_KEY and SA_PASSWORD in Cloudflare \u2192 Settings \u2192 Environment variables, then redeploy.', true, 10000);
+            if (btnLabel) btnLabel.textContent = 'Sign In';
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            return;
+          }
+          failCount++;
+          if (failCount >= 5) {
+            lockedUntil = Date.now() + 60000;
+            showToast('Too many failed attempts. Locked for 60 seconds.', true, 8000);
+          } else {
+            showToast(result.data && result.data.message ? result.data.message : 'Invalid credentials. Access denied.', true);
+          }
+          if (btnLabel) btnLabel.textContent = 'Sign In';
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
+      })
+      .catch(function () {
+        showToast('Network error. Please try again.', true);
+        if (btnLabel) btnLabel.textContent = 'Sign In';
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      });
+    });
+  </script>
+
+</body>
+</html>

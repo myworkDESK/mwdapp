@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>if (!localStorage.getItem('workdesk_token')) { window.location.replace('/app/login.html'); }</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <title>WorkDesk — Recruitment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    @keyframes scaleIn { from { transform:scale(0.93); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+    /* Tabs */
+    .tab-bar { display:flex; border-bottom:2px solid var(--border-light); margin-bottom:24px; gap:4px; }
+    .tab-btn { padding:9px 18px; font-size:13px; font-weight:500; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; border-radius:6px 6px 0 0; transition:color .2s, border-color .2s; white-space:nowrap; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+    .tab-btn:hover:not(.active) { color:var(--text-main); background:var(--primary-soft); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* Kanban */
+    .kanban-board { display:flex; gap:14px; overflow-x:auto; padding-bottom:12px; }
+    .kanban-col { background:var(--bg-main); border-radius:var(--radius-md); padding:12px; min-width:180px; flex:0 0 180px; }
+    .kanban-col-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .kanban-col-title { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }
+    .kanban-count { background:var(--border-light); border-radius:20px; padding:1px 8px; font-size:11px; font-weight:600; color:var(--text-muted); }
+    .kanban-card { background:#fff; border-radius:var(--radius-sm); padding:12px; margin-bottom:8px; border:1px solid var(--border-light); box-shadow:var(--shadow-card); cursor:pointer; transition:box-shadow .2s; }
+    .kanban-card:hover { box-shadow:none; border-color:var(--primary); }
+    .kanban-card-name { font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:2px; }
+    .kanban-card-role { font-size:11px; color:var(--text-muted); margin-bottom:8px; }
+    .star-rating { display:flex; gap:2px; margin-bottom:8px; }
+    .star { font-size:14px; cursor:pointer; color:#D1D5DB; transition:color .15s; }
+    .star.filled { color:var(--accent); }
+    .kanban-actions { display:flex; gap:4px; flex-wrap:wrap; }
+
+    /* Job list */
+    .job-list { display:flex; flex-direction:column; gap:8px; }
+    .job-card { padding:12px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); background:#fff; cursor:pointer; transition:border-color .2s, background .2s; }
+    .job-card:hover, .job-card.selected { border-color:var(--primary); background:var(--primary-soft); }
+    .job-card-title { font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:4px; }
+    .job-card-meta { font-size:11px; color:var(--text-muted); display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:6px; }
+    .job-card-footer { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted); }
+
+    /* Status badges */
+    .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-green { background:#ECFDF5; color:#059669; }
+    .badge-blue { background:#EFF6FF; color:#2563EB; }
+    .badge-yellow { background:var(--accent-soft); color:#8B6914; }
+    .badge-red { background:#FDECEA; color:var(--danger); }
+    .badge-purple { background:#F3F0FF; color:#7C3AED; }
+    .badge-gray { background:var(--bg-main); color:var(--text-muted); }
+
+    /* Onboarding */
+    .onboard-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+    .onboard-card { background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); padding:20px; box-shadow:var(--shadow-card); }
+    .progress-bar-wrap { background:var(--border-light); border-radius:20px; height:8px; overflow:hidden; margin:10px 0; }
+    .progress-bar-fill { height:100%; border-radius:20px; background:var(--primary); transition:width .8s cubic-bezier(.16,1,.3,1); }
+    .progress-bar-fill.complete { background:var(--success); }
+    .checklist-section { margin-bottom:16px; }
+    .checklist-section-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:8px; }
+    .checklist-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-light); font-size:13px; }
+    .checklist-item:last-child { border-bottom:none; }
+    .checklist-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+    .checklist-item label { cursor:pointer; color:var(--text-main); }
+    .checklist-item.done label { text-decoration:line-through; color:var(--text-muted); }
+
+    /* Offer letter preview */
+    .offer-preview { background:#FAFAFA; border:1px solid var(--border-light); border-radius:8px; padding:20px; font-size:13px; line-height:1.8; color:var(--text-main); max-height:300px; overflow-y:auto; }
+
+    /* Two-col layout for recruitment tab */
+    .recruit-layout { display:grid; grid-template-columns:280px 1fr; gap:20px; }
+    @media(max-width:900px){ .recruit-layout { grid-template-columns:1fr; } }
+
+    /* Toast */
+    .toast { position:fixed; bottom:24px; right:24px; background:#1F2933; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:9999; pointer-events:none; opacity:0; transform:translateY(12px); transition:opacity .3s, transform .3s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+
+    /* Approval chain */
+    .approval-chain { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; }
+    .approval-step { display:flex; align-items:center; gap:4px; }
+    .approval-dot { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+    .approval-dot.approved { background:#ECFDF5; color:#059669; }
+    .approval-dot.pending { background:var(--accent-soft); color:#8B6914; }
+    .approval-dot.waiting { background:var(--bg-main); color:var(--text-muted); border:1px dashed var(--border-light); }
+    .approval-arrow { color:var(--text-muted); }
+
+    /* Stat chips row */
+    .recruit-stats { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .recruit-stat-chip {
+      display:flex; align-items:center; gap:10px; background:#fff;
+      border:1px solid var(--border-light); border-radius:10px; padding:12px 18px;
+      box-shadow:var(--shadow-card); min-width:150px; flex:1;
+    }
+    .recruit-stat-chip .chip-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+    .recruit-stat-chip .chip-val { font-size:20px; font-weight:700; color:var(--text-main); line-height:1; }
+    .recruit-stat-chip .chip-lbl { font-size:11px; color:var(--text-muted); font-weight:500; margin-top:2px; }
+
+    /* Section header row */
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .section-title { font-size:15px; font-weight:700; color:var(--text-main); }
+
+    /* Modal layout helpers */
+    .modal-scroll { max-height:70vh; overflow-y:auto; padding-right:4px; }
+    .input-row { display:flex; gap:12px; }
+    .input-group { display:flex; flex-direction:column; gap:6px; flex:1; }
+    .input-group label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+      padding:9px 12px; border:1px solid var(--border-light); border-radius:8px;
+      font-family:inherit; font-size:13px; color:var(--text-main);
+      background:#fff; outline:none; transition:border-color .2s, box-shadow .2s;
+    }
+    .input-group input:focus,
+    .input-group select:focus,
+    .input-group textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
+    .input-group textarea { resize:vertical; min-height:80px; }
+
+    /* Candidate avatar in kanban */
+    .kcard-avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
+
+    /* Onboarding stats row */
+    .onboard-stats { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+
+    /* View pipeline link */
+    .link-primary { font-size:11px; font-weight:600; color:var(--primary); cursor:pointer; text-decoration:none; }
+    .link-primary:hover { text-decoration:underline; }
+
+    /* Sidebar logout button */
+    .sidebar-logout-btn {
+      display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px;
+      background:none; border:none; border-radius:8px; font-family:inherit;
+      font-size:13px; font-weight:500; color:var(--text-muted); cursor:pointer;
+      transition:background .2s, color .2s;
+    }
+    .sidebar-logout-btn:hover { background:#FDECEA; color:var(--danger); }
+
+    /* topbar status wrap */
+    .topbar-status-wrap { position:relative; }
+    .status-dropdown { position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid var(--border-light); border-radius:var(--radius-md); box-shadow:var(--shadow-soft); min-width:140px; z-index:200; display:none; }
+    .status-dropdown.open { display:block; }
+    .status-dropdown-item { display:flex; align-items:center; gap:8px; padding:9px 14px; font-size:13px; cursor:pointer; transition:background .15s; }
+    .status-dropdown-item:hover { background:var(--bg-main); }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <img src="/assets/workdesk-logo.svg" alt="WorkDesk Logo" />
+      <span class="nav-label">WorkDesk</span>
+    </div>
+    <span class="sidebar-section-label">HRIS</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='dashboard.html'" data-tooltip="Control Center"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="nav-label">Control Center <span class="nav-info-icon" data-term="Dashboard">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='employees.html'" data-tooltip="DeskMates"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg><span class="nav-label">DeskMates <span class="nav-info-icon" data-term="Employees">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='attendance.html'" data-tooltip="DeskPresence"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="nav-label">DeskPresence <span class="nav-info-icon" data-term="Attendance">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='leave.html'" data-tooltip="DeskAway"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="nav-label">DeskAway <span class="nav-info-icon" data-term="Leave Management">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='payroll.html'" data-tooltip="PayDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="nav-label">PayDesk <span class="nav-info-icon" data-term="Payroll">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='performance.html'" data-tooltip="ImpactDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span class="nav-label">ImpactDesk <span class="nav-info-icon" data-term="Performance">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Talent</span>
+    <ul class="sidebar-menu" role="list">
+      <li class="active" role="listitem" onclick="window.location.href='recruitment.html'" data-tooltip="TalentDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span class="nav-label">TalentDesk <span class="nav-info-icon" data-term="Recruitment">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Workplace</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='tickets.html'" data-tooltip="HelpDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg><span class="nav-label">HelpDesk <span class="nav-info-icon" data-term="Support Tickets">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='documents.html'" data-tooltip="DocDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="nav-label">DocDesk <span class="nav-info-icon" data-term="Documents">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='projects.html'" data-tooltip="DeskProjects"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg><span class="nav-label">DeskProjects <span class="nav-info-icon" data-term="Projects">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Communication</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='messaging.html'" data-tooltip="TalkDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span class="nav-label">TalkDesk <span class="nav-info-icon" data-term="Messaging">ⓘ</span></span><span class="msg-nav-badge">3</span></li>
+      <li role="listitem" onclick="window.location.href='timeline.html'" data-tooltip="DeskStream"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg><span class="nav-label">DeskStream <span class="nav-info-icon" data-term="Timeline">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='engagement.html'" data-tooltip="PulseDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><span class="nav-label">PulseDesk <span class="nav-info-icon" data-term="Employee Engagement">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">Intelligence</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='analytics.html'" data-tooltip="InsightDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="nav-label">InsightDesk <span class="nav-info-icon" data-term="Analytics">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='ai-assistant.html'" data-tooltip="DeskAI"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span class="nav-label">DeskAI <span class="nav-info-icon" data-term="AI Assistant">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='knowledge.html'" data-tooltip="DeskWiki"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="nav-label">DeskWiki <span class="nav-info-icon" data-term="Knowledge Base">ⓘ</span></span></li>
+    </ul>
+    <span class="sidebar-section-label">System</span>
+    <ul class="sidebar-menu" role="list">
+      <li role="listitem" onclick="window.location.href='integrations.html'" data-tooltip="ConnectDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg><span class="nav-label">ConnectDesk <span class="nav-info-icon" data-term="Integrations">ⓘ</span></span></li>
+      <li role="listitem" onclick="window.location.href='settings.html'" data-tooltip="ControlDesk"><svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="nav-label">ControlDesk <span class="nav-info-icon" data-term="Settings">ⓘ</span></span></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()" aria-label="Log Out">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Log Out
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h2>Recruitment</h2>
+        <input class="search-box" type="search" id="globalSearch" placeholder="Search candidates, jobs…" aria-label="Search" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" aria-label="Messages" onclick="window.location.href='messaging.html'" style="position:relative;">
+          <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span style="position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid #fff;" aria-hidden="true"></span>
+        </button>
+        <div class="topbar-notif-wrap" id="notifWrap">
+          <button class="topbar-icon-btn badge" id="notifBtn" aria-label="Notifications" aria-expanded="false">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Notifications">
+            <div class="notif-header"><span class="notif-title">Notifications</span><button class="notif-mark-all" id="notifMarkAll">Mark all as read</button></div>
+            <div class="notif-list"></div>
+            <div class="notif-footer"><button class="notif-view-all" id="notifViewAll">See all notifications</button></div>
+          </div>
+        </div>
+        <div class="topbar-status-wrap" id="statusWrap">
+          <button class="status-badge" id="statusBadgeBtn" aria-label="Set your status" aria-expanded="false">
+            <span class="status-dot online" id="statusDot"></span>
+            <span id="statusLabel">Online</span>
+          </button>
+          <div class="status-dropdown" id="statusDropdown" role="menu">
+            <div class="status-dropdown-item" data-status="online" role="menuitem"><span class="status-dot online"></span> Online</div>
+            <div class="status-dropdown-item" data-status="away" role="menuitem"><span class="status-dot away"></span> Away</div>
+            <div class="status-dropdown-item" data-status="busy" role="menuitem"><span class="status-dot busy"></span> Busy</div>
+            <div class="status-dropdown-item" data-status="offline" role="menuitem"><span class="status-dot offline"></span> Offline</div>
+          </div>
+        </div>
+        <div class="employee-avatar" style="width:38px;height:38px;font-size:15px;cursor:pointer;" id="topbarAvatar" title="HR Admin">JD</div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- TABS -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" id="tab-recruitment" role="tab" aria-selected="true" aria-controls="panel-recruitment" onclick="switchTab('recruitment')">Recruitment</button>
+        <button class="tab-btn" id="tab-onboarding" role="tab" aria-selected="false" aria-controls="panel-onboarding" onclick="switchTab('onboarding')">Onboarding</button>
+      </div>
+
+      <!-- ═══════════════════════ RECRUITMENT TAB ═══════════════════════ -->
+      <div class="tab-panel active" id="panel-recruitment" role="tabpanel" aria-labelledby="tab-recruitment">
+
+        <!-- Stat chips -->
+        <div class="recruit-stats">
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#EFF6FF;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">8</div>
+              <div class="chip-lbl">Open Positions</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#F3F0FF;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#7C3AED" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">47</div>
+              <div class="chip-lbl">Total Applicants</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:var(--accent-soft);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#8B6914" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">5</div>
+              <div class="chip-lbl">Interviews Today</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#ECFDF5;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">3</div>
+              <div class="chip-lbl">Offers Sent</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section header -->
+        <div class="section-header mb-16">
+          <span class="section-title">Active Jobs</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalPostJob')">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Post New Job
+            </button>
+            <button class="btn btn-soft btn-sm" onclick="openModal('modalAddCandidate')">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              Add Candidate
+            </button>
+          </div>
+        </div>
+
+        <!-- Two-column recruit layout -->
+        <div class="recruit-layout">
+
+          <!-- Job List (left column) -->
+          <div>
+            <div class="card" style="padding:0;overflow:hidden;">
+              <div class="card-header" style="padding:14px 16px;">
+                <span class="card-title">Jobs</span>
+                <span class="badge badge-blue" id="jobCount">5 open</span>
+              </div>
+              <div style="padding:12px;" id="jobListContainer">
+                <div class="job-list" id="jobList">
+
+                  <div class="job-card selected" data-job="Senior Software Engineer" onclick="selectJob(this)">
+                    <div class="job-card-title">Senior Software Engineer</div>
+                    <div class="job-card-meta">
+                      <span>🏢 Engineering</span>
+                      <span class="badge badge-blue">Manila</span>
+                      <span class="badge badge-green">Full-time</span>
+                    </div>
+                    <div class="job-card-footer">
+                      <span>12 applicants · 14 days open</span>
+                      <a class="link-primary" onclick="event.stopPropagation();selectJob(this.closest('.job-card'))">View Pipeline</a>
+                    </div>
+                  </div>
+
+                  <div class="job-card" data-job="UX Designer" onclick="selectJob(this)">
+                    <div class="job-card-title">UX Designer</div>
+                    <div class="job-card-meta">
+                      <span>🎨 Design</span>
+                      <span class="badge badge-purple">Remote</span>
+                      <span class="badge badge-green">Full-time</span>
+                    </div>
+                    <div class="job-card-footer">
+                      <span>8 applicants · 7 days open</span>
+                      <a class="link-primary" onclick="event.stopPropagation();selectJob(this.closest('.job-card'))">View Pipeline</a>
+                    </div>
+                  </div>
+
+                  <div class="job-card" data-job="Finance Manager" onclick="selectJob(this)">
+                    <div class="job-card-title">Finance Manager</div>
+                    <div class="job-card-meta">
+                      <span>💰 Finance</span>
+                      <span class="badge badge-yellow">Cebu</span>
+                      <span class="badge badge-green">Full-time</span>
+                    </div>
+                    <div class="job-card-footer">
+                      <span>6 applicants · 21 days open</span>
+                      <a class="link-primary" onclick="event.stopPropagation();selectJob(this.closest('.job-card'))">View Pipeline</a>
+                    </div>
+                  </div>
+
+                  <div class="job-card" data-job="Sales Executive" onclick="selectJob(this)">
+                    <div class="job-card-title">Sales Executive</div>
+                    <div class="job-card-meta">
+                      <span>📈 Sales</span>
+                      <span class="badge badge-blue">Manila</span>
+                      <span class="badge badge-gray">Contract</span>
+                    </div>
+                    <div class="job-card-footer">
+                      <span>9 applicants · 10 days open</span>
+                      <a class="link-primary" onclick="event.stopPropagation();selectJob(this.closest('.job-card'))">View Pipeline</a>
+                    </div>
+                  </div>
+
+                  <div class="job-card" data-job="HR Specialist" onclick="selectJob(this)">
+                    <div class="job-card-title">HR Specialist</div>
+                    <div class="job-card-meta">
+                      <span>👥 HR</span>
+                      <span class="badge badge-blue">Makati</span>
+                      <span class="badge badge-green">Full-time</span>
+                    </div>
+                    <div class="job-card-footer">
+                      <span>12 applicants · 5 days open</span>
+                      <a class="link-primary" onclick="event.stopPropagation();selectJob(this.closest('.job-card'))">View Pipeline</a>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kanban Pipeline (right column) -->
+          <div>
+            <div class="card" style="overflow:hidden;">
+              <div class="card-header">
+                <span class="card-title" id="pipelineTitle">Pipeline — Senior Software Engineer</span>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-soft btn-sm" onclick="openModal('modalScheduleInterview')">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Schedule Interview
+                  </button>
+                  <button class="btn btn-accent btn-sm" onclick="openModal('modalOfferLetter')">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Generate Offer
+                  </button>
+                </div>
+              </div>
+              <div class="kanban-board" id="kanbanBoard">
+
+                <!-- Applied -->
+                <div class="kanban-col" data-stage="Applied">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title">Applied</span>
+                    <span class="kanban-count">3</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Applied">
+                    <div class="kanban-card" data-candidate="Ana Reyes" data-stage-index="0">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#7C3AED;">AR</div>
+                        <div>
+                          <div class="kanban-card-name">Ana Reyes</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Ana Reyes">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Ana Reyes')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Ben Cruz" data-stage-index="0">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#2563EB;">BC</div>
+                        <div>
+                          <div class="kanban-card-name">Ben Cruz</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Ben Cruz">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Ben Cruz')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Claire Lim" data-stage-index="0">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#059669;">CL</div>
+                        <div>
+                          <div class="kanban-card-name">Claire Lim</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Claire Lim">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star" onclick="rateStar(this,3)">★</span>
+                        <span class="star" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Claire Lim')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Screening -->
+                <div class="kanban-col" data-stage="Screening">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title">Screening</span>
+                    <span class="kanban-count">2</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Screening">
+                    <div class="kanban-card" data-candidate="David Tan" data-stage-index="1">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#D97706;">DT</div>
+                        <div>
+                          <div class="kanban-card-name">David Tan</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="David Tan">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star filled" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('David Tan')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Eva Santos" data-stage-index="1">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#E5534B;">ES</div>
+                        <div>
+                          <div class="kanban-card-name">Eva Santos</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Eva Santos">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Eva Santos')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Interview -->
+                <div class="kanban-col" data-stage="Interview">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title">Interview</span>
+                    <span class="kanban-count">2</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Interview">
+                    <div class="kanban-card" data-candidate="Frank Garcia" data-stage-index="2">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#0891B2;">FG</div>
+                        <div>
+                          <div class="kanban-card-name">Frank Garcia</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Frank Garcia">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Frank Garcia')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Grace Ong" data-stage-index="2">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#7C3AED;">GO</div>
+                        <div>
+                          <div class="kanban-card-name">Grace Ong</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Grace Ong">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star filled" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-soft btn-sm" onclick="openScheduleFor('Grace Ong')">Schedule</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Offer -->
+                <div class="kanban-col" data-stage="Offer">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title">Offer</span>
+                    <span class="kanban-count">1</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Offer">
+                    <div class="kanban-card" data-candidate="Henry Villanueva" data-stage-index="3">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#059669;">HV</div>
+                        <div>
+                          <div class="kanban-card-name">Henry Villanueva</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Henry Villanueva">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star filled" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <button class="btn btn-accent btn-sm" onclick="openOfferFor('Henry Villanueva')">Offer Letter</button>
+                        <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hired -->
+                <div class="kanban-col" data-stage="Hired">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title" style="color:var(--success);">Hired</span>
+                    <span class="kanban-count" style="background:#ECFDF5;color:#059669;">2</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Hired">
+                    <div class="kanban-card" data-candidate="Iris Mendoza" data-stage-index="4">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#059669;">IM</div>
+                        <div>
+                          <div class="kanban-card-name">Iris Mendoza</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Iris Mendoza">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star filled" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <span class="badge badge-green">Hired ✓</span>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Jake Rivera" data-stage-index="4">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#2563EB;">JR</div>
+                        <div>
+                          <div class="kanban-card-name">Jake Rivera</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Jake Rivera">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star filled" onclick="rateStar(this,3)">★</span>
+                        <span class="star filled" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <span class="badge badge-green">Hired ✓</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rejected -->
+                <div class="kanban-col" data-stage="Rejected">
+                  <div class="kanban-col-header">
+                    <span class="kanban-col-title" style="color:var(--danger);">Rejected</span>
+                    <span class="kanban-count" style="background:#FDECEA;color:var(--danger);">2</span>
+                  </div>
+                  <div class="kanban-cards" id="col-Rejected">
+                    <div class="kanban-card" data-candidate="Kyle Bautista" data-stage-index="5" style="opacity:.7;">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#9CA3AF;">KB</div>
+                        <div>
+                          <div class="kanban-card-name">Kyle Bautista</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Kyle Bautista">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star filled" onclick="rateStar(this,2)">★</span>
+                        <span class="star" onclick="rateStar(this,3)">★</span>
+                        <span class="star" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <span class="badge badge-red">Rejected</span>
+                      </div>
+                    </div>
+                    <div class="kanban-card" data-candidate="Lena Aquino" data-stage-index="5" style="opacity:.7;">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div class="kcard-avatar" style="background:#9CA3AF;">LA</div>
+                        <div>
+                          <div class="kanban-card-name">Lena Aquino</div>
+                          <div class="kanban-card-role">Senior Software Engineer</div>
+                        </div>
+                      </div>
+                      <div class="star-rating" data-candidate="Lena Aquino">
+                        <span class="star filled" onclick="rateStar(this,1)">★</span>
+                        <span class="star" onclick="rateStar(this,2)">★</span>
+                        <span class="star" onclick="rateStar(this,3)">★</span>
+                        <span class="star" onclick="rateStar(this,4)">★</span>
+                        <span class="star" onclick="rateStar(this,5)">★</span>
+                      </div>
+                      <div class="kanban-actions">
+                        <span class="badge badge-red">Rejected</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div><!-- end kanban-board -->
+            </div><!-- end card -->
+          </div><!-- end right column -->
+
+        </div><!-- end recruit-layout -->
+      </div><!-- end panel-recruitment -->
+
+      <!-- ═══════════════════════ ONBOARDING TAB ═══════════════════════ -->
+      <div class="tab-panel" id="panel-onboarding" role="tabpanel" aria-labelledby="tab-onboarding">
+
+        <!-- Onboarding Stats -->
+        <div class="onboard-stats">
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#EFF6FF;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">3</div>
+              <div class="chip-lbl">New Hires This Month</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:var(--accent-soft);">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#8B6914" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">5</div>
+              <div class="chip-lbl">Onboarding In Progress</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#ECFDF5;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">2</div>
+              <div class="chip-lbl">Completed</div>
+            </div>
+          </div>
+          <div class="recruit-stat-chip">
+            <div class="chip-icon" style="background:#FDECEA;">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--danger)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div class="chip-val">12</div>
+              <div class="chip-lbl">Pending Tasks</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section header -->
+        <div class="section-header mb-16">
+          <span class="section-title">New Hire Onboarding</span>
+        </div>
+
+        <!-- New Hire Cards -->
+        <div class="onboard-grid" id="onboardGrid">
+
+          <!-- Ana Reyes -->
+          <div class="onboard-card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div class="employee-avatar" style="width:44px;height:44px;font-size:16px;background:#7C3AED;">AR</div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text-main);">Ana Reyes</div>
+                <div style="font-size:12px;color:var(--text-muted);">Junior Developer</div>
+              </div>
+              <span class="badge badge-yellow" style="margin-left:auto;">In Progress</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Start Date: <strong style="color:var(--text-main);">Jan 15, 2025</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:8px;">
+              <span>Progress</span><span style="font-weight:600;color:var(--text-main);">7/12 tasks · 58%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:58%;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn btn-soft btn-sm btn-full" onclick="openChecklistModal('Ana Reyes','Junior Developer',58,7,12)">View Checklist</button>
+              <button class="btn btn-primary btn-sm btn-full" onclick="showToast('Buddy assigned to Ana Reyes')">Assign Buddy</button>
+            </div>
+          </div>
+
+          <!-- Mark Santos -->
+          <div class="onboard-card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div class="employee-avatar" style="width:44px;height:44px;font-size:16px;background:#2563EB;">MS</div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text-main);">Mark Santos</div>
+                <div style="font-size:12px;color:var(--text-muted);">Sales Representative</div>
+              </div>
+              <span class="badge badge-yellow" style="margin-left:auto;">In Progress</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Start Date: <strong style="color:var(--text-main);">Jan 20, 2025</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:8px;">
+              <span>Progress</span><span style="font-weight:600;color:var(--text-main);">3/12 tasks · 25%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:25%;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn btn-soft btn-sm btn-full" onclick="openChecklistModal('Mark Santos','Sales Representative',25,3,12)">View Checklist</button>
+              <button class="btn btn-primary btn-sm btn-full" onclick="showToast('Buddy assigned to Mark Santos')">Assign Buddy</button>
+            </div>
+          </div>
+
+          <!-- Lisa Chen -->
+          <div class="onboard-card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div class="employee-avatar" style="width:44px;height:44px;font-size:16px;background:#059669;">LC</div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text-main);">Lisa Chen</div>
+                <div style="font-size:12px;color:var(--text-muted);">UX Designer</div>
+              </div>
+              <span class="badge badge-green" style="margin-left:auto;">Completed</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Start Date: <strong style="color:var(--text-main);">Jan 10, 2025</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:8px;">
+              <span>Progress</span><span style="font-weight:600;color:var(--success);">12/12 tasks · 100%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill complete" style="width:100%;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn btn-soft btn-sm btn-full" onclick="openChecklistModal('Lisa Chen','UX Designer',100,12,12)">View Checklist</button>
+              <button class="btn btn-soft btn-sm btn-full" disabled style="opacity:.5;cursor:not-allowed;">Assign Buddy</button>
+            </div>
+          </div>
+
+          <!-- Carlos Ramos -->
+          <div class="onboard-card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div class="employee-avatar" style="width:44px;height:44px;font-size:16px;background:#D97706;">CR</div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--text-main);">Carlos Ramos</div>
+                <div style="font-size:12px;color:var(--text-muted);">Finance Analyst</div>
+              </div>
+              <span class="badge badge-gray" style="margin-left:auto;">Not Started</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Start Date: <strong style="color:var(--text-main);">Feb 1, 2025</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:8px;">
+              <span>Progress</span><span style="font-weight:600;color:var(--text-main);">0/12 tasks · 0%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:0%;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn btn-soft btn-sm btn-full" onclick="openChecklistModal('Carlos Ramos','Finance Analyst',0,0,12)">View Checklist</button>
+              <button class="btn btn-primary btn-sm btn-full" onclick="showToast('Buddy assigned to Carlos Ramos')">Assign Buddy</button>
+            </div>
+          </div>
+
+        </div><!-- end onboard-grid -->
+      </div><!-- end panel-onboarding -->
+
+    </main>
+  </div><!-- end main-wrapper -->
+</div><!-- end app-container -->
+
+<!-- ═══════════════════════════════ MODALS ═══════════════════════════════ -->
+
+<!-- Toast -->
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<!-- ── 1. Post New Job Modal ── -->
+<div class="modal-backdrop" id="modalPostJob" onclick="handleBackdropClick(event,'modalPostJob')" role="dialog" aria-modal="true" aria-labelledby="titlePostJob" style="display:none;">
+  <div class="modal" style="animation:scaleIn .22s ease;max-width:560px;width:95%;">
+    <div class="card-header" style="padding:20px 24px 0;">
+      <span class="modal-title" id="titlePostJob">Post New Job</span>
+      <button class="topbar-icon-btn" onclick="closeModal('modalPostJob')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-scroll" style="padding:20px 24px;">
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="jobTitle">Job Title</label>
+          <input type="text" id="jobTitle" placeholder="e.g. Senior Software Engineer" />
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="jobDept">Department</label>
+          <select id="jobDept">
+            <option value="">Select department</option>
+            <option>Engineering</option>
+            <option>Design</option>
+            <option>Finance</option>
+            <option>Sales</option>
+            <option>HR</option>
+            <option>Marketing</option>
+            <option>Operations</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="jobLocation">Location</label>
+          <input type="text" id="jobLocation" placeholder="e.g. Manila, Remote" />
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="jobType">Employment Type</label>
+          <select id="jobType">
+            <option value="">Select type</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Contract</option>
+            <option>Remote</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="jobOpenings">No. of Openings</label>
+          <input type="number" id="jobOpenings" min="1" placeholder="1" />
+        </div>
+      </div>
+      <div class="input-group mb-16">
+        <label for="jobDesc">Job Description</label>
+        <textarea id="jobDesc" rows="4" placeholder="Describe the role, responsibilities and requirements…"></textarea>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="jobSkills">Required Skills</label>
+          <input type="text" id="jobSkills" placeholder="e.g. React, Node.js, SQL" />
+        </div>
+        <div class="input-group">
+          <label for="jobStartDate">Expected Start Date</label>
+          <input type="date" id="jobStartDate" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('modalPostJob')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPostJob()">Post Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 2. Add Candidate Modal ── -->
+<div class="modal-backdrop" id="modalAddCandidate" onclick="handleBackdropClick(event,'modalAddCandidate')" role="dialog" aria-modal="true" aria-labelledby="titleAddCandidate" style="display:none;">
+  <div class="modal" style="animation:scaleIn .22s ease;max-width:540px;width:95%;">
+    <div class="card-header" style="padding:20px 24px 0;">
+      <span class="modal-title" id="titleAddCandidate">Add Candidate</span>
+      <button class="topbar-icon-btn" onclick="closeModal('modalAddCandidate')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-scroll" style="padding:20px 24px;">
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="candName">Full Name</label>
+          <input type="text" id="candName" placeholder="e.g. Juan dela Cruz" />
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="candEmail">Email</label>
+          <input type="email" id="candEmail" placeholder="juan@example.com" />
+        </div>
+        <div class="input-group">
+          <label for="candPhone">Phone</label>
+          <input type="tel" id="candPhone" placeholder="+63 912 345 6789" />
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="candPosition">Applied Position</label>
+          <select id="candPosition">
+            <option value="">Select position</option>
+            <option>Senior Software Engineer</option>
+            <option>UX Designer</option>
+            <option>Finance Manager</option>
+            <option>Sales Executive</option>
+            <option>HR Specialist</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="candSource">Source</label>
+          <select id="candSource">
+            <option value="">Select source</option>
+            <option>LinkedIn</option>
+            <option>Referral</option>
+            <option>Job Board</option>
+            <option>Website</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group mb-16">
+        <label for="candCV">Upload CV</label>
+        <input type="file" id="candCV" accept=".pdf,.doc,.docx" />
+      </div>
+      <div class="input-group mb-16">
+        <label for="candNotes">Notes</label>
+        <textarea id="candNotes" rows="3" placeholder="Any additional notes about this candidate…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('modalAddCandidate')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddCandidate()">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. Schedule Interview Modal ── -->
+<div class="modal-backdrop" id="modalScheduleInterview" onclick="handleBackdropClick(event,'modalScheduleInterview')" role="dialog" aria-modal="true" aria-labelledby="titleScheduleInterview" style="display:none;">
+  <div class="modal" style="animation:scaleIn .22s ease;max-width:520px;width:95%;">
+    <div class="card-header" style="padding:20px 24px 0;">
+      <span class="modal-title" id="titleScheduleInterview">Schedule Interview</span>
+      <button class="topbar-icon-btn" onclick="closeModal('modalScheduleInterview')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-scroll" style="padding:20px 24px;">
+      <div class="input-group mb-16">
+        <label for="interviewCandidate">Candidate</label>
+        <input type="text" id="interviewCandidate" placeholder="Candidate name" />
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="interviewType">Interview Type</label>
+          <select id="interviewType">
+            <option value="">Select type</option>
+            <option>Phone Screen</option>
+            <option>Video Call</option>
+            <option>On-site</option>
+            <option>Technical Test</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="interviewInterviewer">Interviewer</label>
+          <select id="interviewInterviewer">
+            <option value="">Select interviewer</option>
+            <option>Maria Santos (HR)</option>
+            <option>John dela Cruz (Engineering)</option>
+            <option>Rose Tan (Design)</option>
+            <option>Chris Uy (Finance)</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="interviewDate">Date</label>
+          <input type="date" id="interviewDate" />
+        </div>
+        <div class="input-group">
+          <label for="interviewTime">Time</label>
+          <input type="time" id="interviewTime" />
+        </div>
+      </div>
+      <div class="input-group mb-16">
+        <label for="interviewLink">Meeting Link / Location</label>
+        <input type="text" id="interviewLink" placeholder="e.g. https://meet.google.com/… or Room 3B" />
+      </div>
+      <div class="input-group mb-16">
+        <label for="interviewNotes">Notes</label>
+        <textarea id="interviewNotes" rows="3" placeholder="Preparation notes, topics to cover…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('modalScheduleInterview')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitScheduleInterview()">Schedule Interview</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. Generate Offer Letter Modal ── -->
+<div class="modal-backdrop" id="modalOfferLetter" onclick="handleBackdropClick(event,'modalOfferLetter')" role="dialog" aria-modal="true" aria-labelledby="titleOfferLetter" style="display:none;">
+  <div class="modal" style="animation:scaleIn .22s ease;max-width:600px;width:95%;">
+    <div class="card-header" style="padding:20px 24px 0;">
+      <span class="modal-title" id="titleOfferLetter">Generate Offer Letter</span>
+      <button class="topbar-icon-btn" onclick="closeModal('modalOfferLetter')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-scroll" style="padding:20px 24px;">
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="offerCandidate">Candidate Name</label>
+          <input type="text" id="offerCandidate" placeholder="Candidate full name" />
+        </div>
+        <div class="input-group">
+          <label for="offerPosition">Position</label>
+          <input type="text" id="offerPosition" placeholder="e.g. Senior Software Engineer" />
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="offerDept">Department</label>
+          <select id="offerDept">
+            <option value="">Select department</option>
+            <option>Engineering</option>
+            <option>Design</option>
+            <option>Finance</option>
+            <option>Sales</option>
+            <option>HR</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="offerEmpType">Employment Type</label>
+          <select id="offerEmpType">
+            <option value="">Select type</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Contract</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-row mb-16">
+        <div class="input-group">
+          <label for="offerStartDate">Start Date</label>
+          <input type="date" id="offerStartDate" />
+        </div>
+        <div class="input-group">
+          <label for="offerSalary">Salary Offer (PHP/month)</label>
+          <input type="text" id="offerSalary" placeholder="e.g. 85,000" />
+        </div>
+      </div>
+      <button class="btn btn-soft" style="margin-bottom:16px;" onclick="generateOfferPreview()">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        Generate Preview
+      </button>
+      <div class="offer-preview" id="offerPreview" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('modalOfferLetter')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitOfferLetter()">Send Offer Letter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. Onboarding Checklist Modal ── -->
+<div class="modal-backdrop" id="modalChecklist" onclick="handleBackdropClick(event,'modalChecklist')" role="dialog" aria-modal="true" aria-labelledby="titleChecklist" style="display:none;">
+  <div class="modal" style="animation:scaleIn .22s ease;max-width:560px;width:95%;">
+    <div class="card-header" style="padding:20px 24px 0;">
+      <span class="modal-title" id="titleChecklist">Onboarding Checklist</span>
+      <button class="topbar-icon-btn" onclick="closeModal('modalChecklist')" aria-label="Close">&times;</button>
+    </div>
+    <div style="padding:0 24px 8px;">
+      <div style="font-size:13px;color:var(--text-muted);" id="checklistSubtitle">Junior Developer</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:10px;">
+        <span>Overall Progress</span>
+        <span id="checklistProgressLabel" style="font-weight:600;color:var(--text-main);">0%</span>
+      </div>
+      <div class="progress-bar-wrap" style="margin-bottom:0;">
+        <div class="progress-bar-fill" id="checklistProgressBar" style="width:0%;"></div>
+      </div>
+    </div>
+    <div class="modal-scroll" style="padding:16px 24px;">
+
+      <div class="checklist-section">
+        <div class="checklist-section-title">Pre-Boarding</div>
+        <ul style="list-style:none;padding:0;margin:0;" id="checklistGroup0">
+          <li class="checklist-item" data-group="0"><input type="checkbox" id="ck0-0" onchange="toggleChecklistItem(this)"><label for="ck0-0">IT equipment request</label></li>
+          <li class="checklist-item" data-group="0"><input type="checkbox" id="ck0-1" onchange="toggleChecklistItem(this)"><label for="ck0-1">System access setup</label></li>
+          <li class="checklist-item" data-group="0"><input type="checkbox" id="ck0-2" onchange="toggleChecklistItem(this)"><label for="ck0-2">Workstation assignment</label></li>
+          <li class="checklist-item" data-group="0"><input type="checkbox" id="ck0-3" onchange="toggleChecklistItem(this)"><label for="ck0-3">Welcome email sent</label></li>
+        </ul>
+      </div>
+
+      <div class="checklist-section">
+        <div class="checklist-section-title">Day 1</div>
+        <ul style="list-style:none;padding:0;margin:0;" id="checklistGroup1">
+          <li class="checklist-item" data-group="1"><input type="checkbox" id="ck1-0" onchange="toggleChecklistItem(this)"><label for="ck1-0">ID card issued</label></li>
+          <li class="checklist-item" data-group="1"><input type="checkbox" id="ck1-1" onchange="toggleChecklistItem(this)"><label for="ck1-1">Employee handbook signed</label></li>
+          <li class="checklist-item" data-group="1"><input type="checkbox" id="ck1-2" onchange="toggleChecklistItem(this)"><label for="ck1-2">Building tour</label></li>
+          <li class="checklist-item" data-group="1"><input type="checkbox" id="ck1-3" onchange="toggleChecklistItem(this)"><label for="ck1-3">Meet the team</label></li>
+        </ul>
+      </div>
+
+      <div class="checklist-section">
+        <div class="checklist-section-title">Week 1</div>
+        <ul style="list-style:none;padding:0;margin:0;" id="checklistGroup2">
+          <li class="checklist-item" data-group="2"><input type="checkbox" id="ck2-0" onchange="toggleChecklistItem(this)"><label for="ck2-0">Complete HR orientation</label></li>
+          <li class="checklist-item" data-group="2"><input type="checkbox" id="ck2-1" onchange="toggleChecklistItem(this)"><label for="ck2-1">Benefits enrollment</label></li>
+          <li class="checklist-item" data-group="2"><input type="checkbox" id="ck2-2" onchange="toggleChecklistItem(this)"><label for="ck2-2">Setup payroll details</label></li>
+          <li class="checklist-item" data-group="2"><input type="checkbox" id="ck2-3" onchange="toggleChecklistItem(this)"><label for="ck2-3">Department training</label></li>
+        </ul>
+      </div>
+
+      <div class="checklist-section">
+        <div class="checklist-section-title">First 30 Days</div>
+        <ul style="list-style:none;padding:0;margin:0;" id="checklistGroup3">
+          <li class="checklist-item" data-group="3"><input type="checkbox" id="ck3-0" onchange="toggleChecklistItem(this)"><label for="ck3-0">Complete compliance training</label></li>
+          <li class="checklist-item" data-group="3"><input type="checkbox" id="ck3-1" onchange="toggleChecklistItem(this)"><label for="ck3-1">30-day check-in</label></li>
+          <li class="checklist-item" data-group="3"><input type="checkbox" id="ck3-2" onchange="toggleChecklistItem(this)"><label for="ck3-2">Assign mentor</label></li>
+          <li class="checklist-item" data-group="3"><input type="checkbox" id="ck3-3" onchange="toggleChecklistItem(this)"><label for="ck3-3">Performance goals set</label></li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-soft" onclick="closeModal('modalChecklist')">Close</button>
+      <button class="btn btn-primary" onclick="saveChecklistProgress()">Save Progress</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/confirm-dialog.js"></script>
+<script src="/middleware/auth.js"></script>
+<script>
+  // ── Session guard ──
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!localStorage.getItem('workdesk_token')) {
+      window.location.replace('/app/login.html');
+      return;
+    }
+    initPage();
+  });
+
+  // ── Stages order ──
+  const STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
+
+  // ── Init ──
+  function initPage() {
+    initStatusDropdown();
+    initSearch();
+  }
+
+  // ── Tab switching ──
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('tab-' + tabId).setAttribute('aria-selected', 'true');
+    document.getElementById('panel-' + tabId).classList.add('active');
+  }
+
+  // ── Modal helpers ──
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    document.getElementById(id).style.alignItems = 'center';
+    document.getElementById(id).style.justifyContent = 'center';
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+  function handleBackdropClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+
+  // ── Toast ──
+  function showToast(message) {
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Job selection / pipeline filter ──
+  function selectJob(card) {
+    document.querySelectorAll('.job-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const job = card.getAttribute('data-job');
+    document.getElementById('pipelineTitle').textContent = 'Pipeline — ' + job;
+    // Update candidate role labels in kanban
+    document.querySelectorAll('.kanban-card-role').forEach(r => r.textContent = job);
+    showToast('Viewing pipeline for: ' + job);
+  }
+
+  // ── Kanban: Move Stage ──
+  function moveStage(card) {
+    const currentStage = card.closest('.kanban-col').getAttribute('data-stage');
+    const currentIndex = STAGES.indexOf(currentStage);
+    if (currentIndex < 0 || currentIndex >= STAGES.length - 2) {
+      showToast('Candidate is already at the final stage.');
+      return;
+    }
+    const nextStage = STAGES[currentIndex + 1];
+    const candidateName = card.getAttribute('data-candidate') || 'Candidate';
+    WDConfirm.show({
+      title:       'Move Candidate',
+      message:     'Are you sure you want to move ' + candidateName + ' to the "' + nextStage + '" stage?',
+      type:        'info',
+      confirmText: 'Yes, Move',
+      cancelText:  'No',
+      onConfirm: function () {
+        const targetCol = document.getElementById('col-' + nextStage);
+        if (!targetCol) return;
+        card.setAttribute('data-stage-index', currentIndex + 1);
+        // Update action buttons based on next stage
+        const actions = card.querySelector('.kanban-actions');
+        if (nextStage === 'Hired') {
+          actions.innerHTML = '<span class="badge badge-green">Hired ✓</span>';
+        } else if (nextStage === 'Rejected') {
+          actions.innerHTML = '<span class="badge badge-red">Rejected</span>';
+          card.style.opacity = '0.7';
+        } else if (nextStage === 'Offer') {
+          actions.innerHTML = `
+            <button class="btn btn-accent btn-sm" onclick="openOfferFor(this.closest('.kanban-card').getAttribute('data-candidate'))">Offer Letter</button>
+            <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
+        } else {
+          const name = card.getAttribute('data-candidate');
+          actions.innerHTML = `
+            <button class="btn btn-soft btn-sm" onclick="openScheduleFor('${name}')">Schedule</button>
+            <button class="btn btn-primary btn-sm" onclick="moveStage(this.closest('.kanban-card'))">Move →</button>`;
+        }
+        targetCol.appendChild(card);
+        updateKanbanCounts();
+        showToast(candidateName + ' moved to ' + nextStage);
+      }
+    });
+  }
+
+  function updateKanbanCounts() {
+    document.querySelectorAll('.kanban-col').forEach(col => {
+      const count = col.querySelector('.kanban-cards').children.length;
+      col.querySelector('.kanban-count').textContent = count;
+    });
+  }
+
+  // ── Star rating ──
+  function rateStar(starEl, rating) {
+    const row = starEl.closest('.star-rating');
+    const stars = row.querySelectorAll('.star');
+    stars.forEach((s, i) => {
+      s.classList.toggle('filled', i < rating);
+    });
+    const name = row.getAttribute('data-candidate') || 'Candidate';
+    showToast(name + ' rated ' + rating + ' star' + (rating !== 1 ? 's' : ''));
+  }
+
+  // ── Open schedule modal pre-filled ──
+  function openScheduleFor(name) {
+    document.getElementById('interviewCandidate').value = name;
+    openModal('modalScheduleInterview');
+  }
+
+  // ── Open offer modal pre-filled ──
+  function openOfferFor(name) {
+    document.getElementById('offerCandidate').value = name;
+    openModal('modalOfferLetter');
+  }
+
+  // ── Modal submit handlers ──
+  function submitPostJob() {
+    const title = document.getElementById('jobTitle').value.trim();
+    if (!title) { showToast('Please enter a job title.'); return; }
+    WDConfirm.show({
+      title:       'Post Job',
+      message:     'Are you sure you want to post the job opening for "' + title + '"?',
+      type:        'info',
+      confirmText: 'Yes, Post Job',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Job "' + title + '" posted successfully!');
+        closeModal('modalPostJob');
+        document.getElementById('jobTitle').value = '';
+      }
+    });
+  }
+
+  function submitAddCandidate() {
+    const name = document.getElementById('candName').value.trim();
+    if (!name) { showToast('Please enter candidate name.'); return; }
+    WDConfirm.show({
+      title:       'Add Candidate',
+      message:     'Are you sure you want to add "' + name + '" as a candidate?',
+      type:        'info',
+      confirmText: 'Yes, Add',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Candidate "' + name + '" added successfully!');
+        closeModal('modalAddCandidate');
+        document.getElementById('candName').value = '';
+      }
+    });
+  }
+
+  function submitScheduleInterview() {
+    const candidate = document.getElementById('interviewCandidate').value.trim();
+    const date = document.getElementById('interviewDate').value;
+    if (!candidate || !date) { showToast('Please fill in candidate and date.'); return; }
+    WDConfirm.show({
+      title:       'Schedule Interview',
+      message:     'Are you sure you want to schedule an interview for ' + candidate + '?',
+      type:        'info',
+      confirmText: 'Yes, Schedule',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Interview scheduled for ' + candidate);
+        closeModal('modalScheduleInterview');
+      }
+    });
+  }
+
+  function generateOfferPreview() {
+    const candidate = document.getElementById('offerCandidate').value.trim() || '[Candidate Name]';
+    const position  = document.getElementById('offerPosition').value.trim() || '[Position]';
+    const dept      = document.getElementById('offerDept').value || '[Department]';
+    const empType   = document.getElementById('offerEmpType').value || '[Employment Type]';
+    const startDate = document.getElementById('offerStartDate').value
+      ? new Date(document.getElementById('offerStartDate').value).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
+      : '[Start Date]';
+    const salary    = document.getElementById('offerSalary').value.trim() || '[Salary]';
+    const today     = new Date().toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'});
+
+    const preview = document.getElementById('offerPreview');
+    preview.style.display = 'block';
+    preview.innerHTML = `
+      <div style="text-align:right;font-size:12px;color:var(--text-muted);margin-bottom:12px;">${today}</div>
+      <p>Dear <strong>${candidate}</strong>,</p>
+      <p>We are pleased to extend this offer of employment with <strong>WorkDesk Inc.</strong> for the position of <strong>${position}</strong> in the <strong>${dept}</strong> department.</p>
+      <p>The terms of your employment are as follows:</p>
+      <ul style="margin:8px 0 8px 20px;">
+        <li><strong>Position:</strong> ${position}</li>
+        <li><strong>Department:</strong> ${dept}</li>
+        <li><strong>Employment Type:</strong> ${empType}</li>
+        <li><strong>Start Date:</strong> ${startDate}</li>
+        <li><strong>Monthly Salary:</strong> PHP ${salary}</li>
+      </ul>
+      <p>This offer is contingent upon successful completion of a background check and submission of required pre-employment documents.</p>
+      <p>Please sign and return this letter by <strong>${new Date(Date.now()+7*86400000).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}</strong>.</p>
+      <p>We look forward to welcoming you to the team!</p>
+      <br/>
+      <p style="margin-bottom:2px;"><strong>Maria Santos</strong></p>
+      <p style="font-size:12px;color:var(--text-muted);">HR Director · WorkDesk Inc.</p>
+    `;
+  }
+
+  function submitOfferLetter() {
+    const candidate = document.getElementById('offerCandidate').value.trim();
+    if (!candidate) { showToast('Please fill in candidate name.'); return; }
+    WDConfirm.show({
+      title:       'Send Offer Letter',
+      message:     'Are you sure you want to send the offer letter to ' + candidate + '?',
+      type:        'info',
+      confirmText: 'Yes, Send Offer',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Offer letter sent to ' + candidate + '!');
+        closeModal('modalOfferLetter');
+        document.getElementById('offerPreview').style.display = 'none';
+      }
+    });
+  }
+
+  // ── Onboarding Checklist Modal ──
+  function openChecklistModal(name, role, pct, done, total) {
+    document.getElementById('titleChecklist').textContent = 'Onboarding Checklist — ' + name;
+    document.getElementById('checklistSubtitle').textContent = role;
+    document.getElementById('checklistProgressLabel').textContent = pct + '%';
+    const bar = document.getElementById('checklistProgressBar');
+    bar.style.width = pct + '%';
+    bar.classList.toggle('complete', pct === 100);
+
+    // Reset all checkboxes
+    document.querySelectorAll('#modalChecklist input[type=checkbox]').forEach(cb => {
+      cb.checked = false;
+      cb.closest('.checklist-item').classList.remove('done');
+    });
+
+    // For Lisa Chen (100%), check all
+    if (pct === 100) {
+      document.querySelectorAll('#modalChecklist input[type=checkbox]').forEach(cb => {
+        cb.checked = true;
+        cb.closest('.checklist-item').classList.add('done');
+      });
+    } else {
+      // Pre-fill done tasks sequentially for partial progress
+      const allBoxes = document.querySelectorAll('#modalChecklist input[type=checkbox]');
+      for (let i = 0; i < done && i < allBoxes.length; i++) {
+        allBoxes[i].checked = true;
+        allBoxes[i].closest('.checklist-item').classList.add('done');
+      }
+    }
+
+    openModal('modalChecklist');
+  }
+
+  function toggleChecklistItem(checkbox) {
+    const item = checkbox.closest('.checklist-item');
+    item.classList.toggle('done', checkbox.checked);
+    updateChecklistProgress();
+  }
+
+  function updateChecklistProgress() {
+    const allBoxes = document.querySelectorAll('#modalChecklist input[type=checkbox]');
+    const checkedCount = Array.from(allBoxes).filter(cb => cb.checked).length;
+    const total = allBoxes.length;
+    const pct = Math.round((checkedCount / total) * 100);
+
+    document.getElementById('checklistProgressLabel').textContent = pct + '%';
+    const bar = document.getElementById('checklistProgressBar');
+    bar.style.width = pct + '%';
+    bar.classList.toggle('complete', pct === 100);
+  }
+
+  function saveChecklistProgress() {
+    const allBoxes = document.querySelectorAll('#modalChecklist input[type=checkbox]');
+    const checkedCount = Array.from(allBoxes).filter(cb => cb.checked).length;
+    const total = allBoxes.length;
+    const name = document.getElementById('titleChecklist').textContent.replace('Onboarding Checklist — ', '');
+    WDConfirm.show({
+      title:       'Save Progress',
+      message:     'Are you sure you want to save the checklist progress for ' + name + '?',
+      type:        'info',
+      confirmText: 'Yes, Save',
+      cancelText:  'No',
+      onConfirm: function () {
+        showToast('Progress saved for ' + name + ' (' + checkedCount + '/' + total + ' tasks)');
+        closeModal('modalChecklist');
+      }
+    });
+  }
+
+  // ── Status dropdown ──
+  function initStatusDropdown() {
+    const btn = document.getElementById('statusBadgeBtn');
+    const dropdown = document.getElementById('statusDropdown');
+    const dot = document.getElementById('statusDot');
+    const label = document.getElementById('statusLabel');
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', dropdown.classList.contains('open'));
+    });
+
+    document.querySelectorAll('.status-dropdown-item').forEach(item => {
+      item.addEventListener('click', function () {
+        const status = this.getAttribute('data-status');
+        dot.className = 'status-dot ' + status;
+        label.textContent = this.textContent.trim();
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        showToast('Status set to ' + label.textContent);
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!document.getElementById('statusWrap').contains(e.target)) {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // ── Search filtering ──
+  function initSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    searchInput.addEventListener('input', function () {
+      const query = this.value.toLowerCase().trim();
+
+      // Filter job cards
+      document.querySelectorAll('.job-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = (!query || text.includes(query)) ? '' : 'none';
+      });
+
+      // Filter kanban cards
+      document.querySelectorAll('.kanban-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = (!query || text.includes(query)) ? '' : 'none';
+      });
+
+      // Filter onboarding cards
+      document.querySelectorAll('.onboard-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = (!query || text.includes(query)) ? '' : 'none';
+      });
+    });
+  }
+</script>
+</body>
+</html>
