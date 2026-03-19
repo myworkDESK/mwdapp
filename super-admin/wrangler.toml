@@ -5,7 +5,7 @@
 # Deploy: https://pages.cloudflare.com
 # Docs: https://developers.cloudflare.com/pages/
 
-name = "superadminaccess"
+name = "myworkdeskappsaaccess"
 compatibility_date = "2024-01-01"
 # Use the latest Workers runtime for best performance on Cloudflare Pages Functions
 compatibility_flags = ["nodejs_compat"]
