@@ -5,7 +5,7 @@
 # Deploy: https://pages.cloudflare.com
 # Docs: https://developers.cloudflare.com/pages/
 
-name = "superadminaccess"
+name = "myworkdeskapp"
 compatibility_date = "2024-01-01"
 # Use the latest Workers runtime for best performance on Cloudflare Pages Functions
 compatibility_flags = ["nodejs_compat"]
@@ -138,10 +138,10 @@ not_found_handling = "single-page-application"
 #
 # Super-Admin secrets (required for /api/sa-auth and /api/sa-org-admins).
 # Run these commands and enter each value when prompted:
-#   wrangler secret put SA_USERNAME     --name superadminaccess
-#   wrangler secret put SA_SECURITY_KEY --name superadminaccess
-#   wrangler secret put SA_PASSWORD     --name superadminaccess
+#   wrangler secret put SA_USERNAME     --name myworkdeskapp
+#   wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
+#   wrangler secret put SA_PASSWORD     --name myworkdeskapp
 #
-# To verify all three are set:   wrangler secret list --name superadminaccess
+# To verify all three are set:   wrangler secret list --name myworkdeskapp
 # To re-add a deleted secret:    re-run the matching command above
 # Full guide: workers/DEPLOY.md

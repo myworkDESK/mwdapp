@@ -1,6 +1,6 @@
 # WorkDesk Super Admin — Deployment Guide
 
-The Super Admin Panel (`sa-portal.html` and `sa-dashboard.html`) is deployed as part of the **main WorkDesk Cloudflare Pages project** (`superadminaccess`). There is no separate project — everything lives under one deployment.
+The Super Admin Panel (`sa-portal.html` and `sa-dashboard.html`) is deployed as part of the **main WorkDesk Cloudflare Pages project** (`myworkdeskapp`). There is no separate project — everything lives under one deployment.
 
 ---
 
@@ -21,7 +21,7 @@ From the **root** of the WorkDesk repository:
 
 ```bash
 wrangler pages deploy . \
-  --project-name superadminaccess \
+  --project-name myworkdeskapp \
   --compatibility-date 2025-09-27
 ```
 
@@ -32,9 +32,9 @@ wrangler pages deploy . \
 The Super Admin login (`POST /api/sa-auth`) reads three secrets from the Cloudflare environment. **Never commit real credentials to source control.** Set them via the CLI:
 
 ```bash
-wrangler secret put SA_USERNAME     --name superadminaccess
-wrangler secret put SA_SECURITY_KEY --name superadminaccess
-wrangler secret put SA_PASSWORD     --name superadminaccess
+wrangler secret put SA_USERNAME     --name myworkdeskapp
+wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
+wrangler secret put SA_PASSWORD     --name myworkdeskapp
 ```
 
 You will be prompted to enter each value interactively. Choose strong, unique values for all three.
@@ -42,7 +42,7 @@ You will be prompted to enter each value interactively. Choose strong, unique va
 Verify all three are set:
 
 ```bash
-wrangler secret list --name superadminaccess
+wrangler secret list --name myworkdeskapp
 # Expected output lists SA_USERNAME, SA_SECURITY_KEY, SA_PASSWORD
 ```
 
@@ -51,7 +51,7 @@ wrangler secret list --name superadminaccess
 ## Subsequent Deploys
 
 ```bash
-wrangler pages deploy . --project-name superadminaccess
+wrangler pages deploy . --project-name myworkdeskapp
 ```
 
 ---
@@ -64,7 +64,7 @@ Steps to restore after a reset:
 
 1. Re-add all three secrets (see "Setting the Required Secrets" above).
 2. Redeploy the project so the new environment variables take effect.
-3. Verify with: `wrangler secret list --name superadminaccess`
+3. Verify with: `wrangler secret list --name myworkdeskapp`
 
 ---
 
@@ -97,7 +97,7 @@ In `sa-auth.js`, uncomment the two TODO blocks that read from and write to `env.
 ### Step 4 — Redeploy
 
 ```bash
-wrangler pages deploy . --project-name superadminaccess
+wrangler pages deploy . --project-name myworkdeskapp
 ```
 
 ---
@@ -106,7 +106,7 @@ wrangler pages deploy . --project-name superadminaccess
 
 Before going live, ensure:
 
-- [ ] `SA_USERNAME`, `SA_SECURITY_KEY`, and `SA_PASSWORD` are all set as **encrypted** environment variables on `superadminaccess` — never hardcoded in any file.
+- [ ] `SA_USERNAME`, `SA_SECURITY_KEY`, and `SA_PASSWORD` are all set as **encrypted** environment variables on `myworkdeskapp` — never hardcoded in any file.
 - [ ] The SA portal URL is kept private (not linked from the main app or any public page).
 - [ ] The `_headers` file at the repo root is deployed alongside the HTML files (Cloudflare Pages picks it up automatically).
 - [ ] Access logs are reviewed periodically in the Cloudflare Pages Functions log stream.

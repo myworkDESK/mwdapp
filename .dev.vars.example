@@ -1,0 +1,23 @@
+# Copy this file to .dev.vars for local development with `wrangler pages dev`.
+# .dev.vars is git-ignored — never commit real credentials.
+#
+# These variables mirror the encrypted secrets you set in Cloudflare Pages
+# (Settings → Environment variables → Secret variables).
+
+# ── Super-Admin credentials ───────────────────────────────────────────────────
+# Required by POST /api/sa-auth and GET /api/sa-config-check.
+# Use strong, unique values in production (set via `wrangler secret put`).
+SA_USERNAME=admin
+SA_SECURITY_KEY=changeme-security-key
+SA_PASSWORD=changeme-password
+
+# ── Optional: Demo / default employee credentials ─────────────────────────────
+# Overrides the built-in demo account used by POST /api/auth.
+# Remove these lines to use the built-in defaults (Org: DEMO, ID: EMP001).
+# DEMO_ORG_ID=DEMO
+# DEMO_EMPLOYEE_ID=EMP001
+# DEMO_PASSWORD=demo123
+
+# ── Optional: AI Assistant ────────────────────────────────────────────────────
+# Supply an OpenAI-compatible key to enable the AI Assistant page.
+# OPENAI_API_KEY=sk-...
