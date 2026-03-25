@@ -89,10 +89,12 @@ Open each URL below and verify it loads correctly:
 | Symptom                         | Fix                                                                           |
 |---------------------------------|-------------------------------------------------------------------------------|
 | 404 on `/app/login.html`        | Check that Build output directory is `/` (not `dist` or `public`)             |
+| 404 on everything / blank page  | Check that **Root directory** is `/` — not a file path like `/pages/sa-login.html` |
 | API calls fail (401/500)        | Check env variables are saved — go to Settings → Environment variables        |
 | Redirect not working            | Make sure `_redirects` file exists in repo root (it does — do not delete it)  |
 | Login says "Invalid credentials"| Double-check `DEMO_PASSWORD` / `SA_PASSWORD` values in env vars               |
 | CSP error in console            | Expected for external resources not on the allowlist — not a Pages issue      |
+| Deploy fails with "not found"   | Root directory is wrong — it must be `/` (see [STEP-3](./STEP-3-build-settings.md)) |
 
 ---
 

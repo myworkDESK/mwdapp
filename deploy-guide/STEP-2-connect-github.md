@@ -1,33 +1,36 @@
-# STEP 2 — Connect GitHub Repository to Cloudflare Pages
+# STEP 2 — Connect GitHub Repository to Cloudflare
+
+You can deploy this project using either **Cloudflare Pages** (classic) or **Cloudflare Workers** (with Git integration). Both work — choose whichever you see in your dashboard.
 
 ---
 
-## 1. Open Cloudflare Pages
+## Option A — Cloudflare Pages
 
 1. Log in to https://dash.cloudflare.com
 2. In the left sidebar click **Workers & Pages**
-3. Click the **Pages** tab
-4. Click **Create a project**
+3. Click the **Pages** tab → **Create a project**
+4. Click **Connect to Git**
+5. Choose **GitHub** as the Git provider
+6. Click **Connect GitHub** — a GitHub OAuth popup will open
+7. Authorize Cloudflare to access your GitHub account
+8. When asked which repositories to allow, select **myworkdeskapp/myworkdeskapp** (or "All repositories" if you prefer)
+9. Click **Install & Authorize**
+10. In the **Select a repository** list, find and click **myworkdeskapp/myworkdeskapp**
+11. Click **Begin setup**
 
 ---
 
-## 2. Connect to Git
+## Option B — Cloudflare Workers (with Git)
 
-1. Click **Connect to Git**
-2. Choose **GitHub** as the Git provider
-3. Click **Connect GitHub** — a GitHub OAuth popup will open
-4. Authorize Cloudflare to access your GitHub account
-5. When asked which repositories to allow, select **myworkdeskapp/myworkdeskapp** (or "All repositories" if you prefer)
-6. Click **Install & Authorize**
+1. Log in to https://dash.cloudflare.com
+2. In the left sidebar click **Workers & Pages**
+3. Click **Create** → choose **Worker**
+4. Give the worker a name (e.g. `myworkdeskapp`)
+5. Under **Build** or **Git integration**, click **Connect to Git**
+6. Choose **GitHub** and authorize access to **myworkdeskapp/myworkdeskapp**
+7. Continue to the build settings (see Step 3)
 
----
-
-## 3. Select the Repository
-
-After authorization you will be returned to the Cloudflare Pages setup screen.
-
-1. In the **Select a repository** list, find and click **myworkdeskapp/myworkdeskapp**
-2. Click **Begin setup**
+> **Note:** The repository contains a `wrangler.jsonc` at the root that configures the Worker to serve static assets and API functions. This is why the Workers path also works.
 
 ---
 
