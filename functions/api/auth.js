@@ -30,7 +30,7 @@ export async function onRequest(context) {
       return json({ ok: false, message: 'Organization ID, Employee ID, and password are required.' }, 400);
     }
     if (role && role !== 'employee' && role !== 'admin') {
-      return json({ ok: false, message: 'Role must be either employee or admin.' }, 400);
+      return json({ ok: false, message: 'Invalid role.' }, 400);
     }
 
     // TODO: Replace with real D1 lookup:

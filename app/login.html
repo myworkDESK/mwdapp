@@ -524,7 +524,7 @@
         </div>
 
         <!-- Super Admin Username -->
-        <div class="field-group role-superadmin" id="saUsernameGroup" style="display:none;">
+        <div class="field-group role-superadmin" id="saUsernameGroup" hidden>
           <label class="field-label" for="saUsername">Username</label>
           <div class="field-input-wrap">
             <input
@@ -540,7 +540,7 @@
         </div>
 
         <!-- Super Admin Security Key -->
-        <div class="field-group role-superadmin" id="saSecretKeyGroup" style="display:none;">
+        <div class="field-group role-superadmin" id="saSecretKeyGroup" hidden>
           <label class="field-label" for="saSecretKey">Security Key</label>
           <div class="field-input-wrap">
             <input
@@ -593,7 +593,7 @@
             Password: <code>WorkDesk@2025</code>
           </div>
         </details>
-        <details class="demo-hint" id="saHint" style="display:none;">
+        <details class="demo-hint" id="saHint" hidden>
           <summary>Super Admin Credentials</summary>
           <div class="hint-body">
             Configure in Cloudflare env vars: <code>SA_USERNAME</code>, <code>SA_SECURITY_KEY</code>, <code>SA_PASSWORD</code>
@@ -733,16 +733,16 @@
       var employeeHint = document.getElementById('employeeDemoHint');
       var saHint = document.getElementById('saHint');
 
-      regularFields.forEach(function (el) { el.style.display = role === 'super_admin' ? 'none' : ''; });
-      superFields.forEach(function (el) { el.style.display = role === 'super_admin' ? '' : 'none'; });
+      regularFields.forEach(function (el) { el.hidden = role === 'super_admin'; });
+      superFields.forEach(function (el) { el.hidden = role !== 'super_admin'; });
 
       if (sub) {
         sub.textContent = role === 'super_admin'
           ? 'Secure CEO/Super Admin access with all permissions'
           : 'Sign in to access your workspace';
       }
-      if (employeeHint) employeeHint.style.display = role === 'super_admin' ? 'none' : '';
-      if (saHint) saHint.style.display = role === 'super_admin' ? '' : 'none';
+      if (employeeHint) employeeHint.hidden = role === 'super_admin';
+      if (saHint) saHint.hidden = role !== 'super_admin';
     }
 
     document.getElementById('orgId').addEventListener('input', function () {
@@ -793,6 +793,10 @@
       var role = document.getElementById('loginRole').value;
       if (role === 'super_admin') {
         showToast('For Super Admin credential resets, contact platform security support.', false);
+        return;
+      }
+      if (role === 'admin') {
+        showToast('For Admin credential resets, contact your organization administrator.', false);
         return;
       }
       var empId = document.getElementById('employeeId').value.trim();
@@ -861,18 +865,20 @@
         .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
         .then(function (result) {
           if (result.data && result.data.ok) {
+            var saTitle = result.data.title || 'CEO';
             localStorage.removeItem('workdesk_token');
+            localStorage.removeItem('workdesk_role');
+            localStorage.removeItem('workdesk_display_name');
             localStorage.setItem('sa_token', result.data.token);
             localStorage.setItem('sa_session', JSON.stringify({
               token:       result.data.token,
               username:    result.data.username,
               role:        'super_admin',
-              title:       'CEO',
+              title:       saTitle,
               permissions: ['*'],
               issuedAt:    Date.now()
             }));
-            localStorage.setItem('workdesk_role', 'CEO');
-            localStorage.setItem('workdesk_display_name', result.data.username || 'CEO');
+            localStorage.setItem('workdesk_display_name', result.data.username || saTitle);
             window.location.replace('/pages/sa-dashboard.html');
             return;
           }
