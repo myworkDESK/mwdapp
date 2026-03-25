@@ -1,0 +1,27 @@
+# WorkDesk — Audit Verifier Cron Worker
+# Deploy:
+#   cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml
+
+name               = "workdesk-audit-verifier"
+main               = "audit-verifier.js"
+compatibility_date = "2025-01-01"
+
+# ── Cron: nightly at 00:15 UTC ────────────────────────────────────────────────
+[triggers]
+crons = ["15 0 * * *"]
+
+# ── D1 Database ───────────────────────────────────────────────────────────────
+# [[d1_databases]]
+# binding       = "DB"
+# database_name = "workdesk-db"
+# database_id   = "YOUR_D1_DATABASE_ID"
+
+# ── R2 Audit Bucket ───────────────────────────────────────────────────────────
+# [[r2_buckets]]
+# binding     = "AUDIT_BUCKET"
+# bucket_name = "workdesk-audit"
+
+# Secrets: wrangler secret put SIGNING_KEY --name workdesk-audit-verifier
+#          wrangler secret put SLACK_WEBHOOK_URL --name workdesk-audit-verifier
+#          wrangler secret put EMAIL_WEBHOOK_URL --name workdesk-audit-verifier
+#          wrangler secret put ALERT_EMAIL_TO    --name workdesk-audit-verifier

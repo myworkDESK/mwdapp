@@ -1051,6 +1051,294 @@ Any valid email format + any password will navigate to the dashboard in static p
 
 ---
 
+## Security Admin Pipeline
+
+WorkDesk ships a production-ready **admin-actions and security incident pipeline** built entirely on Cloudflare free-tier services (Workers, D1, R2, KV, Access, Pages).
+
+### Architecture Overview
+
+```
+Cloudflare Access (SSO + MFA)
+        │
+        ▼
+admin-ui/index.html  ──────►  workers/admin (workdesk-admin Worker)
+  (Cloudflare Pages)              │
+                                  ├─ POST /api/admin-actions
+                                  ├─ GET  /api/admin-actions/:id
+                                  ├─ POST /api/admin-actions/:id/approve
+                                  ├─ POST /api/security/incidents
+                                  ├─ POST /api/users/:id/disable
+                                  ├─ POST /api/users/:id/enable
+                                  └─ GET  /api/incidents
+                                  │
+                     ┌────────────┼────────────────┐
+                     ▼            ▼                 ▼
+                   D1 DB        R2 Audit          KV JTI
+             (admin_actions,   (audit/YYYY/      (replay
+              audit_log,        MM/DD/*.json,    protection)
+              security_incidents manifests/)
+              idempotency_store)
+
+workers/cron/audit-verifier.js   — nightly 00:15 UTC
+workers/cron/action-processor.js — every 5 min (retry + DLQ)
+```
+
+### Step 1 — Database Migrations
+
+```bash
+# Create the D1 database (once)
+wrangler d1 create workdesk-db
+
+# Apply base schema
+wrangler d1 execute workdesk-db --file=database/schema.sql
+
+# Apply admin pipeline migration
+wrangler d1 execute workdesk-db --file=database/migrations/0001_admin_pipeline.sql
+
+# Production remote execution
+wrangler d1 execute workdesk-db --remote --file=database/migrations/0001_admin_pipeline.sql
+```
+
+### Step 2 — Create Cloudflare Resources
+
+```bash
+# R2 audit bucket
+wrangler r2 bucket create workdesk-audit
+
+# KV namespace for JTI replay protection
+wrangler kv namespace create workdesk-jti
+# → copy the id into workers/admin/wrangler.toml [[kv_namespaces]]
+```
+
+### Step 3 — Configure wrangler.toml
+
+Edit `workers/admin/wrangler.toml` and uncomment + fill in:
+
+```toml
+[[d1_databases]]
+binding       = "DB"
+database_name = "workdesk-db"
+database_id   = "YOUR_D1_DATABASE_ID"   # from `wrangler d1 list`
+
+[[r2_buckets]]
+binding     = "AUDIT_BUCKET"
+bucket_name = "workdesk-audit"
+
+[[kv_namespaces]]
+binding = "JTI_STORE"
+id      = "YOUR_KV_NAMESPACE_ID"        # from `wrangler kv namespace list`
+```
+
+Do the same for `workers/cron/wrangler.audit-verifier.toml` and `workers/cron/wrangler.action-processor.toml`.
+
+### Step 4 — Set Secrets
+
+```bash
+# Admin worker secrets
+wrangler secret put ELEVATION_SECRET     --name workdesk-admin   # random 32+ char string
+wrangler secret put SIGNING_KEY          --name workdesk-admin   # random 32+ char string
+wrangler secret put SLACK_WEBHOOK_URL    --name workdesk-admin   # Slack Incoming Webhook URL
+wrangler secret put EMAIL_WEBHOOK_URL    --name workdesk-admin   # e.g. SendGrid /mail/send
+wrangler secret put ALERT_EMAIL_TO       --name workdesk-admin   # comma-separated recipients
+wrangler secret put CF_ACCESS_TEAM_DOMAIN --name workdesk-admin  # yourteam.cloudflareaccess.com
+wrangler secret put CF_ACCESS_AUD        --name workdesk-admin   # Access App audience tag
+
+# Cron workers
+wrangler secret put SIGNING_KEY          --name workdesk-audit-verifier
+wrangler secret put SLACK_WEBHOOK_URL    --name workdesk-audit-verifier
+wrangler secret put EMAIL_WEBHOOK_URL    --name workdesk-audit-verifier
+wrangler secret put ALERT_EMAIL_TO       --name workdesk-audit-verifier
+wrangler secret put SLACK_WEBHOOK_URL    --name workdesk-action-processor
+wrangler secret put EMAIL_WEBHOOK_URL    --name workdesk-action-processor
+wrangler secret put ALERT_EMAIL_TO       --name workdesk-action-processor
+```
+
+> ⚠️ **Never commit secrets to source control.** Always use `wrangler secret put`.
+
+### Step 5 — Deploy Workers
+
+```bash
+# Admin API worker
+cd workers/admin && wrangler deploy
+
+# Audit verifier cron (runs nightly at 00:15 UTC)
+cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml
+
+# Action processor cron (runs every 5 minutes)
+cd workers/cron && wrangler deploy --config wrangler.action-processor.toml
+```
+
+### Step 6 — Cloudflare Access Setup (click-by-click)
+
+Protect the admin UI and worker API with Cloudflare Access + SSO + MFA:
+
+1. **Log in** to [dash.cloudflare.com](https://dash.cloudflare.com) → **Zero Trust** → **Access** → **Applications**.
+2. Click **Add an application** → **Self-hosted**.
+3. **Application name**: `WorkDesk Admin`.  
+   **Application domain**: `<your-pages-domain>/admin-ui/*` (e.g. `myworkdeskapp.pages.dev/admin-ui/*`).
+4. Click **Next** → set **Session duration** to `8 hours`.
+5. Under **Identity providers**, enable your IdP (Google Workspace, Okta, Azure AD, etc.) or use **One-time PIN**.
+6. Click **Next** → **Add a policy**:
+   - **Policy name**: `Admin Team`
+   - **Action**: Allow
+   - **Include rule**: Emails → add each admin's email address **or** use a Group from your IdP.
+7. Under **Additional settings**, enable **Purpose justification** (optional) and **Multi-factor authentication (MFA required)**.
+8. Click **Save**.
+9. **Get the Audience tag**: on the application page, copy the **Audience** (aud) value → use it as `CF_ACCESS_AUD` secret.
+10. **Team domain**: Settings → Custom Pages → note your `<team>.cloudflareaccess.com` hostname → use as `CF_ACCESS_TEAM_DOMAIN` secret.
+
+To also protect the Worker API directly, create a second Access Application for `<worker-subdomain>/api/*` and use the same policy.
+
+### Step 7 — Deploy Admin UI
+
+The admin UI (`admin-ui/index.html`) is a static Cloudflare Pages site.
+
+```bash
+# Via wrangler (manual)
+wrangler pages deploy admin-ui --project-name=workdesk-admin-ui
+
+# Or let GitHub Actions deploy it (it is included in the Pages deploy step in ci.yml)
+```
+
+### GitHub Actions CI
+
+GitHub Actions (`ci.yml`) runs on push to `main`:
+1. Lint + unit tests (`workers/admin`)
+2. Deploy `workdesk-admin` worker
+3. Deploy `workdesk-audit-verifier` cron
+4. Deploy `workdesk-action-processor` cron
+5. Deploy Cloudflare Pages
+
+**Required GitHub Secrets** (Settings → Secrets → Actions):
+
+| Secret | Value |
+|--------|-------|
+| `CF_API_TOKEN` | Cloudflare API token with **Workers:Edit**, **Pages:Edit**, **D1:Edit**, **R2:Edit** permissions |
+| `CF_ACCOUNT_ID` | Your Cloudflare Account ID |
+
+Generate a scoped token: Cloudflare Dashboard → Profile → API Tokens → **Create Token** → use the **Edit Cloudflare Workers** template, scope to your account.
+
+### curl Test Vectors
+
+```bash
+# Set your worker URL and a test token
+WORKER=https://workdesk-admin.<subdomain>.workers.dev
+TOKEN=your-access-jwt-or-dev-email
+
+# 1. Report a security incident
+curl -s -X POST "$WORKER/api/security/incidents" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "incident_type": "brute_force_login",
+    "severity": "high",
+    "source_ip": "1.2.3.4",
+    "user_id": "user-123",
+    "detection_events": [
+      {"type": "brute_force_login"},
+      {"type": "suspicious_ip"}
+    ]
+  }'
+
+# 2. Create an admin action manually
+curl -s -X POST "$WORKER/api/admin-actions" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"action_type":"disable_user","target_user_id":"user-123","reason":"Security incident"}'
+
+# 3. Get an admin action (replace <id>)
+curl -s "$WORKER/api/admin-actions/<id>" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Approve an action (paste elevation_token from step 2 response)
+curl -s -X POST "$WORKER/api/admin-actions/<id>/approve" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"decision":"approved","elevation_token":"<token>","notes":"Confirmed by SOC"}'
+
+# 5. List incidents
+curl -s "$WORKER/api/incidents?status=open" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 6. Disable a user
+curl -s -X POST "$WORKER/api/users/user-123/disable" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)"
+
+# 7. Re-enable a user
+curl -s -X POST "$WORKER/api/users/user-123/enable" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)"
+```
+
+### Risk Scoring Thresholds (50-employee Pilot Defaults)
+
+| Score | Decision | Action | Notes |
+|-------|----------|--------|-------|
+| 0–29  | `log`    | Audit only | Low-confidence events |
+| 30–59 | `notify` | In-app notification | Unusual but not confirmed |
+| 60–89 | `quarantine` | Quarantine user (requires approval) | Moderate-high confidence |
+| ≥ 90  | `auto_disable` | Auto-disable (requires approval) | Very high confidence only |
+
+Conservative by design: **quarantine first, auto-disable only for ≥ 90 score**.
+
+Detection event weights:
+
+| Event | Weight |
+|-------|--------|
+| `privilege_escalation` | 55 |
+| `data_exfil_attempt` | 50 |
+| `mfa_bypass_attempt` | 45 |
+| `impossible_travel` | 40 |
+| `brute_force_login` | 35 |
+| `anomalous_download` | 30 |
+| `suspicious_ip` | 25 |
+| `repeated_auth_fail` | 20 |
+| `policy_violation` | 20 |
+| `after_hours_access` | 15 |
+| unknown | 10 |
+
+### Rollout Checklist
+
+- [ ] `wrangler d1 create workdesk-db` and note the database ID
+- [ ] Apply migrations: schema.sql + 0001_admin_pipeline.sql
+- [ ] `wrangler r2 bucket create workdesk-audit`
+- [ ] `wrangler kv namespace create workdesk-jti` and note the namespace ID
+- [ ] Fill in `workers/admin/wrangler.toml` with IDs (D1, R2, KV)
+- [ ] Fill in `workers/cron/wrangler.audit-verifier.toml` with D1 + R2 IDs
+- [ ] Fill in `workers/cron/wrangler.action-processor.toml` with D1 + R2 IDs
+- [ ] Set all 7 secrets via `wrangler secret put` (ELEVATION_SECRET, SIGNING_KEY, SLACK_WEBHOOK_URL, EMAIL_WEBHOOK_URL, ALERT_EMAIL_TO, CF_ACCESS_TEAM_DOMAIN, CF_ACCESS_AUD)
+- [ ] Deploy admin worker: `cd workers/admin && wrangler deploy`
+- [ ] Deploy cron workers: `cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml && wrangler deploy --config wrangler.action-processor.toml`
+- [ ] Deploy admin UI: `wrangler pages deploy admin-ui --project-name=workdesk-admin-ui`
+- [ ] Configure Cloudflare Access application for `<admin-ui-domain>/admin-ui/*`
+- [ ] Configure Cloudflare Access application for `<worker-domain>/api/*`
+- [ ] Add `CF_API_TOKEN` and `CF_ACCOUNT_ID` secrets to GitHub repository
+- [ ] Trigger a test incident via curl and verify Slack alert received
+- [ ] Verify nightly audit chain verifier fires and writes manifest to R2
+- [ ] Review Grafana dashboard (`grafana/workdesk-security-dashboard.json`) imported correctly
+
+### Grafana Dashboard
+
+Import `grafana/workdesk-security-dashboard.json` into your Grafana instance:
+
+1. Install the **JSON API** data source plugin (`marcusolsson-json-datasource`).
+2. Add a new JSON API data source pointing to your admin worker URL with an Authorization header.
+3. Grafana → Dashboards → Import → upload `grafana/workdesk-security-dashboard.json`.
+4. Select the data source you created.
+
+Panels:
+- **Pending Admin Actions** — stat (thresholds: green < 5, yellow < 10, red ≥ 10)
+- **Open Incidents** — stat
+- **DLQ Depth** — stat (red for any value ≥ 1)
+- **Audit Chain Health** — stat (green = OK, red = FAIL)
+- **Incidents by Severity** — pie chart (24h)
+- **Admin Actions Timeline** — timeseries grouped by status
+- **Approval Latency P95** — gauge (minutes)
+
+---
+
 ## License
 
 © WorkDesk — All rights reserved.

@@ -1,0 +1,19 @@
+{
+  "name": "workdesk-admin-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WorkDesk admin-actions and security incident Worker",
+  "type": "module",
+  "scripts": {
+    "start": "wrangler dev src/index.js",
+    "deploy": "wrangler deploy",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "eslint src lib --ext .js --max-warnings 0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "eslint": "^9.0.0",
+    "jest": "^29.0.0",
+    "wrangler": "^3.0.0"
+  }
+}

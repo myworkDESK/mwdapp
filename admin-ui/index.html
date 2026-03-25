@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WorkDesk — Security Admin</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    /* ── Admin UI overrides ── */
+    :root { --admin-accent: #E53E3E; }
+    body { background: var(--bg-main, #F5E9DA); font-family: system-ui, sans-serif; margin: 0; }
+    .admin-shell { display: flex; min-height: 100vh; }
+    .admin-nav {
+      width: 220px; background: #1A202C; color: #E2E8F0; padding: 1.5rem 1rem;
+      display: flex; flex-direction: column; gap: .5rem; flex-shrink: 0;
+    }
+    .admin-nav h1 { font-size: 1rem; color: #FC8181; margin: 0 0 1.5rem; letter-spacing: .05em; text-transform: uppercase; }
+    .admin-nav a {
+      display: block; padding: .5rem .75rem; border-radius: 6px;
+      color: #CBD5E0; text-decoration: none; font-size: .875rem;
+      transition: background .15s;
+    }
+    .admin-nav a:hover, .admin-nav a.active { background: #2D3748; color: #fff; }
+    .admin-main { flex: 1; padding: 2rem; max-width: 1100px; }
+    .admin-main h2 { margin: 0 0 1.25rem; font-size: 1.4rem; color: #1A202C; }
+    /* tables */
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-size: .875rem; }
+    th { background: #2D3748; color: #E2E8F0; padding: .65rem 1rem; text-align: left; font-weight: 600; }
+    td { padding: .65rem 1rem; border-bottom: 1px solid #EDF2F7; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #F7FAFC; }
+    /* badges */
+    .badge { display: inline-block; padding: .2rem .55rem; border-radius: 99px; font-size: .75rem; font-weight: 600; }
+    .badge-pending   { background: #FEF3C7; color: #92400E; }
+    .badge-approved  { background: #D1FAE5; color: #065F46; }
+    .badge-rejected  { background: #FEE2E2; color: #991B1B; }
+    .badge-completed { background: #DBEAFE; color: #1E40AF; }
+    .badge-failed,.badge-dlq { background: #FEE2E2; color: #991B1B; }
+    .badge-executing { background: #E9D5FF; color: #5B21B6; }
+    .badge-open      { background: #FEF3C7; color: #92400E; }
+    .badge-critical  { background: #FEE2E2; color: #991B1B; }
+    .badge-high      { background: #FFEDD5; color: #9A3412; }
+    .badge-medium    { background: #FEF3C7; color: #92400E; }
+    .badge-low       { background: #D1FAE5; color: #065F46; }
+    /* buttons */
+    .btn { padding: .4rem .9rem; border: none; border-radius: 6px; cursor: pointer; font-size: .8rem; font-weight: 600; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-approve { background: #38A169; color: #fff; }
+    .btn-reject  { background: #E53E3E; color: #fff; }
+    .btn-disable { background: #E53E3E; color: #fff; }
+    .btn-enable  { background: #38A169; color: #fff; }
+    /* tabs */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+    .tab  { padding: .5rem 1.25rem; border-radius: 6px 6px 0 0; cursor: pointer; border: 1px solid #E2E8F0; background: #EDF2F7; font-size: .875rem; }
+    .tab.active { background: #fff; border-bottom-color: #fff; font-weight: 600; color: var(--admin-accent); }
+    .tab-panel  { display: none; }
+    .tab-panel.active { display: block; }
+    /* misc */
+    .empty-state { padding: 2rem; text-align: center; color: #718096; font-size: .9rem; }
+    .loading { padding: 1rem; color: #718096; font-style: italic; }
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: #fff; border-radius: 8px; padding: 2rem; width: 440px; max-width: 95vw; }
+    .modal h3 { margin: 0 0 1rem; }
+    .modal label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 600; }
+    .modal textarea, .modal input { width: 100%; padding: .5rem; border: 1px solid #E2E8F0; border-radius: 6px; font-size: .875rem; box-sizing: border-box; }
+    .modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.25rem; }
+    .btn-secondary { background: #EDF2F7; color: #4A5568; }
+  </style>
+</head>
+<body>
+
+<div class="admin-shell">
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <h1>🛡 Security Admin</h1>
+    <a href="#" class="tab-link active" data-tab="incidents">Incidents</a>
+    <a href="#" class="tab-link" data-tab="actions">Pending Actions</a>
+    <a href="#" class="tab-link" data-tab="users">Disabled Users</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="admin-main">
+
+    <!-- ── Incidents tab ── -->
+    <div id="tab-incidents" class="tab-panel active">
+      <h2>Security Incidents</h2>
+      <table id="incidents-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Type</th><th>Severity</th><th>Risk Score</th>
+            <th>Decision</th><th>User</th><th>Status</th><th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="incidents-body">
+          <tr><td colspan="8" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pending Actions tab ── -->
+    <div id="tab-actions" class="tab-panel">
+      <h2>Pending Admin Actions</h2>
+      <table id="actions-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Type</th><th>Target User</th><th>Requested By</th>
+            <th>Risk Score</th><th>Status</th><th>Created</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="actions-body">
+          <tr><td colspan="8" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Disabled Users tab ── -->
+    <div id="tab-users" class="tab-panel">
+      <h2>Disabled Users</h2>
+      <table id="users-table">
+        <thead>
+          <tr>
+            <th>User ID</th><th>Email</th><th>Disabled At</th><th>Disabled By</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-body">
+          <tr><td colspan="5" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- Approve/Reject Modal -->
+<div class="modal-backdrop" id="approve-modal">
+  <div class="modal">
+    <h3 id="modal-title">Approve Action</h3>
+    <label>Elevation Token (from email/notification)</label>
+    <input type="text" id="modal-elevation-token" placeholder="paste elevation token…" />
+    <label style="margin-top:.75rem">Notes (optional)</label>
+    <textarea id="modal-notes" rows="3" placeholder="Reviewer notes…"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-approve" id="modal-confirm-btn" onclick="submitApproval()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Config ── */
+const API_BASE = window.location.origin; // same origin as UI
+let currentActionId = null;
+let currentDecision = null;
+
+/* ── Tab switching ── */
+document.querySelectorAll('.tab-link').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.tab-link').forEach((l) => l.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+    link.classList.add('active');
+    const tab = link.dataset.tab;
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'incidents') loadIncidents();
+    else if (tab === 'actions') loadActions();
+    else if (tab === 'users') loadUsers();
+  });
+});
+
+/* ── Data loaders ── */
+async function apiFetch(path) {
+  const res = await fetch(API_BASE + path, { credentials: 'include' });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function apiPost(path, body) {
+  const res = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+function badge(value, cls) {
+  return `<span class="badge badge-${cls}">${value}</span>`;
+}
+
+function ts(iso) {
+  return iso ? new Date(iso).toLocaleString() : '—';
+}
+
+async function loadIncidents() {
+  const tbody = document.getElementById('incidents-body');
+  try {
+    const { incidents } = await apiFetch('/api/incidents');
+    if (!incidents.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No incidents found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = incidents.map((i) => `
+      <tr>
+        <td><code title="${i.id}">${i.id.slice(0, 12)}…</code></td>
+        <td>${i.incident_type}</td>
+        <td>${badge(i.severity, i.severity)}</td>
+        <td>${i.risk_score ?? '—'}</td>
+        <td>${i.decision}</td>
+        <td>${i.user_id ?? '—'}</td>
+        <td>${badge(i.status, i.status)}</td>
+        <td>${ts(i.created_at)}</td>
+      </tr>`).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Error: ${err.message}</td></tr>`;
+  }
+}
+
+async function loadActions() {
+  const tbody = document.getElementById('actions-body');
+  try {
+    const data = await apiFetch('/api/admin-actions?status=pending');
+    const actions = data.actions ?? [];
+    if (!actions.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No pending actions.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = actions.map((a) => `
+      <tr>
+        <td><code title="${a.id}">${a.id.slice(0, 12)}…</code></td>
+        <td>${a.action_type}</td>
+        <td>${a.target_user_id}</td>
+        <td>${a.requested_by}</td>
+        <td>${a.risk_score ?? '—'}</td>
+        <td>${badge(a.status, a.status)}</td>
+        <td>${ts(a.created_at)}</td>
+        <td>
+          ${a.status === 'pending' ? `
+            <button class="btn btn-approve" onclick="openModal('${a.id}','approved')">Approve</button>
+            <button class="btn btn-reject"  onclick="openModal('${a.id}','rejected')">Reject</button>` : '—'}
+        </td>
+      </tr>`).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Error: ${err.message}</td></tr>`;
+  }
+}
+
+async function loadUsers() {
+  const tbody = document.getElementById('users-body');
+  try {
+    const data = await apiFetch('/api/users?disabled=1');
+    const users = data.users ?? [];
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No disabled users.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map((u) => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.email}</td>
+        <td>${ts(u.disabled_at)}</td>
+        <td>${u.disabled_by ?? '—'}</td>
+        <td>
+          <button class="btn btn-enable" onclick="toggleUser('${u.id}','enable')">Enable</button>
+        </td>
+      </tr>`).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Error: ${err.message}</td></tr>`;
+  }
+}
+
+/* ── Disable/Enable user ── */
+async function toggleUser(userId, action) {
+  if (!confirm(`${action === 'enable' ? 'Re-enable' : 'Disable'} user ${userId}?`)) return;
+  try {
+    const result = await apiPost(`/api/users/${userId}/${action}`, {});
+    alert(result.message ?? (result.ok ? 'Done' : 'Failed'));
+    loadUsers();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+/* ── Approval modal ── */
+function openModal(actionId, decision) {
+  currentActionId = actionId;
+  currentDecision = decision;
+  document.getElementById('modal-title').textContent =
+    decision === 'approved' ? '✅ Approve Action' : '❌ Reject Action';
+  document.getElementById('modal-confirm-btn').textContent =
+    decision === 'approved' ? 'Approve' : 'Reject';
+  document.getElementById('modal-confirm-btn').className =
+    'btn ' + (decision === 'approved' ? 'btn-approve' : 'btn-reject');
+  document.getElementById('modal-elevation-token').value = '';
+  document.getElementById('modal-notes').value = '';
+  document.getElementById('approve-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('approve-modal').classList.remove('open');
+  currentActionId = null;
+  currentDecision = null;
+}
+
+async function submitApproval() {
+  const token = document.getElementById('modal-elevation-token').value.trim();
+  const notes = document.getElementById('modal-notes').value.trim();
+  if (!token) { alert('Please paste the elevation token.'); return; }
+
+  try {
+    const result = await apiPost(`/api/admin-actions/${currentActionId}/approve`, {
+      decision:        currentDecision,
+      elevation_token: token,
+      notes,
+    });
+    closeModal();
+    alert(result.ok ? `Action ${currentDecision}` : 'Error: ' + result.message);
+    loadActions();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+/* ── Initial load ── */
+loadIncidents();
+</script>
+</body>
+</html>

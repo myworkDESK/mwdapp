@@ -1,0 +1,54 @@
+# WorkDesk — Admin Actions & Security Incident Worker
+# Deploy:
+#   cd workers/admin && wrangler deploy
+#
+# Secrets (run once per environment):
+#   wrangler secret put ELEVATION_SECRET --name workdesk-admin
+#   wrangler secret put SIGNING_KEY      --name workdesk-admin
+#   wrangler secret put SLACK_WEBHOOK_URL --name workdesk-admin
+#   wrangler secret put EMAIL_WEBHOOK_URL --name workdesk-admin
+#   wrangler secret put ALERT_EMAIL_TO   --name workdesk-admin
+#   wrangler secret put CF_ACCESS_TEAM_DOMAIN --name workdesk-admin
+#   wrangler secret put CF_ACCESS_AUD    --name workdesk-admin
+
+name               = "workdesk-admin"
+main               = "src/index.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── D1 Database ───────────────────────────────────────────────────────────────
+# Shared with the main Pages project.
+# Fill in your database_id after running: wrangler d1 create workdesk-db
+#
+# [[d1_databases]]
+# binding       = "DB"
+# database_name = "workdesk-db"
+# database_id   = "YOUR_D1_DATABASE_ID"
+
+# ── R2 Audit Bucket ───────────────────────────────────────────────────────────
+# Create with: wrangler r2 bucket create workdesk-audit
+#
+# [[r2_buckets]]
+# binding     = "AUDIT_BUCKET"
+# bucket_name = "workdesk-audit"
+
+# ── KV JTI Store (replay protection) ─────────────────────────────────────────
+# Create with: wrangler kv namespace create workdesk-jti
+#
+# [[kv_namespaces]]
+# binding = "JTI_STORE"
+# id      = "YOUR_KV_NAMESPACE_ID"
+
+# ── Environment variables (non-secret) ───────────────────────────────────────
+[vars]
+ENVIRONMENT = "production"
+
+# ── Cron Triggers ─────────────────────────────────────────────────────────────
+# audit-verifier  — nightly at 00:15 UTC
+# action-processor — every 5 minutes
+#
+# To enable cron, deploy the cron workers separately (workers/cron/) OR
+# add them as named entrypoints here using Workers for Platforms.
+#
+# [triggers]
+# crons = ["15 0 * * *", "*/5 * * * *"]

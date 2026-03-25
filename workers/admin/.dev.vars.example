@@ -1,0 +1,23 @@
+# Copy to .dev.vars for local development with `wrangler dev`.
+# .dev.vars is git-ignored — never commit real values.
+
+# ── Environment ────────────────────────────────────────────────────────────────
+ENVIRONMENT=development
+
+# ── Elevation token signing secret ────────────────────────────────────────────
+# Use a strong random string in production: openssl rand -base64 32
+ELEVATION_SECRET=change-me-dev-elevation-secret
+
+# ── Daily manifest signing key ─────────────────────────────────────────────────
+SIGNING_KEY=change-me-dev-signing-key
+
+# ── Cloudflare Access (leave empty in dev — JWT verification is skipped) ───────
+# CF_ACCESS_TEAM_DOMAIN=yourteam.cloudflareaccess.com
+# CF_ACCESS_AUD=your-access-audience-tag
+
+# ── Slack webhook (optional in dev) ────────────────────────────────────────────
+# SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
+
+# ── Email webhook (optional in dev) ────────────────────────────────────────────
+# EMAIL_WEBHOOK_URL=https://api.sendgrid.com/v3/mail/send
+# ALERT_EMAIL_TO=security-team@example.com

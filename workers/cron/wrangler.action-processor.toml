@@ -1,0 +1,26 @@
+# WorkDesk — Action Processor Cron Worker
+# Deploy:
+#   cd workers/cron && wrangler deploy --config wrangler.action-processor.toml
+
+name               = "workdesk-action-processor"
+main               = "action-processor.js"
+compatibility_date = "2025-01-01"
+
+# ── Cron: every 5 minutes ─────────────────────────────────────────────────────
+[triggers]
+crons = ["*/5 * * * *"]
+
+# ── D1 Database ───────────────────────────────────────────────────────────────
+# [[d1_databases]]
+# binding       = "DB"
+# database_name = "workdesk-db"
+# database_id   = "YOUR_D1_DATABASE_ID"
+
+# ── R2 Audit Bucket ───────────────────────────────────────────────────────────
+# [[r2_buckets]]
+# binding     = "AUDIT_BUCKET"
+# bucket_name = "workdesk-audit"
+
+# Secrets: wrangler secret put SLACK_WEBHOOK_URL --name workdesk-action-processor
+#          wrangler secret put EMAIL_WEBHOOK_URL  --name workdesk-action-processor
+#          wrangler secret put ALERT_EMAIL_TO     --name workdesk-action-processor
