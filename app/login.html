@@ -727,8 +727,10 @@
     function inferRoleFromEmployeeId(employeeId) {
       var id = (employeeId || '').trim().toUpperCase();
       if (!id) return 'employee';
-      if (id.indexOf('SUPER') !== -1 || id.indexOf('CEO') !== -1 || id.indexOf('SA') === 0) return 'super_admin';
-      if (id.indexOf('ADMIN') !== -1 || id.indexOf('ADM') === 0) return 'admin';
+      // Super Admin IDs must start with SA/SUPER/CEO (e.g. SA-001, SUPER001, CEO123).
+      if (/^(SA|SUPER|CEO)([-_].+|[0-9].+)?$/.test(id)) return 'super_admin';
+      // Admin IDs must start with ADMIN/ADM (e.g. ADMIN-01, ADM001).
+      if (/^(ADMIN|ADM)([-_].+|[0-9].+)?$/.test(id)) return 'admin';
       return 'employee';
     }
 
@@ -761,6 +763,7 @@
       if (employeeHint) employeeHint.hidden = role === 'super_admin';
       if (saHint) saHint.hidden = role !== 'super_admin';
       if (passwordLabel) passwordLabel.textContent = role === 'super_admin' ? 'Passkey' : 'Password';
+      // In super-admin mode, the Password field is repurposed as the passkey input.
       if (saSecretKeyGroup && role === 'super_admin') saSecretKeyGroup.hidden = true;
     }
 
@@ -877,11 +880,10 @@
       };
 
       if (role === 'super_admin') {
-        saSecretKey = password;
         fetch('/api/sa-auth', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ username: saUsername, employeeId: employeeId, securityKey: saSecretKey })
+          body:    JSON.stringify({ username: saUsername, employeeId: employeeId, securityKey: password })
         })
         .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
         .then(function (result) {

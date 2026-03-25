@@ -60,9 +60,9 @@ export async function onRequest(context) {
     }
 
     const { username, employeeId, securityKey, password } = body || {};
-    var passkey = securityKey || password || '';
+    const authSecret = securityKey || password || '';
 
-    if (!username || !passkey) {
+    if (!username || !authSecret) {
       return new Response(JSON.stringify({ ok: false, message: 'Username and passkey are required.' }), {
         status: 400, headers: corsHeaders,
       });
@@ -81,10 +81,11 @@ export async function onRequest(context) {
     }
 
     // Verify username + passkey (security key) and optional employee ID binding.
+    const enforceEmployeeIdMatch = !!(saEmployeeId && employeeId);
     const [usernameOk, passkeyOk, employeeIdOk] = await Promise.all([
       safeEqual(username,    saUsername),
-      safeEqual(passkey, saSecurityKey),
-      !saEmployeeId || !employeeId ? true : safeEqual(employeeId, saEmployeeId),
+      safeEqual(authSecret, saSecurityKey),
+      enforceEmployeeIdMatch ? safeEqual(employeeId, saEmployeeId) : true,
     ]);
 
     // Backward-compatible fallback: if legacy SA_PASSWORD is configured, still
