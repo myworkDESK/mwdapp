@@ -641,39 +641,50 @@ Each level may approve requests from the level directly below it. Managers and a
 ## Project Structure
 
 ```
-WorkDesk/
+myworkdeskapp/
 ├── README.md                          ← This file
 ├── FEATURES.md                        ← Authoritative feature reference & API docs
+├── STRUCTURE.md                       ← Directory layout & URL routes
 ├── DESIGN_SYSTEM.md                   ← Design tokens, brand guidelines
-├── wrangler.toml                      ← Cloudflare Pages + Queue producer config
+├── BRANDING.md                        ← Brand & logo guidelines
+├── wrangler.jsonc                     ← Cloudflare Pages config (project: myworkdeskapp)
 ├── _headers                           ← Cloudflare Pages HTTP security headers
-├── _redirects                         ← URL redirect rules
-├── auth.js                            ← Shared logout() helper (included on every page)
+├── _redirects                         ← URL routing & backward-compat redirects
+├── .dev.vars.example                  ← Local dev env-var template (copy to .dev.vars)
+├── index.html                         ← Root entry — redirects to /app/login.html
 │
-├── ── HTML Pages ───────────────────────────────────────────────────────────
-├── index.html                         ← Root redirect → login.html
-├── login.html                         ← Authentication / sign-in
-├── dashboard.html                     ← Main HRIS dashboard (KPIs, charts, quick actions)
-├── employees.html                     ← Employee directory & CRUD
-├── attendance.html                    ← Clock in/out, attendance log, manual entry
-├── leave.html                         ← Leave requests: file, approve, reject
-├── payroll.html                       ← Payroll ledger and payroll run
-├── performance.html                   ← Performance reviews, goals, KPI tracking
-├── recruitment.html                   ← Job postings and applicant pipeline
-├── tickets.html                       ← Internal IT/HR help-desk
-├── documents.html                     ← Document repository (R2-backed)
-├── projects.html                      ← DeskProjects (coming soon placeholder)
-├── messaging.html                     ← Direct and group messaging
-├── timeline.html                      ← Company-wide announcement feed
-├── engagement.html                    ← Pulse surveys and satisfaction scores
-├── analytics.html                     ← HR metrics and charts
-├── ai-assistant.html                  ← AI-powered HR Q&A (Workers AI / OpenAI)
-├── knowledge.html                     ← Internal HR wiki and policies
-├── integrations.html                  ← Third-party integrations (Slack, Zoom, Xero…)
-├── settings.html                      ← Profile, org config, platform settings
+├── app/                               ← Unified user portal (canonical pages)
+│   ├── login.html                     ← Unified login (Super Admin / Admin / Employee)
+│   ├── dashboard.html                 ← Main HRIS dashboard (KPIs, charts, quick actions)
+│   ├── employees.html                 ← Employee directory & CRUD
+│   ├── attendance.html                ← Clock in/out, attendance log, manual entry
+│   ├── leave.html                     ← Leave requests: file, approve, reject
+│   ├── payroll.html                   ← Payroll ledger and payroll run
+│   ├── performance.html               ← Performance reviews, goals, KPI tracking
+│   ├── recruitment.html               ← Job postings and applicant pipeline
+│   ├── tickets.html                   ← Internal IT/HR help-desk
+│   ├── documents.html                 ← Document repository (R2-backed)
+│   ├── projects.html                  ← DeskProjects (coming soon placeholder)
+│   ├── messaging.html                 ← Direct and group messaging
+│   ├── timeline.html                  ← Company-wide announcement feed
+│   ├── engagement.html                ← Pulse surveys and satisfaction scores
+│   ├── analytics.html                 ← HR metrics and charts
+│   ├── ai-assistant.html              ← AI-powered HR Q&A (Workers AI / OpenAI)
+│   ├── knowledge.html                 ← Internal HR wiki and policies
+│   ├── integrations.html              ← Third-party integrations (Slack, Zoom, Xero…)
+│   └── settings.html                  ← Profile, org config, platform settings
 │
-├── super-admin/
-│   └── DEPLOY.md                      ← Super Admin deployment notes
+├── pages/                             ← Legacy URL aliases + SA dashboard
+│   ├── sa-dashboard.html              ← Super Admin dashboard & org-admin management
+│   └── *.html                         ← All other pages redirect to /app/ equivalents
+│
+├── admin/                             ← Super Admin URL aliases
+│   ├── index.html                     ← Redirects to /app/login.html
+│   └── _headers                       ← noindex + no-cache security headers
+│
+├── admin-ui/                          ← Security Admin dashboard (Access-protected)
+│   └── index.html                     ← Incidents, pending actions, disabled-users UI
+│                                         (calls the workdesk-admin Worker API)
 │
 ├── assets/
 │   ├── css/
@@ -681,12 +692,19 @@ WorkDesk/
 │   ├── js/
 │   │   ├── dashboard.js               ← Dashboard page logic
 │   │   ├── messaging.js               ← Messaging page logic
-│   │   └── timeline.js                ← Timeline page logic
+│   │   ├── timeline.js                ← Timeline page logic
+│   │   ├── notifications.js           ← Notification bell + dropdown logic
+│   │   ├── aux-status.js              ← AUX / availability status tracking
+│   │   └── confirm-dialog.js          ← Shared confirm-dialog component
 │   └── images/
-│       └── employees/                 ← Employee photos (named by Employee ID, e.g. EMP-001.svg)
+│       └── employees/                 ← Employee photos (e.g. EMP-001.svg)
+│
+├── middleware/
+│   └── auth.js                        ← logout() helper + mobile sidebar init (included on every page)
 │
 ├── functions/
 │   └── api/                           ← Cloudflare Pages Functions (one file = one endpoint)
+│       ├── _shared.js                 ← Shared CORS headers + json() + getToken() helpers
 │       ├── auth.js                    ← POST/GET /api/auth
 │       ├── employees.js               ← /api/employees
 │       ├── attendance.js              ← /api/attendance
@@ -705,12 +723,49 @@ WorkDesk/
 │       ├── integrations.js            ← /api/integrations
 │       ├── notifications.js           ← /api/notifications  (queue producer)
 │       ├── reports.js                 ← /api/reports        (queue producer)
+│       ├── aux.js                     ← /api/aux
 │       ├── sa-auth.js                 ← /api/sa-auth
-│       └── sa-org-admins.js           ← /api/sa-org-admins
+│       ├── sa-org-admins.js           ← /api/sa-org-admins
+│       └── sa-config-check.js         ← /api/sa-config-check
 │
-└── queue-consumer/                    ← Standalone Cloudflare Worker (queue consumer)
-    ├── wrangler.toml                  ← Consumer Worker config (D1 + R2 bindings)
-    └── index.js                       ← Handles notification.created / payroll.run / report.generate
+├── workers/
+│   ├── api-worker.js                  ← Standalone API gateway (Pages deployments use functions/api/ instead)
+│   ├── lib/utils.js                   ← Shared Worker utilities
+│   ├── admin/                         ← Admin-actions & security incident Worker (workdesk-admin)
+│   │   ├── src/index.js               ← Worker entry point & router
+│   │   ├── src/routes/                ← Route handlers (admin-actions, security, users)
+│   │   ├── lib/                       ← audit, idempotency, jwt, notifications, scoring
+│   │   ├── tests/                     ← Unit tests (vitest)
+│   │   └── wrangler.toml
+│   ├── cron/                          ← Scheduled cron Workers
+│   │   ├── audit-verifier.js          ← Nightly audit chain verifier (00:15 UTC)
+│   │   ├── action-processor.js        ← Action retry + DLQ processor (every 5 min)
+│   │   ├── payroll.js                 ← Monthly payroll queue trigger (1st of month, 00:00 UTC)
+│   │   ├── wrangler.audit-verifier.toml
+│   │   ├── wrangler.action-processor.toml
+│   │   └── wrangler.payroll.toml
+│   └── queues/                        ← Queue consumer Worker (workdesk-queue-consumer)
+│       ├── job-consumer.js            ← Handles notification.created / payroll.run / report.generate
+│       └── wrangler.toml
+│
+├── database/
+│   ├── schema.sql                     ← D1 base schema (users, employees, attendance, …)
+│   └── migrations/
+│       └── 0001_admin_pipeline.sql    ← Admin actions + security incident tables
+│
+├── deploy-guide/                      ← Step-by-step Cloudflare deployment walkthrough
+│   ├── STEP-1-prerequisites.md
+│   ├── STEP-2-connect-github.md
+│   ├── STEP-3-build-settings.md
+│   ├── STEP-4-env-variables.md
+│   ├── STEP-5-deploy-and-verify.md
+│   └── STEP-6-custom-domain.md
+│
+├── super-admin/
+│   └── DEPLOY.md                      ← Super Admin deployment & secrets notes
+│
+└── grafana/
+    └── workdesk-security-dashboard.json ← Grafana dashboard for security monitoring
 ```
 
 ---
@@ -722,7 +777,7 @@ WorkDesk uses **Cloudflare Queues** to offload background jobs from the request/
 ### How it works
 
 1. A Pages Function (producer) publishes a message to `WORKDESK_QUEUE` after accepting an API request.
-2. The standalone `queue-consumer` Worker picks up messages in batches and processes them asynchronously.
+2. The standalone `workers/queues/job-consumer.js` Worker picks up messages in batches and processes them asynchronously.
 
 ### Queue Events
 
@@ -738,23 +793,24 @@ WorkDesk uses **Cloudflare Queues** to offload background jobs from the request/
 # 1. Create the queue
 npx wrangler queues create workdesk-queue
 
-# 2. Deploy the Pages site (producer binding is already active in wrangler.toml)
+# 2. Deploy the Pages site (producer binding is already active in wrangler.jsonc)
 wrangler pages deploy .
 
 # 3. Configure and deploy the consumer Worker
-#    Edit queue-consumer/wrangler.toml with your database_id and bucket_name
-cd queue-consumer && wrangler deploy
+#    Edit workers/queues/wrangler.toml with your database_id and bucket_name
+cd workers/queues && wrangler deploy
 ```
 
 ### Status
 
 | Component | Status |
 |---|---|
-| Producer binding in wrangler.toml | ✅ Enabled |
+| Producer binding in wrangler.jsonc | ✅ Enabled (uncomment `queues.producers` block) |
 | Producer code in notifications.js | ✅ Complete |
 | Producer code in payroll.js | ✅ Complete |
 | Producer code in reports.js | ✅ Complete |
-| Consumer Worker (queue-consumer/) | ✅ Complete — deploy separately |
+| Consumer Worker (workers/queues/) | ✅ Complete — deploy separately |
+| Payroll cron Worker (workers/cron/payroll.js) | ✅ Complete — deploy with `wrangler.payroll.toml` |
 
 > All producers guard the queue call with `if (env.WORKDESK_QUEUE)`, so the API works in demo
 > mode even when the queue is not yet configured.
@@ -781,14 +837,15 @@ wrangler login
 
 # 1. Create D1 database
 wrangler d1 create workdesk-db
-# → Copy database_id into wrangler.toml [[d1_databases]]
+# → Copy database_id into wrangler.jsonc "d1_databases" block (uncomment it)
 
 # 2. Apply schema
-wrangler d1 execute workdesk-db --file=./schema.sql
+wrangler d1 execute workdesk-db --file=./database/schema.sql
+wrangler d1 execute workdesk-db --file=./database/migrations/0001_admin_pipeline.sql
 
 # 3. Create KV namespace (session store)
 wrangler kv:namespace create "SESSIONS"
-# → Copy id into wrangler.toml [[kv_namespaces]]
+# → Copy id into wrangler.jsonc "kv_namespaces" block (uncomment it)
 
 # 4. Create R2 bucket (file storage)
 wrangler r2 bucket create workdesk-attachments
@@ -797,21 +854,27 @@ wrangler r2 bucket create workdesk-attachments
 npx wrangler queues create workdesk-queue
 
 # 6. Set secrets
-wrangler secret put OPENAI_API_KEY    # optional — for AI Assistant
+wrangler secret put SA_USERNAME     --name myworkdeskapp
+wrangler secret put SA_SECURITY_KEY --name myworkdeskapp
+wrangler secret put SA_PASSWORD     --name myworkdeskapp
+wrangler secret put OPENAI_API_KEY  --name myworkdeskapp   # optional — for AI Assistant
 
 # 7. Deploy Pages site (includes queue producer binding)
 wrangler pages deploy .
 
 # 8. Deploy queue consumer Worker
-cd queue-consumer && wrangler deploy
+cd workers/queues && wrangler deploy
+
+# 9. Deploy payroll cron Worker (runs 1st of every month)
+cd workers/cron && wrangler deploy --config wrangler.payroll.toml
 ```
 
 ### Environment Variables
 
-Uncomment and fill in `wrangler.toml` for non-sensitive config; use `wrangler secret put` for secrets:
+Uncomment and fill in `wrangler.jsonc` for non-sensitive config; use `wrangler secret put` for secrets:
 
 ```bash
-# Non-sensitive (add to [vars] in wrangler.toml)
+# Non-sensitive (add to "vars" in wrangler.jsonc)
 ENVIRONMENT = "production"
 APP_NAME = "WorkDesk"
 ALLOWED_EMAIL_DOMAIN = "yourcompany.com"
@@ -849,15 +912,15 @@ wrangler secret list --name myworkdeskapp
 # Expected output lists SA_USERNAME, SA_SECURITY_KEY, SA_PASSWORD
 ```
 
-#### Bindings (uncomment blocks in `wrangler.toml` after creating each resource)
+#### Bindings (uncomment blocks in `wrangler.jsonc` after creating each resource)
 
 | Binding | Status | Description | Setup command |
 |---|---|---|---|
-| D1 Database (`DB`) | ❌ Required | All app data (employees, payroll, attendance, …) | `wrangler d1 create workdesk-db` → paste `database_id` into `[[d1_databases]]` in `wrangler.toml`, then run `wrangler d1 execute workdesk-db --file=./database/schema.sql` |
-| KV Namespace (`SESSIONS`) | ❌ Required | User session token storage | `wrangler kv:namespace create "SESSIONS"` → paste `id` into `[[kv_namespaces]]` in `wrangler.toml` |
-| R2 Bucket (`ATTACHMENTS`) | ❌ Required | File uploads (documents, message attachments) | `wrangler r2 bucket create workdesk-attachments` → uncomment `[[r2_buckets]]` in `wrangler.toml` |
-| Queue Producer (`WORKDESK_QUEUE`) | ❌ Optional | Background jobs (notifications, payroll, reports) | `wrangler queues create workdesk-queue` → uncomment `[[queues.producers]]` in `wrangler.toml` |
-| AI Binding | ❌ Optional | Cloudflare Workers AI (AI Assistant page) | Enable **Workers AI** in Cloudflare Dashboard → uncomment `[ai]` in `wrangler.toml` |
+| D1 Database (`DB`) | ❌ Required | All app data (employees, payroll, attendance, …) | `wrangler d1 create workdesk-db` → paste `database_id` into `d1_databases` in `wrangler.jsonc`, then run `wrangler d1 execute workdesk-db --file=./database/schema.sql` |
+| KV Namespace (`SESSIONS`) | ❌ Required | User session token storage | `wrangler kv:namespace create "SESSIONS"` → paste `id` into `kv_namespaces` in `wrangler.jsonc` |
+| R2 Bucket (`ATTACHMENTS`) | ❌ Required | File uploads (documents, message attachments) | `wrangler r2 bucket create workdesk-attachments` → uncomment `r2_buckets` in `wrangler.jsonc` |
+| Queue Producer (`WORKDESK_QUEUE`) | ❌ Optional | Background jobs (notifications, payroll, reports) | `wrangler queues create workdesk-queue` → uncomment `queues.producers` in `wrangler.jsonc` |
+| AI Binding | ❌ Optional | Cloudflare Workers AI (AI Assistant page) | Enable **Workers AI** in Cloudflare Dashboard → uncomment `ai` in `wrangler.jsonc` |
 
 #### Already Configured in Source
 
@@ -991,21 +1054,32 @@ Since WorkDesk is a zero-build static site, you can preview it instantly with an
 
 1. Open the project folder in VS Code.
 2. Install the **Live Server** extension.
-3. Right-click `login.html` → **Open with Live Server**.
+3. Right-click `index.html` → **Open with Live Server** (it auto-redirects to `/app/login.html`).
 
 ### Option 2 — Python
 
 ```bash
-cd /path/to/WorkDesk
+cd /path/to/myworkdeskapp
 python3 -m http.server 8080
-# Open http://localhost:8080/login.html
+# Open http://localhost:8080/app/login.html
 ```
 
-### Option 3 — Node.js (npx serve)
+### Option 3 — Wrangler Pages Dev (recommended for API testing)
+
+```bash
+# Copy .dev.vars.example to .dev.vars and fill in your values
+cp .dev.vars.example .dev.vars
+
+# Start the local dev server (serves Pages + Functions)
+npx wrangler pages dev .
+# Open http://localhost:8788/app/login.html
+```
+
+### Option 4 — Node.js (npx serve)
 
 ```bash
 npx serve .
-# Open http://localhost:3000/login.html
+# Open http://localhost:3000/app/login.html
 ```
 
 ### Default Login (Static / Demo)
@@ -1021,7 +1095,7 @@ Any valid email format + any password will navigate to the dashboard in static p
 - **Employee IDs:** `EMP-001` format — three-digit zero-padded number prefixed with `EMP-`
 - **Employee Photos:** Must be named exactly as the Employee ID (e.g., `EMP-001.jpg`, `EMP-001.svg`, `EMP-001.png`) and placed in `assets/images/employees/`
 - **CSS Tokens:** Always use CSS custom properties from `:root` (e.g., `var(--primary)`). Never hardcode hex values.
-- **JS Files:** One JavaScript file per page, located in `assets/js/`. Shared auth logic lives in `auth.js` at the project root.
+- **JS Files:** One JavaScript file per page, located in `assets/js/`. Shared auth/logout logic lives in `middleware/auth.js`.
 - **API Files:** Each endpoint has its own file in `functions/api/`.
 
 ### Code Style
@@ -1164,6 +1238,9 @@ cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml
 
 # Action processor cron (runs every 5 minutes)
 cd workers/cron && wrangler deploy --config wrangler.action-processor.toml
+
+# Payroll cron (runs on the 1st of every month at 00:00 UTC)
+cd workers/cron && wrangler deploy --config wrangler.payroll.toml
 ```
 
 ### Step 6 — Cloudflare Access Setup (click-by-click)
@@ -1300,21 +1377,23 @@ Detection event weights:
 ### Rollout Checklist
 
 - [ ] `wrangler d1 create workdesk-db` and note the database ID
-- [ ] Apply migrations: schema.sql + 0001_admin_pipeline.sql
+- [ ] Apply migrations: `database/schema.sql` + `database/migrations/0001_admin_pipeline.sql`
 - [ ] `wrangler r2 bucket create workdesk-audit`
 - [ ] `wrangler kv namespace create workdesk-jti` and note the namespace ID
 - [ ] Fill in `workers/admin/wrangler.toml` with IDs (D1, R2, KV)
 - [ ] Fill in `workers/cron/wrangler.audit-verifier.toml` with D1 + R2 IDs
 - [ ] Fill in `workers/cron/wrangler.action-processor.toml` with D1 + R2 IDs
+- [ ] Fill in `workers/cron/wrangler.payroll.toml` with Queue producer binding
 - [ ] Set all 7 secrets via `wrangler secret put` (ELEVATION_SECRET, SIGNING_KEY, SLACK_WEBHOOK_URL, EMAIL_WEBHOOK_URL, ALERT_EMAIL_TO, CF_ACCESS_TEAM_DOMAIN, CF_ACCESS_AUD)
 - [ ] Deploy admin worker: `cd workers/admin && wrangler deploy`
-- [ ] Deploy cron workers: `cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml && wrangler deploy --config wrangler.action-processor.toml`
+- [ ] Deploy cron workers: `cd workers/cron && wrangler deploy --config wrangler.audit-verifier.toml && wrangler deploy --config wrangler.action-processor.toml && wrangler deploy --config wrangler.payroll.toml`
 - [ ] Deploy admin UI: `wrangler pages deploy admin-ui --project-name=workdesk-admin-ui`
 - [ ] Configure Cloudflare Access application for `<admin-ui-domain>/admin-ui/*`
 - [ ] Configure Cloudflare Access application for `<worker-domain>/api/*`
 - [ ] Add `CF_API_TOKEN` and `CF_ACCOUNT_ID` secrets to GitHub repository
 - [ ] Trigger a test incident via curl and verify Slack alert received
 - [ ] Verify nightly audit chain verifier fires and writes manifest to R2
+- [ ] Verify payroll cron fires on the 1st of the month and queues a `payroll.run` event
 - [ ] Review Grafana dashboard (`grafana/workdesk-security-dashboard.json`) imported correctly
 
 ### Grafana Dashboard

@@ -8,6 +8,9 @@ myworkdeskapp/
 │   ├── index.html      Entry point — redirects to /app/login.html
 │   └── _headers        SA-specific security headers (noindex, no-cache)
 │
+├── admin-ui/           Security Admin dashboard (Cloudflare Pages, Access-protected)
+│   └── index.html      Incidents, pending actions, and disabled-users UI (calls workdesk-admin Worker)
+│
 ├── app/                Unified user portal
 │   ├── login.html      Unified login (Super Admin, Admin, Employee)
 │   ├── dashboard.html  Main dashboard
@@ -35,10 +38,23 @@ myworkdeskapp/
 │   └── ...             Other pages (redirect to /app/ equivalents)
 │
 ├── workers/            Backend / Cloudflare Workers
-│   ├── api-worker.js   Main API worker
-│   ├── cron/           Scheduled jobs (payroll cron)
-│   ├── queues/         Queue consumers
-│   └── lib/            Shared utilities
+│   ├── api-worker.js   Standalone API gateway worker (Pages deployments use functions/api/ instead)
+│   ├── lib/            Shared Worker utilities
+│   ├── admin/          Admin-actions & security incident Worker (workdesk-admin)
+│   │   ├── src/        Route handlers (admin-actions, security, users)
+│   │   ├── lib/        audit, idempotency, jwt, notifications, scoring helpers
+│   │   ├── tests/      Unit tests (audit, scoring)
+│   │   └── wrangler.toml
+│   ├── cron/           Scheduled cron Workers
+│   │   ├── audit-verifier.js            Nightly chain verifier (00:15 UTC)
+│   │   ├── action-processor.js          Action retry/DLQ processor (every 5 min)
+│   │   ├── payroll.js                   Monthly payroll queue trigger (1st of month, 00:00 UTC)
+│   │   ├── wrangler.audit-verifier.toml
+│   │   ├── wrangler.action-processor.toml
+│   │   └── wrangler.payroll.toml
+│   └── queues/         Queue consumer Worker (workdesk-queue-consumer)
+│       ├── job-consumer.js
+│       └── wrangler.toml
 │
 ├── functions/          Cloudflare Pages Functions (serverless API)
 │   └── api/

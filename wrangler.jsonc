@@ -12,5 +12,57 @@
     "directory": ".",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "single-page-application"
-  }
+  },
+
+  // ── D1 Database ──────────────────────────────────────────────────────────
+  // Create with: wrangler d1 create workdesk-db
+  // Then apply schema: wrangler d1 execute workdesk-db --file=database/schema.sql
+  //                    wrangler d1 execute workdesk-db --file=database/migrations/0001_admin_pipeline.sql
+  //
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "workdesk-db",
+  //     "database_id": "YOUR_D1_DATABASE_ID"
+  //   }
+  // ],
+
+  // ── KV Namespace (session store) ─────────────────────────────────────────
+  // Create with: wrangler kv namespace create "SESSIONS"
+  //
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "SESSIONS",
+  //     "id": "YOUR_KV_NAMESPACE_ID"
+  //   }
+  // ],
+
+  // ── R2 Bucket (file uploads) ─────────────────────────────────────────────
+  // Create with: wrangler r2 bucket create workdesk-attachments
+  //
+  // "r2_buckets": [
+  //   {
+  //     "binding": "ATTACHMENTS",
+  //     "bucket_name": "workdesk-attachments"
+  //   }
+  // ],
+
+  // ── Queue Producer (background jobs) ─────────────────────────────────────
+  // Create with: wrangler queues create workdesk-queue
+  //
+  // "queues": {
+  //   "producers": [
+  //     {
+  //       "binding": "WORKDESK_QUEUE",
+  //       "queue": "workdesk-queue"
+  //     }
+  //   ]
+  // },
+
+  // ── Workers AI (AI Assistant — optional) ─────────────────────────────────
+  // Enable Workers AI in Cloudflare Dashboard, then uncomment:
+  //
+  // "ai": {
+  //   "binding": "AI"
+  // }
 }

@@ -1,0 +1,22 @@
+# WorkDesk — Payroll Cron Worker
+# Deploy:
+#   cd workers/cron && wrangler deploy --config wrangler.payroll.toml
+
+name               = "workdesk-payroll-cron"
+main               = "payroll.js"
+compatibility_date = "2025-01-01"
+
+# ── Cron: 1st of every month at 00:00 UTC ─────────────────────────────────────
+[triggers]
+crons = ["0 0 1 * *"]
+
+# ── Cloudflare Queue (producer) ───────────────────────────────────────────────
+# Create with: wrangler queues create workdesk-queue
+#
+# [[queues.producers]]
+# binding    = "WORKDESK_QUEUE"
+# queue      = "workdesk-queue"
+
+# ── Environment variables ─────────────────────────────────────────────────────
+[vars]
+ENVIRONMENT = "production"
