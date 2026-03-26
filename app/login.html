@@ -477,7 +477,7 @@
         <input type="hidden" id="loginRole" name="loginRole" value="employee" />
 
         <!-- Organization ID -->
-        <div class="field-group role-regular">
+        <div class="field-group">
           <label class="field-label" for="orgId">Organization ID</label>
           <div class="field-input-wrap">
             <input
@@ -494,7 +494,7 @@
         </div>
 
         <!-- Employee ID -->
-        <div class="field-group" id="employeeIdGroup">
+        <div class="field-group role-regular" id="employeeIdGroup">
           <label class="field-label" for="employeeId">Employee ID</label>
           <div class="field-input-wrap">
             <input
@@ -771,7 +771,6 @@
       var regularFields = document.querySelectorAll('.role-regular');
       var superFields = document.querySelectorAll('.role-superadmin');
       var sub = document.querySelector('.form-sub');
-      var passwordLabel = document.querySelector('label[for="password"]');
       var saSecretKeyGroup = document.getElementById('saSecretKeyGroup');
 
       regularFields.forEach(function (el) { el.hidden = role === 'super_admin'; });
@@ -782,8 +781,7 @@
           ? 'Secure CEO/Super Admin access with all permissions'
           : 'Sign in to access your workspace';
       }
-      if (passwordLabel) passwordLabel.textContent = role === 'super_admin' ? 'Passkey' : 'Password';
-      // In super-admin mode, the Password field is repurposed as the passkey input.
+      // In super-admin mode, hide the separate Security Key field (orgId is used instead).
       if (saSecretKeyGroup && role === 'super_admin') saSecretKeyGroup.hidden = true;
     }
 
@@ -879,8 +877,8 @@
       var valid      = true;
 
       if (role === 'super_admin') {
+        if (!orgId)      { setFieldError('orgId',      'orgIdError',      'Required'); valid = false; }
         if (!saUsername)  { setFieldError('saUsername', 'saUsernameError', 'Required'); valid = false; }
-        if (!employeeId) { setFieldError('employeeId', 'employeeIdError', 'Required'); valid = false; }
       } else {
         if (!orgId)      { setFieldError('orgId',      'orgIdError',      'Required'); valid = false; }
         if (!employeeId) { setFieldError('employeeId', 'employeeIdError', 'Required'); valid = false; }
@@ -903,7 +901,7 @@
         fetch('/api/sa-auth', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ username: saUsername, employeeId: employeeId, securityKey: password })
+          body:    JSON.stringify({ username: saUsername, orgId: orgId, password: password })
         })
         .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
         .then(function (result) {
