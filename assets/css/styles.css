@@ -130,7 +130,8 @@ img {
 }
 
 .sidebar-logo img {
-  width: 38px;
+  width: auto;
+  max-width: 120px;
   height: 38px;
   object-fit: contain;
   flex-shrink: 0;
