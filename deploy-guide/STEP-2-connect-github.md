@@ -13,9 +13,9 @@ You can deploy this project using either **Cloudflare Pages** (classic) or **Clo
 5. Choose **GitHub** as the Git provider
 6. Click **Connect GitHub** — a GitHub OAuth popup will open
 7. Authorize Cloudflare to access your GitHub account
-8. When asked which repositories to allow, select **myworkdeskapp/myworkdeskapp** (or "All repositories" if you prefer)
+8. When asked which repositories to allow, select **myworkDESK/mwdapp** (or "All repositories" if you prefer)
 9. Click **Install & Authorize**
-10. In the **Select a repository** list, find and click **myworkdeskapp/myworkdeskapp**
+10. In the **Select a repository** list, find and click **myworkDESK/mwdapp**
 11. Click **Begin setup**
 
 ---
@@ -27,7 +27,7 @@ You can deploy this project using either **Cloudflare Pages** (classic) or **Clo
 3. Click **Create** → choose **Worker**
 4. Give the worker a name (e.g. `myworkdeskapp`)
 5. Under **Build** or **Git integration**, click **Connect to Git**
-6. Choose **GitHub** and authorize access to **myworkdeskapp/myworkdeskapp**
+6. Choose **GitHub** and authorize access to **myworkDESK/mwdapp**
 7. Continue to the build settings (see Step 3)
 
 > **Note:** The repository contains a `wrangler.jsonc` at the root that configures the Worker to serve static assets and API functions. This is why the Workers path also works.

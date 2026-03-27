@@ -10,7 +10,7 @@ Before you deploy, make sure you have the following ready.
 
 ## 2. GitHub Account + Repository Access
 - Your code must be in a GitHub repository.
-- Repository: **myworkdeskapp/myworkdeskapp**
+- Repository: **myworkDESK/mwdapp**
 - Make sure you are logged in to GitHub and have at least **read access** to the repo.
 
 ## 3. Your Credentials (keep these handy for Step 4)

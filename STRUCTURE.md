@@ -3,7 +3,7 @@
 ## Directory Layout
 
 ```
-myworkdeskapp/
+mwdapp/
 ├── admin/              Super Admin aliases (entry point + headers)
 │   ├── index.html      Entry point — redirects to /app/login.html
 │   └── _headers        SA-specific security headers (noindex, no-cache)

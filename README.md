@@ -641,7 +641,7 @@ Each level may approve requests from the level directly below it. Managers and a
 ## Project Structure
 
 ```
-myworkdeskapp/
+mwdapp/
 ├── README.md                          ← This file
 ├── FEATURES.md                        ← Authoritative feature reference & API docs
 ├── STRUCTURE.md                       ← Directory layout & URL routes
@@ -1059,7 +1059,7 @@ Since WorkDesk is a zero-build static site, you can preview it instantly with an
 ### Option 2 — Python
 
 ```bash
-cd /path/to/myworkdeskapp
+cd /path/to/mwdapp
 python3 -m http.server 8080
 # Open http://localhost:8080/app/login.html
 ```
