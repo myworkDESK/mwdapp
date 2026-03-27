@@ -455,6 +455,87 @@
       color: #3a6b5e;
     }
 
+    /* ── Role hint (below Employee ID in step 1) ─────── */
+    .role-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      margin-top: -6px;
+    }
+
+    .role-hint.role-employee  { background: #EEF2FF; color: #3730A3; }
+    .role-hint.role-admin     { background: #FFF7ED; color: #92400E; }
+    .role-hint.role-sa        { background: #F0FDF4; color: #14532D; }
+
+    /* ── ID chip (locked Employee ID shown in step 2) ─── */
+    .id-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 9px 14px;
+      margin-bottom: 16px;
+    }
+
+    .id-chip-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    .id-chip-value {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #111827;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .id-chip-change {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--primary-dark);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .id-chip-change:hover { background: rgba(90, 143, 123, 0.10); }
+
+    /* ── Role badge (step 2) ─────── */
+    .role-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      letter-spacing: 0.01em;
+    }
+
+    .role-badge.role-employee  { background: #EEF2FF; color: #4338CA; }
+    .role-badge.role-admin     { background: #FFF7ED; color: #C2410C; }
+    .role-badge.role-sa        { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+
+    #saToggleLink { display: none; }
+
   </style>
 </head>
 <body>
@@ -479,138 +560,128 @@
 
         <input type="hidden" id="loginRole" name="loginRole" value="employee" />
 
-        <!-- Organization ID -->
-        <div class="field-group role-regular" id="orgIdGroup">
-          <label class="field-label" for="orgId">Organization ID</label>
-          <div class="field-input-wrap">
-            <input
-              type="text"
-              id="orgId"
-              name="orgId"
-              class="field-input"
-              placeholder="e.g. acme-corp"
-              autocomplete="off"
-              required
-            />
+        <!-- ── STEP 1: Employee ID ──────────────────────────────────── -->
+        <div id="step1">
+          <div class="field-group" id="employeeIdGroup">
+            <label class="field-label" for="employeeId">Employee ID</label>
+            <div class="field-input-wrap">
+              <input
+                type="text"
+                id="employeeId"
+                name="employeeId"
+                class="field-input"
+                placeholder="e.g. EMP001, ADMIN001, or SA-KEY"
+                autocomplete="username"
+                autofocus
+              />
+            </div>
+            <span class="field-error" id="employeeIdError">Required</span>
           </div>
-          <span class="field-error" id="orgIdError">Required</span>
+
+          <!-- Role detection hint shown while typing -->
+          <div class="role-hint" id="roleHint" hidden>
+            <span id="roleHintText"></span>
+          </div>
+
+          <button type="button" class="btn-submit" id="continueBtn">
+            <span class="btn-label">Continue</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" width="16" height="16" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Employee ID -->
-        <div class="field-group role-regular" id="employeeIdGroup">
-          <label class="field-label" for="employeeId">Employee ID</label>
-          <div class="field-input-wrap">
-            <input
-              type="text"
-              id="employeeId"
-              name="employeeId"
-              class="field-input"
-              placeholder="e.g. john.smith"
-              autocomplete="username"
-              required
-            />
-          </div>
-          <span class="field-error" id="employeeIdError">Required</span>
-        </div>
+        <!-- ── STEP 2: Username + Password ─────────────────────────── -->
+        <div id="step2" hidden>
 
-        <!-- Super Admin Username -->
-        <div class="field-group role-superadmin" id="saUsernameGroup" hidden>
-          <label class="field-label" for="saUsername">Username</label>
-          <div class="field-input-wrap">
-            <input
-              type="text"
-              id="saUsername"
-              name="saUsername"
-              class="field-input"
-              placeholder="super admin username"
-              autocomplete="username"
-            />
+          <!-- Locked Employee ID chip -->
+          <div class="id-chip">
+            <span class="id-chip-label">ID</span>
+            <span class="id-chip-value" id="idChipValue"></span>
+            <button type="button" class="id-chip-change" id="backBtn" aria-label="Change Employee ID">Change</button>
           </div>
-          <span class="field-error" id="saUsernameError">Required</span>
-        </div>
 
-        <!-- Super Admin Security Key -->
-        <div class="field-group role-superadmin" id="saSecretKeyGroup" hidden>
-          <label class="field-label" for="saSecretKey">Security Key</label>
-          <div class="field-input-wrap">
-            <input
-              type="password"
-              id="saSecretKey"
-              name="saSecretKey"
-              class="field-input pwd-input"
-              placeholder="••••••••••••"
-              autocomplete="off"
-            />
-            <button type="button" class="pwd-eye" id="eyeToggleKey" aria-label="Toggle security key visibility">
-              <svg id="eyeIconKey" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          <!-- Detected role badge -->
+          <div class="role-badge" id="roleBadge"></div>
+
+          <!-- Username -->
+          <div class="field-group">
+            <label class="field-label" for="usernameField" id="usernameLabel">Username</label>
+            <div class="field-input-wrap">
+              <input
+                type="text"
+                id="usernameField"
+                name="usernameField"
+                class="field-input"
+                placeholder="Enter your username"
+                autocomplete="username"
+              />
+            </div>
+            <span class="field-error" id="usernameError">Required</span>
+          </div>
+
+          <!-- Password -->
+          <div class="field-group">
+            <label class="field-label" for="password">Password</label>
+            <div class="field-input-wrap">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="field-input pwd-input"
+                placeholder="••••••••••••"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="pwd-eye" id="eyeToggle" aria-label="Toggle password visibility">
+                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="passwordError">Required</span>
+          </div>
+
+          <section class="daily-quote" aria-live="polite">
+            <span class="quote-label">Daily Quote</span>
+            <blockquote>
+              <span id="dailyQuoteText"></span>
+              <cite id="dailyQuoteAuthor"></cite>
+            </blockquote>
+          </section>
+
+          <!-- Sign In button -->
+          <button type="submit" class="btn-submit" id="loginBtn">
+            <span class="btn-label">Sign In</span>
+            <span class="h-spinner" aria-hidden="true"></span>
+          </button>
+
+          <!-- OR separator -->
+          <div class="or-sep">OR</div>
+
+          <!-- SSO buttons -->
+          <div class="sso-row">
+            <button type="button" class="sso-btn" id="googleBtn" aria-label="Sign in with Google">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
+              Google
+            </button>
+            <button type="button" class="sso-btn" id="msBtn" aria-label="Sign in with Microsoft">
+              <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
+                <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
+                <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
+                <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
+              </svg>
+              Microsoft
             </button>
           </div>
-          <span class="field-error" id="saSecretKeyError">Required</span>
-        </div>
 
-        <!-- Password -->
-        <div class="field-group">
-          <label class="field-label" for="password">Password</label>
-          <div class="field-input-wrap">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="field-input pwd-input"
-              placeholder="••••••••••••"
-              autocomplete="current-password"
-              required
-            />
-            <button type="button" class="pwd-eye" id="eyeToggle" aria-label="Toggle password visibility">
-              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="17" height="17">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-            </button>
-          </div>
-          <span class="field-error" id="passwordError">Required</span>
-        </div>
-
-        <section class="daily-quote" aria-live="polite">
-          <span class="quote-label">Daily Quote</span>
-          <blockquote>
-            <span id="dailyQuoteText"></span>
-            <cite id="dailyQuoteAuthor"></cite>
-          </blockquote>
-        </section>
-
-        <!-- Sign In button -->
-        <button type="submit" class="btn-submit" id="loginBtn">
-          <span class="btn-label">Sign In</span>
-          <span class="h-spinner" aria-hidden="true"></span>
-        </button>
-
-        <!-- OR separator -->
-        <div class="or-sep">OR</div>
-
-        <!-- SSO buttons -->
-        <div class="sso-row">
-          <button type="button" class="sso-btn" id="googleBtn" aria-label="Sign in with Google">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Google
-          </button>
-          <button type="button" class="sso-btn" id="msBtn" aria-label="Sign in with Microsoft">
-            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
-              <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
-              <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
-              <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
-            </svg>
-            Microsoft
-          </button>
         </div>
 
       </form>
@@ -618,7 +689,6 @@
       <!-- Bottom links -->
       <div class="bottom-links">
         <span>Need help? <a href="#forgot" id="forgotLink">Forgot Password?</a></span>
-        <a href="#" id="saToggleLink" aria-label="Switch to Super Admin login">Super Admin Login</a>
       </div>
 
     </div>
@@ -744,65 +814,110 @@
     }
 
     function clearFieldErrors() {
-      setFieldError('orgId',      'orgIdError',      null);
-      setFieldError('employeeId', 'employeeIdError', null);
-      setFieldError('password',   'passwordError',   null);
-      setFieldError('saUsername', 'saUsernameError', null);
-      setFieldError('saSecretKey', 'saSecretKeyError', null);
+      setFieldError('employeeId',   'employeeIdError',   null);
+      setFieldError('usernameField', 'usernameError',    null);
+      setFieldError('password',     'passwordError',     null);
     }
 
+    // ── Role inference from Employee ID ──────────────────────────────────────
+    // SA: ID starts with SA/SUPER/CEO (e.g. SA-KEY-001, SUPER-2025, CEO).
+    //     The Employee ID is used as the Security Key for SA authentication.
+    // Admin: ID starts with ADMIN/ADM (e.g. ADMIN-01, ADM001).
+    // Employee: all other IDs.
     function inferRoleFromEmployeeId(employeeId) {
       var id = (employeeId || '').trim().toUpperCase();
       if (!id) return 'employee';
-      // Super Admin IDs must start with SA/SUPER/CEO (e.g. SA-001, SUPER001, CEO123).
       if (/^(SA|SUPER|CEO)([-_].+|[0-9].+)?$/.test(id)) return 'super_admin';
-      // Admin IDs must start with ADMIN/ADM (e.g. ADMIN-01, ADM001).
       if (/^(ADMIN|ADM)([-_].+|[0-9].+)?$/.test(id)) return 'admin';
       return 'employee';
     }
 
-    function syncRoleFromEmployeeId() {
-      var employeeIdInput = document.getElementById('employeeId');
-      var roleInput = document.getElementById('loginRole');
-      if (!employeeIdInput || !roleInput) return;
-      roleInput.value = inferRoleFromEmployeeId(employeeIdInput.value);
-      setRoleMode();
-    }
-
-    function setRoleMode() {
-      var role = (document.getElementById('loginRole') || {}).value || 'employee';
-      var regularFields = document.querySelectorAll('.role-regular');
-      var superFields = document.querySelectorAll('.role-superadmin');
-      var sub = document.querySelector('.form-sub');
-
-      regularFields.forEach(function (el) { el.hidden = role === 'super_admin'; });
-      superFields.forEach(function (el) { el.hidden = role !== 'super_admin'; });
-
-      if (sub) {
-        sub.textContent = role === 'super_admin'
-          ? 'Secure CEO/Super Admin access with all permissions'
-          : 'Sign in to access your workspace';
-      }
-    }
-
-    document.getElementById('orgId').addEventListener('input', function () {
-      setFieldError('orgId', 'orgIdError', null);
-    });
+    // ── Step 1 → update role hint as user types ───────────────────────────────
     document.getElementById('employeeId').addEventListener('input', function () {
       setFieldError('employeeId', 'employeeIdError', null);
-      syncRoleFromEmployeeId();
+      var val  = this.value.trim();
+      var role = inferRoleFromEmployeeId(val);
+      var hint = document.getElementById('roleHint');
+      var hintText = document.getElementById('roleHintText');
+      if (!val) { hint.hidden = true; return; }
+      hint.hidden = false;
+      hint.className = 'role-hint ' +
+        (role === 'super_admin' ? 'role-sa' : role === 'admin' ? 'role-admin' : 'role-employee');
+      hintText.textContent = role === 'super_admin'
+        ? '🔐 Super Admin detected — your Employee ID is your Security Key'
+        : role === 'admin'
+        ? '🛡️ Admin access detected'
+        : '👤 Employee access';
     });
-    document.getElementById('password').addEventListener('input', function () {
-      setFieldError('password', 'passwordError', null);
+
+    // ── Continue button: lock Employee ID, show step 2 ───────────────────────
+    document.getElementById('continueBtn').addEventListener('click', function () {
+      var empId = document.getElementById('employeeId').value.trim();
+      if (!empId) {
+        setFieldError('employeeId', 'employeeIdError', 'Please enter your Employee ID to continue.');
+        return;
+      }
+      setFieldError('employeeId', 'employeeIdError', null);
+
+      var role = inferRoleFromEmployeeId(empId);
+      document.getElementById('loginRole').value = role;
+
+      // Populate ID chip
+      document.getElementById('idChipValue').textContent = empId;
+
+      // Set role badge
+      var badge = document.getElementById('roleBadge');
+      if (role === 'super_admin') {
+        badge.textContent = '🔐 Super Admin';
+        badge.className   = 'role-badge role-sa';
+      } else if (role === 'admin') {
+        badge.textContent = '🛡️ Admin';
+        badge.className   = 'role-badge role-admin';
+      } else {
+        badge.textContent = '👤 Employee';
+        badge.className   = 'role-badge role-employee';
+      }
+
+      // Update sub-heading
+      var sub = document.querySelector('.form-sub');
+      if (sub) {
+        sub.textContent = role === 'super_admin'
+          ? 'Secure Super Admin access — enter your credentials'
+          : 'Sign in to your workspace';
+      }
+
+      // Update username placeholder based on role
+      var usernameInput = document.getElementById('usernameField');
+      if (usernameInput) {
+        usernameInput.placeholder = role === 'super_admin'
+          ? 'Super admin username'
+          : 'Organization / workspace ID';
+      }
+
+      // Switch to step 2
+      document.getElementById('step1').hidden = true;
+      document.getElementById('step2').hidden = false;
+      document.getElementById('usernameField').focus();
     });
-    document.getElementById('saUsername').addEventListener('input', function () {
-      setFieldError('saUsername', 'saUsernameError', null);
+
+    // Allow pressing Enter in Employee ID field to continue
+    document.getElementById('employeeId').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('continueBtn').click();
+      }
     });
-    document.getElementById('saSecretKey').addEventListener('input', function () {
-      setFieldError('saSecretKey', 'saSecretKeyError', null);
+
+    // ── Back button: return to step 1 ────────────────────────────────────────
+    document.getElementById('backBtn').addEventListener('click', function () {
+      document.getElementById('step2').hidden = true;
+      document.getElementById('step1').hidden = false;
+      // Clear step 2 fields
+      document.getElementById('usernameField').value = '';
+      document.getElementById('password').value = '';
+      clearFieldErrors();
+      document.getElementById('employeeId').focus();
     });
-    syncRoleFromEmployeeId();
-    setRoleMode();
 
     // ── Password visibility toggle ────────────────────────────────────────────
     document.getElementById('eyeToggle').addEventListener('click', function () {
@@ -816,16 +931,13 @@
         icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
       }
     });
-    document.getElementById('eyeToggleKey').addEventListener('click', function () {
-      var input  = document.getElementById('saSecretKey');
-      var icon = document.getElementById('eyeIconKey');
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
-      } else {
-        input.type = 'password';
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-      }
+
+    // ── Field input error clear ───────────────────────────────────────────────
+    document.getElementById('usernameField').addEventListener('input', function () {
+      setFieldError('usernameField', 'usernameError', null);
+    });
+    document.getElementById('password').addEventListener('input', function () {
+      setFieldError('password', 'passwordError', null);
     });
 
     // ── Forgot password ───────────────────────────────────────────────────────
@@ -842,7 +954,7 @@
       }
       var empId = document.getElementById('employeeId').value.trim();
       if (!empId) {
-        setFieldError('employeeId', 'employeeIdError', 'Enter Employee ID first.');
+        showToast('Enter your Employee ID first, then click Forgot Password.', false);
         return;
       }
       showToast('Password reset request submitted for Employee ID: ' + empId + '. Contact your HR Team.', false);
@@ -856,21 +968,6 @@
       showToast('Microsoft SSO is configured via your Cloudflare Access policy.', false);
     });
 
-        // ── Super Admin toggle link ───────────────────────────────────────────────
-    document.getElementById('saToggleLink').addEventListener('click', function (e) {
-      e.preventDefault();
-      var roleInput = document.getElementById('loginRole');
-      if (roleInput.value === 'super_admin') {
-        roleInput.value = 'employee';
-      } else {
-        roleInput.value = 'super_admin';
-      }
-      setRoleMode();
-      // Update toggle link text
-      document.getElementById('saToggleLink').textContent =
-        roleInput.value === 'super_admin' ? '← Back to Regular Login' : 'Super Admin Login';
-    });
-
     // ── Login form submit ─────────────────────────────────────────────────────
     document.getElementById('loginForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -878,21 +975,13 @@
 
       var btn        = document.getElementById('loginBtn');
       var role       = document.getElementById('loginRole').value;
-      var orgId      = document.getElementById('orgId').value.trim();
       var employeeId = document.getElementById('employeeId').value.trim();
+      var username   = document.getElementById('usernameField').value.trim();
       var password   = document.getElementById('password').value;
-      var saUsername = document.getElementById('saUsername').value.trim();
-      var saSecretKey = document.getElementById('saSecretKey').value;
       var valid      = true;
 
-      if (role === 'super_admin') {
-        if (!saSecretKey) { setFieldError('saSecretKey', 'saSecretKeyError', 'Required'); valid = false; }
-        if (!saUsername)  { setFieldError('saUsername', 'saUsernameError', 'Required'); valid = false; }
-      } else {
-        if (!orgId)      { setFieldError('orgId',      'orgIdError',      'Required'); valid = false; }
-        if (!employeeId) { setFieldError('employeeId', 'employeeIdError', 'Required'); valid = false; }
-      }
-      if (!password)   { setFieldError('password',   'passwordError',   'Required'); valid = false; }
+      if (!username) { setFieldError('usernameField', 'usernameError', 'Required'); valid = false; }
+      if (!password) { setFieldError('password',      'passwordError', 'Required'); valid = false; }
       if (!valid) return;
 
       var btnLabel = btn.querySelector('.btn-label');
@@ -906,11 +995,13 @@
         btn.disabled = false;
       };
 
+      // ── Super Admin login ─────────────────────────────────────────────────
+      // employeeId = Security Key (orgId), username = SA_USERNAME, password = SA_PASSWORD
       if (role === 'super_admin') {
         fetch('/api/sa-auth', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ username: saUsername, orgId: saSecretKey, password: password })
+          body:    JSON.stringify({ username: username, orgId: employeeId, password: password })
         })
         .then(function (res) { return res.json().then(function (d) { return { status: res.status, data: d }; }); })
         .then(function (result) {
@@ -942,7 +1033,8 @@
         return;
       }
 
-      // Persist display name derived from employee ID
+      // ── Admin / Employee login ────────────────────────────────────────────
+      // employeeId = employee ID, username = org/workspace ID (orgId), password = password
       var nameParts   = employeeId.split(/[._-]/).filter(function (w) { return w.length > 0; });
       var displayName = nameParts.length > 0
         ? nameParts.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ')
@@ -955,7 +1047,7 @@
       fetch('/api/auth', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ orgId: orgId, employeeId: employeeId, password: password, role: role })
+        body:    JSON.stringify({ orgId: username, employeeId: employeeId, password: password, role: role })
       })
       .then(function (res) { return res.json(); })
       .then(function (data) {

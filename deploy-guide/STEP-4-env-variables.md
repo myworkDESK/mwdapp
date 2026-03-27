@@ -17,15 +17,35 @@ On the **Build settings** page scroll down to the **Environment variables (advan
 
 ## Required Variables
 
-### Super-Admin Portal (`/admin`)
+### Super-Admin Portal (`/app/login.html` — Super Admin role)
+
+> **Important:** `SA_SECURITY_KEY` must begin with `SA`, `SUPER`, or `CEO`
+> (e.g. `SA-MyKey123`, `SUPER-SecretKey`, `CEO-2025`) so the login page can
+> automatically detect the Super Admin role when the key is entered as the
+> Employee ID.
 
 | Variable          | Value (your choice)          | Encrypt? |
 |-------------------|------------------------------|----------|
 | `SA_USERNAME`     | e.g. `superadmin`            | ✅ Yes   |
-| `SA_SECURITY_KEY` | e.g. `sk_yourSecretKey123`   | ✅ Yes   |
+| `SA_SECURITY_KEY` | e.g. `SA-yourSecretKey123`   | ✅ Yes   |
 | `SA_PASSWORD`     | e.g. `Admin@StrongPass1`     | ✅ Yes   |
 
+> **Demo / staging defaults (non-production only):** If these variables are not
+> set and `ENVIRONMENT` is not `production`, the backend uses built-in demo
+> credentials: Security Key = `SA-DEMO-2025`, Username = `CEO`,
+> Password = `WorkDesk@2025`. Never use these defaults in a live deployment.
+
 ### Demo / Regular Login (`/app/login.html`)
+
+The login page uses a **2-step flow**:
+1. **Step 1 — Employee ID:** The system auto-detects your role:
+   - `SA-…` / `SUPER-…` / `CEO` → Super Admin
+   - `ADMIN-…` / `ADM-…` → Admin
+   - anything else → Employee
+2. **Step 2 — Username + Password:**
+   - **Super Admin:** Username = `SA_USERNAME`, Password = `SA_PASSWORD`
+     (the Employee ID entered in Step 1 is your Security Key = `SA_SECURITY_KEY`)
+   - **Admin / Employee:** Username = Organization ID (`DEMO_ORG_ID`), Password = `DEMO_PASSWORD`
 
 | Variable           | Value           | Encrypt? |
 |--------------------|-----------------|----------|

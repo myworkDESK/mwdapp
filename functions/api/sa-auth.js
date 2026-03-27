@@ -67,11 +67,13 @@ export async function onRequest(context) {
       });
     }
 
-    const saUsername    = (env.SA_USERNAME     || '').trim();
-    const saSecurityKey = (env.SA_SECURITY_KEY || '').trim();
-    const saPassword    = (env.SA_PASSWORD     || '').trim();
+    const isProduction = String(env.ENVIRONMENT || '').toLowerCase() === 'production';
 
-    // Credentials must be configured in environment variables
+    const saUsername    = (env.SA_USERNAME     || (!isProduction ? 'CEO'          : '')).trim();
+    const saSecurityKey = (env.SA_SECURITY_KEY || (!isProduction ? 'SA-DEMO-2025' : '')).trim();
+    const saPassword    = (env.SA_PASSWORD     || (!isProduction ? 'WorkDesk@2025': '')).trim();
+
+    // In production all three credentials must be explicitly configured
     if (!saUsername || !saSecurityKey || !saPassword) {
       const missing = [
         !saUsername    && 'SA_USERNAME',
