@@ -67,23 +67,13 @@ export async function onRequest(context) {
       });
     }
 
-    const isProduction = String(env.ENVIRONMENT || '').toLowerCase() === 'production';
-
-    const saUsername    = (env.SA_USERNAME     || (!isProduction ? 'CEO'          : '')).trim();
-    const saSecurityKey = (env.SA_SECURITY_KEY || (!isProduction ? 'SA-DEMO-2025' : '')).trim();
-    const saPassword    = (env.SA_PASSWORD     || (!isProduction ? 'WorkDesk@2025': '')).trim();
-
-    // In production all three credentials must be explicitly configured
-    if (!saUsername || !saSecurityKey || !saPassword) {
-      const missing = [
-        !saUsername    && 'SA_USERNAME',
-        !saSecurityKey && 'SA_SECURITY_KEY',
-        !saPassword    && 'SA_PASSWORD',
-      ].filter(Boolean).join(', ');
-      return new Response(JSON.stringify({ ok: false, message: `Super admin access is not configured. Missing: ${missing}` }), {
-        status: 503, headers: corsHeaders,
-      });
-    }
+    // Use configured credentials, falling back to built-in demo defaults when
+    // the SA_* environment variables are not set. Set all three variables in
+    // Cloudflare Pages / Workers settings to replace the demo defaults with
+    // your own credentials.
+    const saUsername    = (env.SA_USERNAME     || 'CEO').trim();
+    const saSecurityKey = (env.SA_SECURITY_KEY || 'SA-DEMO-2025').trim();
+    const saPassword    = (env.SA_PASSWORD     || 'WorkDesk@2025').trim();
 
     // Verify all three credentials simultaneously (timing-attack safe).
     const [usernameOk, securityKeyOk, passwordOk] = await Promise.all([

@@ -55,38 +55,38 @@ export async function onRequest(context) {
       return diff === 0;
     }
 
-    const isProduction = String(env.ENVIRONMENT || '').toLowerCase() === 'production';
-    const hasDemoEnv = Boolean(env.DEMO_ORG_ID && env.DEMO_EMPLOYEE_ID && env.DEMO_PASSWORD);
+    // Resolve credentials, falling back to built-in demo defaults when the
+    // DEMO_* environment variables are not set. Override these in Cloudflare
+    // Pages / Workers settings to use your own values.
+    const demoOrgId      = (env.DEMO_ORG_ID      || 'DEMO').trim();
+    const demoEmployeeId = (env.DEMO_EMPLOYEE_ID  || 'EMP001').trim();
+    const demoPassword   = (env.DEMO_PASSWORD     || 'WorkDesk@2025').trim();
 
-    // In production, require explicit credentials and reject known public defaults.
-    if (isProduction && !hasDemoEnv) {
-      return json({ ok: false, message: 'Authentication is not configured for production.' }, 503);
+    // Admin credentials (optional). If the ADMIN_* env vars are set they take
+    // precedence for the 'admin' role; otherwise the admin and employee share
+    // the same org-ID and password but admin skips the per-employee-ID check
+    // so that any ADMIN-/ADM-prefixed employee ID is accepted.
+    const adminOrgId      = (env.ADMIN_ORG_ID      || demoOrgId).trim();
+    const adminPassword   = (env.ADMIN_PASSWORD     || demoPassword).trim();
+    const adminEmployeeId = (env.ADMIN_EMPLOYEE_ID  || '').trim();
+
+    let valid = false;
+    if (role === 'admin') {
+      const [orgOk, passOk] = await Promise.all([
+        safeEqual(orgId, adminOrgId),
+        safeEqual(password, adminPassword),
+      ]);
+      // Employee-ID check is optional: only enforce if ADMIN_EMPLOYEE_ID is set
+      const empOk = adminEmployeeId ? await safeEqual(employeeId, adminEmployeeId) : true;
+      valid = orgOk && passOk && empOk;
+    } else {
+      const [orgOk, empOk, passOk] = await Promise.all([
+        safeEqual(orgId, demoOrgId),
+        safeEqual(employeeId, demoEmployeeId),
+        safeEqual(password, demoPassword),
+      ]);
+      valid = orgOk && empOk && passOk;
     }
-
-    if (
-      isProduction &&
-      env.DEMO_ORG_ID === 'DEMO' &&
-      env.DEMO_EMPLOYEE_ID === 'EMP001' &&
-      env.DEMO_PASSWORD === 'WorkDesk@2025'
-    ) {
-      return json({ ok: false, message: 'Default demo credentials are blocked in production.' }, 503);
-    }
-
-    // Resolve credentials: use explicit env vars in production; keep built-in
-    // defaults for local evaluation/staging only.
-    //
-    // ⚠️  PRODUCTION WARNING: Replace all three env vars (DEMO_ORG_ID,
-    //     DEMO_EMPLOYEE_ID, DEMO_PASSWORD) with strong, unique values in your
-    //     Cloudflare Pages project settings before handling real user data.
-    //     The built-in defaults are public knowledge and must not be used in
-    //     a live deployment with real employees or sensitive information.
-    const demoOrgId = isProduction ? env.DEMO_ORG_ID : (env.DEMO_ORG_ID || 'DEMO');
-    const demoEmployeeId = isProduction ? env.DEMO_EMPLOYEE_ID : (env.DEMO_EMPLOYEE_ID || 'EMP001');
-    const demoPassword = isProduction ? env.DEMO_PASSWORD : (env.DEMO_PASSWORD || 'WorkDesk@2025');
-    const valid =
-      await safeEqual(orgId, demoOrgId) &&
-      await safeEqual(employeeId, demoEmployeeId) &&
-      await safeEqual(password, demoPassword);
 
     if (!valid) {
       return json({ ok: false, message: 'Invalid Organization ID, Employee ID, or password.' }, 401);
