@@ -518,20 +518,40 @@
           <!-- Detected role badge -->
           <div class="role-badge" id="roleBadge"></div>
 
-          <!-- Username -->
+          <!-- Organization ID / Username -->
           <div class="field-group">
-            <label class="field-label" for="usernameField" id="usernameLabel">Username</label>
+            <label class="field-label" for="usernameField" id="usernameLabel">Organization ID</label>
             <div class="field-input-wrap">
               <input
                 type="text"
                 id="usernameField"
                 name="usernameField"
                 class="field-input"
-                placeholder="Enter your username"
+                placeholder="e.g. DEMO"
                 autocomplete="username"
               />
             </div>
             <span class="field-error" id="usernameError">Required</span>
+          </div>
+
+          <!-- Demo credentials hint (employee / admin only) -->
+          <div id="demoHint" hidden style="
+            background: #EEF2FF;
+            border: 1px solid #C7D2FE;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #3730A3;
+            margin-top: -8px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+          ">
+            <strong>Demo credentials:</strong><br>
+            Organization ID: <code style="background:#C7D2FE;border-radius:4px;padding:1px 5px">DEMO</code>
+            &nbsp;·&nbsp;
+            Employee ID: <code style="background:#C7D2FE;border-radius:4px;padding:1px 5px">EMP001</code>
+            &nbsp;·&nbsp;
+            Password: <code style="background:#C7D2FE;border-radius:4px;padding:1px 5px">WorkDesk@2025</code>
           </div>
 
           <!-- Password -->
@@ -723,12 +743,20 @@
           : 'Sign in to your workspace';
       }
 
-      // Update username placeholder based on role
+      // Update username label and placeholder based on role
       var usernameInput = document.getElementById('usernameField');
+      var usernameLabel = document.getElementById('usernameLabel');
+      var demoHint      = document.getElementById('demoHint');
       if (usernameInput) {
-        usernameInput.placeholder = role === 'super_admin'
-          ? 'Super admin username'
-          : 'Organization / workspace ID';
+        if (role === 'super_admin') {
+          usernameInput.placeholder = 'Super admin username';
+          if (usernameLabel) usernameLabel.textContent = 'Username';
+          if (demoHint) demoHint.hidden = true;
+        } else {
+          usernameInput.placeholder = 'e.g. DEMO';
+          if (usernameLabel) usernameLabel.textContent = 'Organization ID';
+          if (demoHint) demoHint.hidden = false;
+        }
       }
 
       // Switch to step 2
@@ -752,6 +780,11 @@
       // Clear step 2 fields
       document.getElementById('usernameField').value = '';
       document.getElementById('password').value = '';
+      // Reset label and hint to defaults
+      var lbl = document.getElementById('usernameLabel');
+      if (lbl) lbl.textContent = 'Organization ID';
+      var hint = document.getElementById('demoHint');
+      if (hint) hint.hidden = true;
       clearFieldErrors();
       document.getElementById('employeeId').focus();
     });
